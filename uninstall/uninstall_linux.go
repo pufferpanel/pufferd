@@ -23,41 +23,51 @@ func killDaemon(){
 }
 
 func deleteUser(){
-	err := exec.Command("userdel", "-Z", "-r", "-f", "pufferd").Run() //Delete pufferd and it's home dir (/var/lib/pufferd)
+	cmd := exec.Command("userdel", "-Z", "-r", "-f", "pufferd")
+	err := cmd.Run() //Delete pufferd and it's home dir (/var/lib/pufferd)
 
-	/*
-	Need to use status.ExitStatus()
-	*/
 	if err != nil{
-		errCode := err.Error()[len(err.Error())-1]
-		switch errCode{
-			case '6':
-				logging.Error("The pufferd user don't exist.")
-			case '8':
-				logging.Error("The pufferd user is logged in")
-			case '2'://Wrong way, I know
-				logging.Error("	Couldn't remove pufferd directory.")
-			case '0'://Wrong way, I know
-				logging.Error("Couldn't delete pufferd user: couldncan't update group file.")
-			default:
-				logging.Error("Couldn't delete the pufferd group")
+
+		if exitErr, ok := err.(*exec.ExitError); ok {
+
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+				switch status.ExitStatus(){
+					case 6:
+						logging.Error("The pufferd user don't exist", err)
+					case 8:
+						logging.Error("The pufferd user is logged in", err)
+					case 12://Wrong way, I know
+						logging.Error("	Couldn't remove pufferd directory", err)
+					case 10://Wrong way, I know
+						logging.Error("Couldn't update group file", err)
+					
+				}
+			}
 		}
+		logging.Error("Couldn't delete the pufferd user")
 	}
 
 
 
-	err = exec.Command("groupdel", "pufferd").Run()
+
+	cmd = exec.Command("groupdel", "pufferd")
+	err = cmd.Run() 
+
 	if err != nil{
-		errCode := err.Error()[len(err.Error())-1]
-		switch errCode{
-			case '6':
-				logging.Error("The pufferd group don't exist.")
-			case '0'://Wrong way, I know
-				logging.Error("Couldn't delete pufferd group: couldn't update group file.")
-			default:
-				logging.Error("Couldn't delete the pufferd group")
+
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+				switch status.ExitStatus(){
+					case 6:
+						logging.Error("The pufferd group don't exist", err)
+					case 10://Wrong way, I know
+						logging.Error("Couldn't delete pufferd group: couldn't update group file", err)
+				}
+			}
 		}
+		logging.Error("Couldn't delete the pufferd group")
 	}
+
 
 }
 
