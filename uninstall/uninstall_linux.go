@@ -49,26 +49,6 @@ func deleteUser(){
 
 
 
-
-	cmd = exec.Command("groupdel", "pufferd")
-	err = cmd.Run() 
-
-	if err != nil{
-
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				switch status.ExitStatus(){
-					case 6:
-						logging.Error("The pufferd group don't exist", err)
-					case 10://Wrong way, I know
-						logging.Error("Couldn't delete pufferd group: couldn't update group file", err)
-				}
-			}
-		}
-		logging.Error("Couldn't delete the pufferd group")
-	}
-
-
 }
 
 func deleteFiles(){
