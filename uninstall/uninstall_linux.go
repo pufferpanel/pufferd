@@ -54,10 +54,15 @@ func deleteUser(){
 func deleteFiles(){
 
 	//disable service
-	cmd = exec.Command("systemctl", "disable", "pufferd")
+	cmd := exec.Command("systemctl", "disable", "pufferd")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		logging.Error("Error disabling pufferd service, is it installed?", err)
+	}
+	
+	err = exec.Command("rm", "-rf", "/etc/pufferd")
+	if err != nil {
+		logging.Error("Error deleting pufferd configuration, stored in \"/etc/pufferd\"", err)
 	}
 
 	//delete service
