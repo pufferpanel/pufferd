@@ -37,6 +37,7 @@ import (
 	"github.com/pufferpanel/pufferd/data/templates"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/install"
+	"github.com/pufferpanel/pufferd/uninstall"
 	"github.com/pufferpanel/pufferd/logging"
 	"github.com/pufferpanel/pufferd/migration"
 	"github.com/pufferpanel/pufferd/programs"
@@ -63,6 +64,7 @@ func main() {
 	var version bool
 	var license bool
 	var migrate bool
+	var uninstall bool
 	var configPath string
 	flag.StringVar(&loggingLevel, "logging", "INFO", "Lowest logging level to display")
 	flag.IntVar(&webPort, "webport", 5656, "Port to run web service on")
@@ -72,10 +74,32 @@ func main() {
 	flag.BoolVar(&version, "version", false, "Get the version")
 	flag.BoolVar(&license, "license", false, "View license")
 	flag.BoolVar(&migrate, "migrate", false, "Migrate Scales data to pufferd")
+	flag.BoolVar(&uninstall, "uninstall", false, "Uninstall pufferd")
 	flag.StringVar(&configPath, "config", "config.json", "Path to pufferd config.json")
 	flag.Parse()
 
 	versionString := fmt.Sprintf("pufferd %s (%s %s)", VERSION, BUILDDATE, GITHASH)
+
+	if uninstall {
+		fmt.Println("This option will UNINSTALL pufferd, are you sure? [no]")
+		var response string
+		fmt.Scanln(&response)
+		if strings.ToLower(response) == "yes" || strings.ToLower(response) == "y" {
+			if os.Geteuid() == 0{
+				logging.Error("To uninstall pufferd you need to have sudo or root privileges")
+			}
+
+			//Uninstall things:
+			//	Check instance running
+			//		if running, kill instance and check again
+			//	Delete files
+			//	Delete User
+
+		} else {
+			os.Stdout.WriteString("Uninstall process aborted\nExiting")
+			return
+		}
+	}
 
 	if version {
 		os.Stdout.WriteString(versionString + "\r\n")
