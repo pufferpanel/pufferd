@@ -27,24 +27,29 @@ func deleteUser(){
 	err := cmd.Run() //Delete pufferd and it's home dir (/var/lib/pufferd)
 
 	if err != nil{
-
+		flag := false //flag which indicate if the 
 		if exitErr, ok := err.(*exec.ExitError); ok {
-
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+				
 				switch status.ExitStatus(){
 					case 6:
 						logging.Error("The pufferd user don't exist", err)
+						flag = true
 					case 8:
 						logging.Error("The pufferd user is logged in", err)
-					case 12://Wrong way, I know
+						flag = true
+					case 12:
 						logging.Error("	Couldn't remove pufferd directory", err)
-					case 10://Wrong way, I know
+						flag = true
+					case 10:
 						logging.Error("Couldn't update group file", err)
+						flag = true
 					
 				}
 			}
 		}
-		logging.Error("Couldn't delete the pufferd user")
+		if !flag
+			logging.Error("Couldn't delete the pufferd user", err)
 	}
 
 
