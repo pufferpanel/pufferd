@@ -87,6 +87,7 @@ func main() {
 		if strings.ToLower(response) == "yes" || strings.ToLower(response) == "y" {
 			if os.Geteuid() == 0{
 				logging.Error("To uninstall pufferd you need to have sudo or root privileges")
+				return
 			}
 
 			//Uninstall things:
