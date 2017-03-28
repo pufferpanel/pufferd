@@ -60,7 +60,7 @@ func deleteFiles(){
 		logging.Error("Error disabling pufferd service, is it installed?", err)
 	}
 	
-	err = exec.Command("rm", "-rf", "/etc/pufferd")
+	err = os.RemoveAll("/etc/pufferd")
 	if err != nil {
 		logging.Error("Error deleting pufferd configuration, stored in \"/etc/pufferd\"", err)
 	}
