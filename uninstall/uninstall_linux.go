@@ -16,7 +16,7 @@ func StartProcess(){
 }
 
 func killDaemon(){
-	exec.Command("systemctl", "pufferd", "stop").Run()
+	exec.Command("systemctl", "stop", "pufferd").Run()
 	logging.Info("Attempting to kill all pufferd process...")
 	time.Sleep(time.Second * 5)//Giving 5 seconds to kill "correctly" all process
 	exec.Command("killall", "-9" "-u", "pufferd").Run()//"Hard killing" anything
