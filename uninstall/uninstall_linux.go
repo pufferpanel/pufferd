@@ -2,9 +2,11 @@ package uninstall
 
 import (
 	"time"
-	"io/ioutil"
+	//"io/ioutil"
+	"os"
 	"os/exec"
 	"github.com/pufferpanel/pufferd/logging"
+	"github.com/pufferpanel/pufferd/config"
 	"syscall"
 )
 
@@ -19,7 +21,7 @@ func killDaemon(){
 	exec.Command("systemctl", "stop", "pufferd").Run()
 	logging.Info("Attempting to kill all pufferd process...")
 	time.Sleep(time.Second * 5)//Giving 5 seconds to kill "correctly" all process
-	exec.Command("killall", "-9" "-u", "pufferd").Run()//"Hard killing" anything
+	exec.Command("killall", "-9", "-u", "pufferd").Run()//"Hard killing" anything
 }
 
 func deleteUser(){
@@ -48,10 +50,10 @@ func deleteUser(){
 				}
 			}
 		}
-		if !flag
+		if !flag{
 			logging.Error("Couldn't delete the pufferd user", err)
+		}
 	}
-
 
 
 }
@@ -60,13 +62,13 @@ func deleteFiles(){
 
 	//disable service
 	cmd := exec.Command("systemctl", "disable", "pufferd")
-	output, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		logging.Error("Error disabling pufferd service, is it installed?", err)
 	}
 
 	//delete service
-	err :=os.Remove("/etc/systemd/system/pufferd.service")
+	err =os.Remove("/etc/systemd/system/pufferd.service")
 	if err != nil{
 		logging.Error("Error deleting the pufferd service file:", err)
 	}
