@@ -2,7 +2,6 @@ package uninstall
 
 import (
 	"time"
-	//"io/ioutil"
 	"os"
 	"os/exec"
 	"github.com/pufferpanel/pufferd/logging"
