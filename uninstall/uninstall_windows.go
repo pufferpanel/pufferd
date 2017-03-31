@@ -1,11 +1,7 @@
 package uninstall
 
 import (
-	"time"
-	"io/ioutil"
-	"os/exec"
 	"github.com/pufferpanel/pufferd/logging"
-	"syscall"
 )
 
 
