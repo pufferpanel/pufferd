@@ -37,7 +37,7 @@ import (
 	"github.com/pufferpanel/pufferd/data/templates"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/install"
-	"github.com/pufferpanel/pufferd/uninstall"
+	"github.com/pufferpanel/pufferd/uninstaller"
 	"github.com/pufferpanel/pufferd/logging"
 	"github.com/pufferpanel/pufferd/migration"
 	"github.com/pufferpanel/pufferd/programs"
@@ -89,7 +89,7 @@ func main() {
 				logging.Error("To uninstall pufferd you need to have sudo or root privileges")
 				return
 			}
-			uninstall.StartProcess()
+			uninstaller.StartProcess()
 
 		} else {
 			os.Stdout.WriteString("Uninstall process aborted\nExiting")
