@@ -1,7 +1,8 @@
-package uninstall
+package uninstaller
 
 import (
 	"github.com/pufferpanel/pufferd/logging"
+	"github.com/pufferpanel/pufferd/config"
 	"os"
 )
 
@@ -11,7 +12,7 @@ func StartProcess(){
 }
 
 func deleteFiles(){
-err = os.RemoveAll(config.Get("serverfolder"))
+err := os.RemoveAll(config.Get("serverfolder"))
 	if err != nil {
 		logging.Error("Error deleting pufferd server folder, stored in %s",config.Get("serverfolder") , err)
 	}
