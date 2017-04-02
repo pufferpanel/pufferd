@@ -1,4 +1,4 @@
-package uninstall
+package uninstaller
 
 import (
 	"time"
