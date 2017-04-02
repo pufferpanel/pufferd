@@ -80,6 +80,14 @@ func main() {
 
 	versionString := fmt.Sprintf("pufferd %s (%s %s)", VERSION, BUILDDATE, GITHASH)
 
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+                if _, err := os.Stat("/etc/pufferd/config.json"); err == nil {
+                        configPath="/etc/pufferd/config.json"
+		}else{
+			logging.Error("Cannot find a config file!\npufferd could be unstable")
+		}
+        }
+	
 	if uninstall {
 		fmt.Println("This option will UNINSTALL pufferd, are you sure? [no]")
 		var response string
