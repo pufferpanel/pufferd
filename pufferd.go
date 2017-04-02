@@ -89,6 +89,7 @@ func main() {
 				logging.Error("To uninstall pufferd you need to have sudo or root privileges")
 			}
 			uninstaller.StartProcess()
+			logging.Info("pufferd is now uninstalled.")
 
 		} else {
 			os.Stdout.WriteString("Uninstall process aborted\nExiting")
