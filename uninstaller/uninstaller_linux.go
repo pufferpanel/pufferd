@@ -14,6 +14,7 @@ func StartProcess(){
 	killDaemon()
 	deleteFiles()
 	deleteUser()
+	return
 }
 
 func killDaemon(){
