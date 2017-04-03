@@ -96,11 +96,11 @@ func main() {
 		if strings.ToLower(response) == "yes" || strings.ToLower(response) == "y" {
 			if os.Geteuid() != 0{
 				logging.Error("To uninstall pufferd you need to have sudo or root privileges")
+			}else{
+				config.Load(configPath)
+				uninstaller.StartProcess()
+				logging.Info("pufferd is now uninstalled.")
 			}
-			config.Load(configPath)
-			uninstaller.StartProcess()
-			logging.Info("pufferd is now uninstalled.")
-
 		} else {
 			logging.Info("Uninstall process aborted")
 			logging.Info("Exiting")
