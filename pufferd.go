@@ -82,7 +82,8 @@ func main() {
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
                 if _, err := os.Stat("/etc/pufferd/config.json"); err == nil {
-                        configPath="/etc/pufferd/config.json"
+			logging.Info("I did not find the config file you udes, but I did find a config file in the \"/etc/pufferd/config.json\" path. Using it.")
+			configPath="/etc/pufferd/config.json"
 		}else{
 			logging.Error("Cannot find a config file!")
 			logging.Warn("pufferd could be unstable")
