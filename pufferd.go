@@ -84,7 +84,8 @@ func main() {
                 if _, err := os.Stat("/etc/pufferd/config.json"); err == nil {
                         configPath="/etc/pufferd/config.json"
 		}else{
-			logging.Error("Cannot find a config file!\npufferd could be unstable")
+			logging.Error("Cannot find a config file!")
+			logging.Warn("pufferd could be unstable")
 		}
         }
 	
@@ -101,7 +102,8 @@ func main() {
 			logging.Info("pufferd is now uninstalled.")
 
 		} else {
-			os.Stdout.WriteString("Uninstall process aborted\nExiting")
+			logging.Info("Uninstall process aborted")
+			logging.Info("Exiting")
 		}
 		return
 	}
