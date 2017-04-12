@@ -37,13 +37,13 @@ import (
 	"github.com/pufferpanel/pufferd/data/templates"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/install"
-	"github.com/pufferpanel/pufferd/uninstaller"
 	"github.com/pufferpanel/pufferd/logging"
 	"github.com/pufferpanel/pufferd/migration"
 	"github.com/pufferpanel/pufferd/programs"
 	"github.com/pufferpanel/pufferd/routing"
 	"github.com/pufferpanel/pufferd/routing/server"
 	"github.com/pufferpanel/pufferd/sftp"
+	"github.com/pufferpanel/pufferd/uninstaller"
 	"github.com/pufferpanel/pufferd/utils"
 )
 
@@ -81,23 +81,23 @@ func main() {
 	versionString := fmt.Sprintf("pufferd %s (%s %s)", VERSION, BUILDDATE, GITHASH)
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-                if _, err := os.Stat("/etc/pufferd/config.json"); err == nil {
+		if _, err := os.Stat("/etc/pufferd/config.json"); err == nil {
 			logging.Info("No config passed, defaulting to /etc/pufferd/config.json")
-			configPath="/etc/pufferd/config.json"
-		}else{
+			configPath = "/etc/pufferd/config.json"
+		} else {
 			logging.Error("Cannot find a config file!")
 			logging.Warn("pufferd could be unstable")
 		}
-        }
-	
+	}
+
 	if uninstall {
 		fmt.Println("This option will UNINSTALL pufferd, are you sure? [no]")
 		var response string
 		fmt.Scanln(&response)
 		if strings.ToLower(response) == "yes" || strings.ToLower(response) == "y" {
-			if os.Geteuid() != 0{
+			if os.Geteuid() != 0 {
 				logging.Error("To uninstall pufferd you need to have sudo or root privileges")
-			}else{
+			} else {
 				config.Load(configPath)
 				uninstaller.StartProcess()
 				logging.Info("pufferd is now uninstalled.")

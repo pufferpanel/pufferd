@@ -1,64 +1,62 @@
 package uninstaller
 
 import (
-	"time"
+	"github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/pufferd/logging"
 	"os"
 	"os/exec"
-	"github.com/pufferpanel/pufferd/logging"
-	"github.com/pufferpanel/pufferd/config"
 	"syscall"
+	"time"
 )
 
-
-func StartProcess(){
+func StartProcess() {
 	killDaemon()
 	deleteFiles()
 	deleteUser()
 	return
 }
 
-func killDaemon(){
+func killDaemon() {
 	exec.Command("systemctl", "stop", "pufferd").Run()
 	logging.Info("Attempting to kill all pufferd process...")
-	time.Sleep(time.Second * 15)//Giving 5 seconds to kill "correctly" all process
-	exec.Command("killall", "-9", "-u", "pufferd").Run()//"Hard killing" anything
+	time.Sleep(time.Second * 15)                         //Giving 5 seconds to kill "correctly" all process
+	exec.Command("killall", "-9", "-u", "pufferd").Run() //"Hard killing" anything
 }
 
-func deleteUser(){
+func deleteUser() {
 	cmd := exec.Command("userdel", "-Z", "-r", "-f", "pufferd")
 	err := cmd.Run() //Delete pufferd and it's home dir (/var/lib/pufferd)
 
-	if err != nil{
-		flag := false //flag which indicate if the 
+	if err != nil {
+		flag := false //flag which indicate if the
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				
-				switch status.ExitStatus(){
-					case 6:
-						logging.Error("The pufferd user don't exist" + err)
-						flag = true
-					case 8:
-						logging.Error("The pufferd user is logged in" + err)
-						flag = true
-					case 12:
-						logging.Error("Couldn't remove pufferd directory" + err)
-						flag = true
-					case 10:
-						logging.Error("Couldn't update group file" + err)
-						flag = true
-					
+
+				switch status.ExitStatus() {
+				case 6:
+					logging.Error("The pufferd user don't exist" + err)
+					flag = true
+				case 8:
+					logging.Error("The pufferd user is logged in" + err)
+					flag = true
+				case 12:
+					logging.Error("Couldn't remove pufferd directory" + err)
+					flag = true
+				case 10:
+					logging.Error("Couldn't update group file" + err)
+					flag = true
+
 				}
 			}
 		}
-		if !flag{
+		if !flag {
 			logging.Error("Couldn't delete the pufferd user", err)
 		}
 	}
 
-
 }
 
-func deleteFiles(){
+func deleteFiles() {
 
 	//disable service
 	cmd := exec.Command("systemctl", "disable", "pufferd")
@@ -68,8 +66,8 @@ func deleteFiles(){
 	}
 
 	//delete service
-	err =os.Remove("/etc/systemd/system/pufferd.service")
-	if err != nil{
+	err = os.Remove("/etc/systemd/system/pufferd.service")
+	if err != nil {
 		logging.Error("Error deleting the pufferd service file:", err)
 	}
 
@@ -88,7 +86,4 @@ func deleteFiles(){
 		logging.Error("Error deleting pufferd data folder, stored in " + config.Get("datafolder") + err)
 	}
 
-
 }
-
-

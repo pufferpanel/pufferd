@@ -1,18 +1,17 @@
 package uninstaller
 
 import (
-	"github.com/pufferpanel/pufferd/logging"
 	"github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/pufferd/logging"
 	"os"
 )
 
-
-func StartProcess(){
+func StartProcess() {
 	deleteFiles()
 }
 
-func deleteFiles(){
-err := os.RemoveAll(config.Get("serverfolder"))
+func deleteFiles() {
+	err := os.RemoveAll(config.Get("serverfolder"))
 	if err != nil {
 		logging.Error("Error deleting pufferd server folder, stored in " + config.Get("serverfolder") + err)
 	}
