@@ -35,16 +35,16 @@ func deleteUser(){
 				
 				switch status.ExitStatus(){
 					case 6:
-						logging.Error("The pufferd user don't exist", err)
+						logging.Error("The pufferd user don't exist" + err)
 						flag = true
 					case 8:
-						logging.Error("The pufferd user is logged in", err)
+						logging.Error("The pufferd user is logged in" + err)
 						flag = true
 					case 12:
-						logging.Error("	Couldn't remove pufferd directory", err)
+						logging.Error("Couldn't remove pufferd directory" + err)
 						flag = true
 					case 10:
-						logging.Error("Couldn't update group file", err)
+						logging.Error("Couldn't update group file" + err)
 						flag = true
 					
 				}
@@ -75,17 +75,17 @@ func deleteFiles(){
 
 	err = os.RemoveAll(config.Get("serverfolder"))
 	if err != nil {
-		logging.Error("Error deleting pufferd server folder, stored in %s",config.Get("serverfolder") , err)
+		logging.Error("Error deleting pufferd server folder, stored in " + config.Get("serverfolder") + err)
 	}
 
 	err = os.RemoveAll(config.Get("templatefolder"))
 	if err != nil {
-		logging.Error("Error deleting pufferd template folder, stored in %s",config.Get("templatefolder") , err)
+		logging.Error("Error deleting pufferd template folder, stored in " + config.Get("templatefolder") + err)
 	}
 
 	err = os.RemoveAll(config.Get("datafolder"))
 	if err != nil {
-		logging.Error("Error deleting pufferd data folder, stored in %s",config.Get("datafolder") , err)
+		logging.Error("Error deleting pufferd data folder, stored in " + config.Get("datafolder") + err)
 	}
 
 
