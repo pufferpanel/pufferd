@@ -21,7 +21,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"fmt"
 
@@ -193,10 +192,6 @@ func main() {
 		if element.IsEnabled() {
 			logging.Info("Starting server " + element.Id())
 			element.Start()
-			err := programs.Save(element.Id())
-			if err != nil {
-				logging.Error("Error saving server file", err)
-			}
 		}
 	}
 
@@ -243,13 +238,9 @@ func main() {
 
 	web := config.GetOrDefault("web", config.GetOrDefault("webhost", "0.0.0.0")+":"+config.GetOrDefault("webport", "5656"))
 
-	portIndex := strings.LastIndex(web, ":")
-	webHost := web[:portIndex]
-	webPort, _ := strconv.Atoi(web[portIndex+1:])
-
 	shutdown.CreateHook()
 
-	logging.Infof("Starting web access on %s:%d", webHost, webPort)
+	logging.Infof("Starting web access on %s", web)
 	var err error
 	if useHttps {
 		err = manners.ListenAndServeTLS(web, httpsPem, httpsKey, r)
