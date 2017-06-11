@@ -62,6 +62,9 @@ func CopyTemplates() {
 
 	data = Pocketmine
 	writeFile("pocketmine", data)
+
+	data = FACTORIO
+	writeFile("factorio", data)
 }
 
 func writeFile(name string, data string) {
