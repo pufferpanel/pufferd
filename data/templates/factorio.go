@@ -39,11 +39,11 @@ const FACTORIO = `{
       "pre": [],
       "post": [],
       "arguments": [
-      	"--port",
-      	"${port}",
-      	"--bind",
-      	"${ip}",
-      	"--start-server",
+        "--port",
+        "${port}",
+        "--bind",
+        "${ip}",
+        "--start-server",
         "${save}",
         "--server-settings",
         "${server-settings}"
