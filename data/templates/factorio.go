@@ -19,23 +19,23 @@ package templates
 const FACTORIO = `{
   "pufferd": {
     "type": "factorio",
+    "display":"Factorio",
     "install": {
       "commands": [
         {
-          "files": "https://www.factorio.com/get-download/${version}/headless/linux64",
-          "type": "download"
-        },
-        {
           "commands": [
+          "curl -L -o factorio.tar.xz https://www.factorio.com/get-download/${version}/headless/linux64",
             "mkdir factorio",
-            "tar --no-same-owner -xzvf factorio_headless_x64_${version}.tar.xz -C factorio",
+            "tar --no-same-owner -xvf factorio.tar.xz",
+            "cp factorio/data/server-settings.example.json factorio/data/server-settings.json",
+            "./factorio/bin/x64/factorio --create saves/default.zip"
           ],
           "type": "command"
         }
       ]
     },
     "run": {
-      "stop": "/c game.server_save() \x03",
+      "stop": "/quit",
       "pre": [],
       "post": [],
       "arguments": [
@@ -43,11 +43,10 @@ const FACTORIO = `{
       	"${port}",
       	"--bind",
       	"${ip}",
-        "--autosave-interval",
-        "${autosave_interval}",
-        "--autosave-slots",
-        "${AUTOSAVE_SLOTS}",
-      	"--start-server-load-latest",
+      	"--start-server",
+        "${save}",
+        "--server-settings",
+        "${server-settings}"
       ],
       "program": "./factorio/bin/x64/factorio"
     },
@@ -63,7 +62,7 @@ const FACTORIO = `{
         "internal": true
       },
       "save": {
-        "value": "default.zip",
+        "value": "saves/default.zip",
         "required": true,
         "desc": "Save File to Use",
         "display": "Save File to Use",
@@ -82,19 +81,12 @@ const FACTORIO = `{
         "desc": "What port to bind the server to",
         "display": "Port",
         "internal": false
-      }
-       "autosave-interval": {
-        "value": "60",
+      },
+      "server-settings": {
+        "value": "factorio/data/server-settings.json",
         "required": true,
-        "desc": "How often to autosave",
-        "display": "Autosave Interval",
-        "internal": false
-      }
-       "autosave-slots": {
-        "value": "20",
-        "required": true,
-        "desc": "Number of autosave slots",
-        "display": "Autosave Slots",
+        "desc": "Server Settings File Location",
+        "display": "Server Settings JSON",
         "internal": false
       }
     }
