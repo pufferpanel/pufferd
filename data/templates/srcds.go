@@ -211,7 +211,7 @@ const CSGO = `{
         "+game_mode",
         "${gamemode}",
         "+game_type",
-        "${gametype}"
+        "${gametype}",
         "-net_port_try 1",
         "-norestart"
       ],
@@ -261,13 +261,6 @@ const CSGO = `{
         "required": true,
         "desc": "What port to bind the clientport to",
         "display": "Client Port",
-        "internal": false
-      },
-      "tvport": {
-        "value": "27017",
-        "required": true,
-        "desc": "What port to bind the GOTV to",
-        "display": "GOTV Port",
         "internal": false
       },
       "tvport": {
