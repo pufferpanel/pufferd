@@ -123,7 +123,6 @@ func KillServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(programs.Program)
 
-
 	err := server.Kill()
 	if err != nil {
 		errorConnection(c, err)
@@ -137,7 +136,7 @@ func CreateServer(c *gin.Context) {
 	serverId := c.Param("id")
 	prg, _ := programs.Get(serverId)
 
-	if prg != nil{
+	if prg != nil {
 		http.Respond(c).Code(409).Message("server already exists").Send()
 		return
 	}
@@ -300,10 +299,10 @@ func PutFile(c *gin.Context) {
 	var sourceFile io.ReadCloser
 
 	if noform {
+		sourceFile = c.Request.Body
+	} else {
 		c.Request.ParseMultipartForm(32 << 20)
 		sourceFile, _, err = c.Request.FormFile("file")
-	} else {
-		sourceFile = c.Request.Body
 	}
 
 	_, err = io.Copy(file, sourceFile)
