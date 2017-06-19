@@ -190,19 +190,32 @@ const CSGO = `{
       "pre": [],
       "post": [],
       "arguments": [
-        "+ip",
-        "${ip}",
-        "+port",
-        "${port}",
         "-game",
         "csgo",
-        "-console",
+        "-usercon",
+        "-strictportbind",
+        "-ip",
+        "${ip}",
+        "-port",
+        "${port}",
+        "+clientport",
+        "${clientport}",
+        "+tv_port",
+        "${tvport}",
         "+map",
         "${map}",
-        "+maxplayers",
+        "-maxplayers_override",
         "${maxplayers}",
         "+sv_setsteamaccount",
         "${gslt}",
+        "-tickrate",
+        "${tickrate}",
+        "+mapgroup",
+        "${mapgroup}",
+        "+game_mode",
+        "${gamemode}",
+        "+game_type",
+        "${gametype}",
         "-net_port_try 1",
         "-norestart"
       ],
@@ -245,6 +258,48 @@ const CSGO = `{
         "required": true,
         "desc": "What port to bind the server to",
         "display": "Port",
+        "internal": false
+      },
+      "clientport": {
+        "value": "27016",
+        "required": true,
+        "desc": "What port to bind the clientport to",
+        "display": "Client Port",
+        "internal": false
+      },
+      "tvport": {
+        "value": "27017",
+        "required": true,
+        "desc": "What port to bind the GOTV to",
+        "display": "GOTV Port",
+        "internal": false
+      },
+      "tickrate": {
+        "value": "64",
+        "required": true,
+        "desc": "Server tick rate",
+        "display": "Tickrate",
+        "internal": false
+      },
+      "mapgroup": {
+        "value": "mg_active",
+        "required": true,
+        "desc": "(Advanced) Map group",
+        "display": "Map group",
+        "internal": false
+      },
+      "gamemode": {
+        "value": "0",
+        "required": true,
+        "desc": "(Advanced) Gamemode",
+        "display": "Gamemode",
+        "internal": false
+      },
+      "gametype": {
+        "value": "0",
+        "required": true,
+        "desc": "(Advanced) Gametype",
+        "display": "Gametype",
         "internal": false
       }
     }

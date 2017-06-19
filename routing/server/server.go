@@ -28,8 +28,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/itsjamie/gin-cors"
 	"github.com/pkg/errors"
+	"github.com/pufferpanel/apufferi/http"
 	ppErrors "github.com/pufferpanel/pufferd/errors"
-	"github.com/pufferpanel/pufferd/http"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/logging"
 	"github.com/pufferpanel/pufferd/programs"
@@ -77,7 +77,7 @@ func RegisterRoutes(e *gin.Engine) {
 			Origins:     "*",
 			Credentials: true,
 		}), GetConsole)
-		l.GET("/:id/logs", httphandlers.OAuth2Handler("server.logs", true), GetLogs)
+		l.GET("/:id/logs", httphandlers.OAuth2Handler("server.log", true), GetLogs)
 
 		l.GET("/:id/stats", httphandlers.OAuth2Handler("server.stats", true), GetStats)
 
@@ -137,7 +137,7 @@ func CreateServer(c *gin.Context) {
 	prg, _ := programs.Get(serverId)
 
 	if prg != nil {
-		http.Respond(c).Code(409).Message("server already exists").Send()
+		http.Respond(c).Status(409).Message("server already exists").Send()
 		return
 	}
 
@@ -146,7 +146,7 @@ func CreateServer(c *gin.Context) {
 
 	if err != nil {
 		logging.Error("Error decoding JSON body", err)
-		http.Respond(c).Code(400).Message("error parsing json").Data(err).MessageCode(http.MALFORMEDJSON).Send()
+		http.Respond(c).Status(400).Message("error parsing json").Data(err).Code(http.MALFORMEDJSON).Send()
 		return
 	}
 
@@ -164,7 +164,7 @@ func DeleteServer(c *gin.Context) {
 	prg := item.(programs.Program)
 	err := programs.Delete(prg.Id())
 	if err != nil {
-		http.Respond(c).Code(500).Data(err).Message("error deleting server").Send()
+		http.Respond(c).Status(500).Data(err).Message("error deleting server").Send()
 	} else {
 		http.Respond(c).Send()
 	}
@@ -201,7 +201,7 @@ func GetFile(c *gin.Context) {
 	targetFile := utils.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
 
 	if !utils.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		http.Respond(c).Code(403).Message("invalid file path").Code(http.NOTAUTHORIZED).Send()
+		http.Respond(c).Status(403).Message("invalid file path").Status(http.NOTAUTHORIZED).Send()
 		return
 	}
 
@@ -249,7 +249,7 @@ func GetFile(c *gin.Context) {
 		_, err := os.Open(targetFile)
 		if err != nil {
 			if err == os.ErrNotExist {
-				http.Respond(c).Code(404).MessageCode(http.NOFILE).Send()
+				http.Respond(c).Status(404).Code(http.NOFILE).Send()
 			} else {
 				errorConnection(c, err)
 			}
@@ -272,7 +272,7 @@ func PutFile(c *gin.Context) {
 	targetFile := utils.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
 
 	if !utils.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		http.Respond(c).Code(403).Message("invalid file path").Code(http.NOTAUTHORIZED).Send()
+		http.Respond(c).Status(403).Message("invalid file path").Status(http.NOTAUTHORIZED).Send()
 		return
 	}
 
@@ -324,7 +324,7 @@ func DeleteFile(c *gin.Context) {
 	targetFile := utils.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
 
 	if !utils.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		http.Respond(c).Code(403).Message("invalid file path").Code(http.NOTAUTHORIZED).Send()
+		http.Respond(c).Status(403).Message("invalid file path").Status(http.NOTAUTHORIZED).Send()
 		return
 	}
 
@@ -378,9 +378,9 @@ func GetStats(c *gin.Context) {
 		result["error"] = err.Error()
 		_, isOffline := err.(ppErrors.ServerOffline)
 		if isOffline {
-			http.Respond(c).Data(result).Code(200).Send()
+			http.Respond(c).Data(result).Status(200).Send()
 		} else {
-			http.Respond(c).Data(result).Code(500).Send()
+			http.Respond(c).Data(result).Status(500).Send()
 		}
 	} else {
 		http.Respond(c).Data(results).Send()
@@ -403,7 +403,7 @@ func NetworkServer(c *gin.Context) {
 
 	servers := c.DefaultQuery("ids", "")
 	if servers == "" {
-		http.Respond(c).Code(400).MessageCode(http.NOSERVERID).Message("no server ids provided").Send()
+		http.Respond(c).Status(400).Code(http.NOSERVERID).Message("no server ids provided").Send()
 		return
 	}
 	serverIds := strings.Split(servers, ",")
@@ -443,5 +443,5 @@ func GetLogs(c *gin.Context) {
 }
 
 func errorConnection(c *gin.Context, err error) {
-	http.Respond(c).Code(500).MessageCode(http.UNKNOWN).Data(err).Message("error handling request").Send()
+	http.Respond(c).Status(500).Code(http.UNKNOWN).Data(err).Message("error handling request").Send()
 }

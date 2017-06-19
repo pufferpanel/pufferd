@@ -30,7 +30,7 @@ import (
 	"github.com/pufferpanel/pufferd/logging"
 	"time"
 	"github.com/pufferpanel/pufferd/utils"
-	pufferdHttp "github.com/pufferpanel/pufferd/http"
+	pufferdHttp "github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/pufferd/programs"
 )
 
@@ -50,14 +50,14 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 		if authHeader == "" {
 			authToken = gin.Query("accessToken")
 			if authToken == "" {
-				pufferdHttp.Respond(gin).Fail().MessageCode(pufferdHttp.NOTAUTHORIZED).Code(400).Message("no access token provided");
+				pufferdHttp.Respond(gin).Fail().Code(pufferdHttp.NOTAUTHORIZED).Status(400).Message("no access token provided");
 				gin.Abort()
 				return
 			}
 		} else {
 			authArr := strings.SplitN(authHeader, " ", 2)
 			if len(authArr) < 2 || authArr[0] != "Bearer" {
-				pufferdHttp.Respond(gin).MessageCode(pufferdHttp.NOTAUTHORIZED).Fail().Code(400).Message("invalid access token format");
+				pufferdHttp.Respond(gin).Code(pufferdHttp.NOTAUTHORIZED).Fail().Status(400).Message("invalid access token format");
 				gin.Abort()
 				return
 			}
@@ -78,7 +78,7 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 		if (scope != "") {
 			scopes := rawScopes.([]string)
 			if (!utils.ContainsValue(scopes, scope)) {
-				pufferdHttp.Respond(gin).Fail().Code(403).MessageCode(pufferdHttp.NOTAUTHORIZED).Message("missing scope " + scope).Send()
+				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("missing scope " + scope).Send()
 				gin.Abort()
 				return
 			}
@@ -99,13 +99,13 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 			}
 
 			if program == nil {
-				pufferdHttp.Respond(gin).Fail().Code(404).MessageCode(pufferdHttp.NOSERVER).Message("no server with id " + serverId).Send()
+				pufferdHttp.Respond(gin).Fail().Status(404).Code(pufferdHttp.NOSERVER).Message("no server with id " + serverId).Send()
 				gin.Abort()
 				return
 			}
 
 			if accessId != program.Id() && accessId != "*" {
-				pufferdHttp.Respond(gin).Fail().Code(403).MessageCode(pufferdHttp.NOTAUTHORIZED).Message("invalid server access").Send()
+				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("invalid server access").Send()
 				gin.Abort()
 				return
 			}
@@ -126,6 +126,7 @@ func validateToken(accessToken string, gin *gin.Context) {
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	response, err := client.Do(request)
+	defer response.Body.Close()
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
 		errMsg := make(map[string]string)
