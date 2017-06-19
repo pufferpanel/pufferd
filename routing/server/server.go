@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"mime"
 	gohttp "net/http"
 	"os"
 	"path/filepath"
@@ -287,6 +288,7 @@ func PutFile(c *gin.Context) {
 		return
 	}
 	file, err := os.Create(targetFile)
+	defer file.Close()
 
 	if err != nil {
 		errorConnection(c, err)
@@ -294,23 +296,20 @@ func PutFile(c *gin.Context) {
 		return
 	}
 
-	_, noform := c.GetQuery("noform")
-
 	var sourceFile io.ReadCloser
 
-	if noform {
-		sourceFile = c.Request.Body
-	} else {
-		c.Request.ParseMultipartForm(32 << 20)
+	v := c.Request.Header.Get("Content-Type")
+	if t, _, _ := mime.ParseMediaType(v); t == "multipart/form-data" {
 		sourceFile, _, err = c.Request.FormFile("file")
+	} else {
+		sourceFile = c.Request.Body
 	}
-
-	_, err = io.Copy(file, sourceFile)
 
 	if err != nil {
 		errorConnection(c, err)
 		logging.Error("Error writing file", err)
 	} else {
+		_, err = io.Copy(file, sourceFile)
 		http.Respond(c).Send()
 	}
 }
