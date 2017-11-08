@@ -3,5 +3,5 @@ language: go
 go_import_path: github.com/pufferpanel/pufferd
 
 go:
-  - master
+  - 1.9
   - 1.8
