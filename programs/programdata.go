@@ -32,6 +32,8 @@ type RunObject struct {
 	AutoStart               bool     `json:"autostart"`
 	AutoRestartFromCrash    bool     `json:"autorecover"`
 	AutoRestartFromGraceful bool     `json:"autorestart"`
+	Pre                     []string `json:"pre"`
+	Post                    []string `json:"post"`
 }
 
 type InstallSection struct {
