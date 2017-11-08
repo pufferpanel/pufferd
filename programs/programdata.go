@@ -25,15 +25,15 @@ type DataObject struct {
 }
 
 type RunObject struct {
-	Arguments               []string `json:"arguments"`
-	Program                 string   `json:"program"`
-	Stop                    string   `json:"stop"`
-	Enabled                 bool     `json:"enabled"`
-	AutoStart               bool     `json:"autostart"`
-	AutoRestartFromCrash    bool     `json:"autorecover"`
-	AutoRestartFromGraceful bool     `json:"autorestart"`
-	Pre                     []string `json:"pre"`
-	Post                    []string `json:"post"`
+	Arguments               []string                 `json:"arguments"`
+	Program                 string                   `json:"program"`
+	Stop                    string                   `json:"stop"`
+	Enabled                 bool                     `json:"enabled"`
+	AutoStart               bool                     `json:"autostart"`
+	AutoRestartFromCrash    bool                     `json:"autorecover"`
+	AutoRestartFromGraceful bool                     `json:"autorestart"`
+	Pre                     []map[string]interface{} `json:"pre"`
+	Post                    []map[string]interface{} `json:"post"`
 }
 
 type InstallSection struct {
