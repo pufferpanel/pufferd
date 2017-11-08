@@ -33,7 +33,6 @@ type RunObject struct {
 	AutoRestartFromCrash    bool                     `json:"autorecover"`
 	AutoRestartFromGraceful bool                     `json:"autorestart"`
 	Pre                     []map[string]interface{} `json:"pre"`
-	Post                    []map[string]interface{} `json:"post"`
 }
 
 type InstallSection struct {
@@ -55,6 +54,7 @@ func CreateProgram() ProgramData{
 		RunData: RunObject{
 			Enabled: true,
 			AutoStart: true,
+			Pre: make([]map[string]interface{}, 0),
 		},
 		Type: "standard",
 		Data: make(map[string]DataObject, 0),
