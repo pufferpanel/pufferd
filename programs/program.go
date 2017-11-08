@@ -95,6 +95,12 @@ func (p *ProgramData) Start() (err error) {
 		data[k] = v.Value
 	}
 
+	operationList := make([]ops.Operation, 0)
+	for _, element := range common.ToStringArray(p.RunData.Pre) {
+		operationList = append(operationList, &ops.Command{Command: common.ReplaceTokens(element, datamap), Environment: environment})
+	}
+	operations.OperationProcess{processInstructions: operationList}
+	
 	err = p.Environment.ExecuteAsync(p.RunData.Program, common.ReplaceTokensInArr(p.RunData.Arguments, data), func(graceful bool) {
 	})
 	if err != nil {
