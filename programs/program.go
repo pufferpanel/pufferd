@@ -119,9 +119,17 @@ func (p *ProgramData) Stop() (err error) {
 	err = p.Environment.ExecuteInMainProcess(p.RunData.Stop)
 	if err != nil {
 		p.Environment.DisplayToConsole("Failed to stop server\n")
-	} else {
-		p.Environment.DisplayToConsole("Server stopped\n")
+		return
 	}
+	
+	// wait for 120 seconds while server stops
+	err = p.Environment.WaitForMainProcessFor(120)
+	if err != nil {
+		logging.Error("Error stopping server", err)
+		return
+	}
+	
+	p.Environment.DisplayToConsole("Server stopped\n")
 	
 	process := operations.GenerateProcess(p.RunData.Post, p.Environment, p.DataToMap())
 	err = process.Run()
