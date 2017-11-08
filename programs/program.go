@@ -95,11 +95,11 @@ func (p *ProgramData) Start() (err error) {
 		data[k] = v.Value
 	}
 
-	operationList := make([]ops.Operation, 0)
-	for _, element := range common.ToStringArray(p.RunData.Pre) {
-		operationList = append(operationList, &ops.Command{Command: common.ReplaceTokens(element, datamap), Environment: environment})
+	process := operations.GenerateProcess(p.RunData.Pre, p.Environment, p.DataToMap())
+	err = process.Run()
+	if err != nil {
+		p.Environment.DisplayToConsole("Error running pre execute, check daemon logs")
 	}
-	operations.OperationProcess{processInstructions: operationList}
 	
 	err = p.Environment.ExecuteAsync(p.RunData.Program, common.ReplaceTokensInArr(p.RunData.Arguments, data), func(graceful bool) {
 	})
@@ -121,6 +121,13 @@ func (p *ProgramData) Stop() (err error) {
 	} else {
 		p.Environment.DisplayToConsole("Server stopped\n")
 	}
+	
+	process := operations.GenerateProcess(p.RunData.Post, p.Environment, p.DataToMap())
+	err = process.Run()
+	if err != nil {
+		p.Environment.DisplayToConsole("Error running post execute, check daemon logs")
+	} 
+	
 	return
 }
 
