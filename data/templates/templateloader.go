@@ -59,6 +59,8 @@ func CopyTemplates() {
 	writeFile("pocketmine", Pocketmine)
 
 	writeFile("factorio", Factorio)
+
+	writeFile("arma3", Arma3)
 }
 
 func writeFile(name string, data string) {
