@@ -35,6 +35,7 @@ func (c *Command) Run() error {
 	parts := strings.Split(c.Command, " ")
 	cmd := parts[0]
 	args := parts[1:]
-	_, err := c.Environment.Execute(cmd, args, nil)
+	env := make(map[string]string)
+	_, err := c.Environment.Execute(cmd, args, env, nil)
 	return err
 }
