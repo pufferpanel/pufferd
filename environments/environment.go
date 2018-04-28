@@ -96,7 +96,7 @@ func (e *BaseEnvironment) WaitForMainProcess() (err error) {
 
 
 func (e *BaseEnvironment) ExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error) {
-	return e.executeAsync(cmd, args, callback)
+	return e.executeAsync(cmd, args, env, callback)
 }
 
 func (e *BaseEnvironment) GetRootDirectory() string {

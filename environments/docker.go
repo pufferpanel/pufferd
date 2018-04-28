@@ -81,7 +81,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 
 	//container does not exist
 	if !exists {
-		err = d.createContainer(client, ctx, cmd, args, d.RootDirectory)
+		err = d.createContainer(client, ctx, cmd, args, env, d.RootDirectory)
 		if err != nil {
 			return err
 		}
@@ -303,7 +303,7 @@ func (d *docker) pullImage(client *client.Client, ctx context.Context, force boo
 	return err
 }
 
-func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd string, args []string, root string) error {
+func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd string, args []string, env map[string]string, root string) error {
 	err := d.pullImage(client, ctx, false)
 
 	if err != nil {
@@ -321,6 +321,9 @@ func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd
 	newEnv := os.Environ()
 	//newEnv["home"] = root
 	newEnv = append(newEnv, "HOME=" + root)
+	for k, v := range env {
+		newEnv = append(newEnv, fmt.Sprintf("%s=%s", k, v))
+	}
 
 	config := &container.Config{
 		AttachStderr:    true,
