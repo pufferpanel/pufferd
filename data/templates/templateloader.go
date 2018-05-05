@@ -30,41 +30,35 @@ import (
 func CopyTemplates() {
 	os.MkdirAll(programs.TemplateFolder, 0755)
 
-	data := Spigot
-	writeFile("spigot", data)
+	writeFile("spigot", Spigot)
+	writeFile("spigotdocker", SpigotDocker)
 
-	data = Bungeecord
-	writeFile("bungeecord", data)
+	writeFile("bungeecord", Bungeecord)
+	writeFile("bungeecorddocker", BungeecordDocker)
 
-	data = CraftbukkitBySpigot
-	writeFile("fakecraftbukkit", data)
+	writeFile("fakecraftbukkit", CraftbukkitBySpigot)
+	writeFile("fakecraftbukkitdocker", CraftbukkitBySpigotDocker)
 
-	data = Vanilla
-	writeFile("vanillaminecraft", data)
+	writeFile("vanillaminecraft", Vanilla)
+	writeFile("vanillaminecraftdocker", VanillaDocker)
 
-	data = Forge
-	writeFile("forge", data)
+	writeFile("forge", Forge)
+	writeFile("forgedocker", ForgeDocker)
 
-	data = Sponge
-	writeFile("spongeforge", data)
+	writeFile("spongeforge", Sponge)
+	writeFile("spongeforgedocker", SpongeDocker)
 
-	data = SRCDS
-	writeFile("srcds", data)
+	writeFile("srcds", SRCDS)
 
-	data = TF2
-	writeFile("tf2", data)
+	writeFile("tf2", TF2)
 
-	data = CSGO
-	writeFile("csgo", data)
+	writeFile("csgo", CSGO)
 
-	data = GMOD
-	writeFile("gmod", data)
+	writeFile("gmod", GMOD)
 
-	data = Pocketmine
-	writeFile("pocketmine", data)
+	writeFile("pocketmine", Pocketmine)
 
-	data = Factorio
-	writeFile("factorio", data)
+	writeFile("factorio", Factorio)
 }
 
 func writeFile(name string, data string) {

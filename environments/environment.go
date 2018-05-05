@@ -18,14 +18,21 @@ package environments
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/pufferpanel/apufferi/cache"
+	"github.com/pufferpanel/pufferd/utils"
+	"fmt"
+	"io"
+	"os"
+	"github.com/pufferpanel/apufferi/config"
+	"sync"
 )
 
 type Environment interface {
 	//Executes a command within the environment.
-	Execute(cmd string, args []string) (stdOut []byte, err error)
+	Execute(cmd string, args []string, env map[string]string, callback func(graceful bool)) (stdOut []byte, err error)
 
 	//Executes a command within the environment and immediately return
-	ExecuteAsync(cmd string, args []string) (err error)
+	ExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error)
 
 	//Sends a string to the StdIn of the main program process
 	ExecuteInMainProcess(cmd string) (err error)
@@ -41,7 +48,7 @@ type Environment interface {
 
 	Update() (err error)
 
-	IsRunning() (isRunning bool)
+	IsRunning() (isRunning bool, err error)
 
 	WaitForMainProcess() (err error)
 
@@ -58,4 +65,80 @@ type Environment interface {
 	GetStats() (map[string]interface{}, error)
 
 	DisplayToConsole(msg string, data ...interface{})
+
+	SendCode(code int) error 
+}
+
+type BaseEnvironment struct {
+	Environment
+	RootDirectory string                 `json:"-"`
+	ConsoleBuffer cache.Cache            `json:"-"`
+	WSManager     utils.WebSocketManager `json:"-"`
+	wait          sync.WaitGroup
+	Type          string                 `json:"type"`
+	executeAsync func(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error)
+	waitForMainProcess func() (err error)
+}
+
+func (e *BaseEnvironment) Execute(cmd string, args []string, env map[string]string, callback func(graceful bool)) (stdOut []byte, err error) {
+	stdOut = make([]byte, 0)
+	err = e.ExecuteAsync(cmd, args, env, callback)
+	if err != nil {
+		return
+	}
+	err = e.WaitForMainProcess()
+	return
+}
+
+func (e *BaseEnvironment) WaitForMainProcess() (err error) {
+	return e.waitForMainProcess()
+}
+
+
+func (e *BaseEnvironment) ExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error) {
+	return e.executeAsync(cmd, args, env, callback)
+}
+
+func (e *BaseEnvironment) GetRootDirectory() string {
+	return e.RootDirectory
+}
+
+func (e *BaseEnvironment) GetConsole() (console []string, epoch int64) {
+	console, epoch = e.ConsoleBuffer.Read()
+	return
+}
+
+func (e *BaseEnvironment) GetConsoleFrom(time int64) (console []string, epoch int64) {
+	console, epoch = e.ConsoleBuffer.ReadFrom(time)
+	return
+}
+
+func (e *BaseEnvironment) AddListener(ws *websocket.Conn) {
+	e.WSManager.Register(ws)
+}
+
+func (e *BaseEnvironment) DisplayToConsole(msg string, data ...interface{}) {
+	if len(data) == 0 {
+		fmt.Fprint(e.ConsoleBuffer, msg)
+		fmt.Fprint(e.WSManager, msg)
+	} else {
+		fmt.Fprintf(e.ConsoleBuffer, msg, data...)
+		fmt.Fprintf(e.WSManager, msg, data...)
+	}
+}
+
+func (e *BaseEnvironment) Update() error {
+	return nil
+}
+
+func (e *BaseEnvironment) Delete() (err error) {
+	err = os.RemoveAll(e.RootDirectory)
+	return
+}
+
+func (e *BaseEnvironment) createWrapper() io.Writer {
+	if config.Get("forward") == "true" {
+		return io.MultiWriter(os.Stdout, e.ConsoleBuffer, e.WSManager)
+	}
+	return io.MultiWriter(e.ConsoleBuffer, e.WSManager)
 }

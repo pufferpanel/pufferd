@@ -46,6 +46,13 @@ var cache = make([]*oauthCache, 20)
 
 func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 	return func(gin *gin.Context) {
+		failure := true
+		defer func() {
+			if failure && !gin.IsAborted() {
+				pufferdHttp.Respond(gin).Code(pufferdHttp.UNKNOWN).Fail().Status(500).Message("unknown error")
+				gin.Abort()
+			}
+		}()
 		authHeader := gin.Request.Header.Get("Authorization")
 		var authToken string
 		if authHeader == "" {
@@ -115,6 +122,7 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 
 			gin.Set("server", program)
 		}
+		failure = false
 	}
 }
 
@@ -135,13 +143,15 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 		errMsg := make(map[string]string)
 		errMsg["error"] = err.Error()
 		gin.JSON(500, errMsg)
+		gin.Abort()
 		return false
 	}
 	if response.StatusCode != 200 {
 		logging.Error("Unexpected response code from auth server", response.StatusCode)
 		errMsg := make(map[string]string)
-		errMsg["error"] = fmt.Sprintf("Received response %i", response.StatusCode)
+		errMsg["error"] = fmt.Sprintf("Received response %d", response.StatusCode)
 		gin.JSON(500, errMsg)
+		gin.Abort()
 		return false
 	}
 	var respArr map[string]interface{}
@@ -152,6 +162,7 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 		errMsg := make(map[string]string)
 		errMsg["error"] = "Failed to parse auth server response"
 		gin.JSON(500, errMsg)
+		gin.Abort()
 		return false
 	}
 	if respArr["active"].(bool) == false {

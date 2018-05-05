@@ -23,16 +23,14 @@ import (
 	"github.com/pufferpanel/pufferd/programs/operations/ops"
 )
 
-func GenerateProcess(data *Process, environment environments.Environment, dataMapping map[string]interface{}) OperationProcess {
-	var directions = data.Commands
+func GenerateProcess(directions []map[string]interface{}, environment environments.Environment, dataMapping map[string]interface{}) OperationProcess {
 	datamap := make(map[string]interface{})
 	for k, v := range dataMapping {
-		datamap[k] = v.(map[string]interface{})["value"]
+		datamap[k] = v
 	}
 	datamap["rootdir"] = environment.GetRootDirectory()
 	operationList := make([]ops.Operation, 0)
-	for _, element := range directions {
-		var mapping = element.(map[string]interface{})
+	for _, mapping := range directions {
 		switch mapping["type"] {
 		case "command":
 			for _, element := range common.ToStringArray(mapping["commands"]) {

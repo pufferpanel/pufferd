@@ -26,8 +26,11 @@ const SRCDS = `{
           "type": "download"
         },
         {
+          "target": "steamcmd",
+          "type": "mkdir"
+        },
+        {
           "commands": [
-            "mkdir steamcmd",
             "tar --no-same-owner -xzvf steamcmd_linux.tar.gz -C steamcmd",
             "steamcmd/steamcmd.sh +login anonymous +force_install_dir ${rootdir} +app_update ${appid} +quit",
             "mkdir -p .steam/sdk32",
@@ -109,8 +112,11 @@ const TF2 = `{
           "type": "download"
         },
         {
+          "target": "steamcmd",
+          "type": "mkdir"
+        },
+        {
           "commands": [
-            "mkdir steamcmd",
             "tar --no-same-owner -xzvf steamcmd_linux.tar.gz -C steamcmd",
             "steamcmd/steamcmd.sh +login anonymous +force_install_dir ${rootdir} +app_update 232250 +quit",
             "mkdir -p .steam/sdk32",
@@ -177,8 +183,11 @@ const CSGO = `{
           "type": "download"
         },
         {
+          "target": "steamcmd",
+          "type": "mkdir"
+        },
+        {
           "commands": [
-            "mkdir steamcmd",
             "tar --no-same-owner -xzvf steamcmd_linux.tar.gz -C steamcmd",
             "steamcmd/steamcmd.sh +login anonymous +force_install_dir ${rootdir} +app_update 740 +quit",
             "mkdir -p .steam/sdk32",
@@ -328,8 +337,11 @@ const GMOD = `{
           "type": "download"
         },
         {
+          "target": "steamcmd",
+          "type": "mkdir"
+        },
+        {
           "commands": [
-            "mkdir steamcmd",
             "tar --no-same-owner -xzvf steamcmd_linux.tar.gz -C steamcmd",
             "steamcmd/steamcmd.sh +login anonymous +force_install_dir ${rootdir} +app_update 4020 +quit",
             "mkdir -p .steam/sdk32",

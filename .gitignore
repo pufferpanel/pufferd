@@ -26,3 +26,5 @@ _testmain.go
 *.iml
 
 .DS_Store
+
+vendor/

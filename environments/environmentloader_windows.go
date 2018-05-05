@@ -8,10 +8,17 @@ import (
 )
 
 func LoadEnvironment(environmentType, folder, id string, environmentSection map[string]interface{}) Environment {
+	serverRoot := common.JoinPath(folder, id)
+	rootDirectory := common.GetStringOrDefault(environmentSection, "root", serverRoot)
+	cache := cache.CreateCache()
+	wsManager := utils.CreateWSManager()
 	switch environmentType {
 	default:
 		logging.Debugf("Loading server as standard")
-		serverRoot := common.JoinPath(folder, id)
-		return &standard{RootDirectory: common.GetStringOrDefault(environmentSection, "root", serverRoot), ConsoleBuffer: cache.CreateCache(), WSManager: utils.CreateWSManager()}
+		s := createStandard()
+		s.RootDirectory = rootDirectory
+		s.ConsoleBuffer = cache
+		s.WSManager = wsManager
+		return s
 	}
 }

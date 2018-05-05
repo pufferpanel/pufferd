@@ -10,17 +10,29 @@ import (
 func LoadEnvironment(environmentType, folder, id string, environmentSection map[string]interface{}) Environment {
 	serverRoot := common.JoinPath(folder, id)
 	rootDirectory := common.GetStringOrDefault(environmentSection, "root", serverRoot)
+	cache := cache.CreateCache()
+	wsManager := utils.CreateWSManager()
 	switch environmentType {
 	case "tty":
 		logging.Debugf("Loading server as tty")
-		return &tty{RootDirectory: rootDirectory, ConsoleBuffer: cache.CreateCache(), WSManager: utils.CreateWSManager()}
-	//case "docker":
-	//logging.Debugf("Loading server as docker")
-	//netBindings := make([]string, 0)
-	//image := utils.GetStringOrDefault(environmentSection, "image", "ubuntu:16.04")
-	//return &docker{ContainerId: id, RootDirectory: rootDirectory, ConsoleBuffer: utils.CreateCache(), WSManager: utils.CreateWSManager(), NetworkBindings: netBindings, DockerImage: image}
+		t := createTty()
+		t.RootDirectory = rootDirectory
+		t.ConsoleBuffer = cache
+		t.WSManager = wsManager
+		return t
+	case "docker":
+		logging.Debugf("Loading server as docker")
+		d := createDocker(id, common.GetStringOrDefault(environmentSection, "image", "pufferpanel/generic"))
+		d.RootDirectory = rootDirectory
+		d.ConsoleBuffer = cache
+		d.WSManager = wsManager
+		return d
 	default:
 		logging.Debugf("Loading server as standard")
-		return &standard{RootDirectory: rootDirectory, ConsoleBuffer: cache.CreateCache(), WSManager: utils.CreateWSManager()}
+		s := createStandard()
+		s.RootDirectory = rootDirectory
+		s.ConsoleBuffer = cache
+		s.WSManager = wsManager
+		return s
 	}
 }

@@ -47,6 +47,9 @@ func RegisterRoutes(e *gin.Engine) {
 	e.GET("", func(c *gin.Context) {
 		http.Respond(c).Message("pufferd is running").Send()
 	})
+	e.HEAD("", func(c *gin.Context) {
+		c.Status(200)
+	})
 	e.GET("/templates", template.GetTemplates)
 	e.GET("/_shutdown", httphandlers.OAuth2Handler("node.stop", false), Shutdown)
 }

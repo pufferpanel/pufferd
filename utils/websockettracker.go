@@ -41,7 +41,10 @@ func (ws *wsManager) Register(conn *websocket.Conn) {
 	ws.sockets = append(ws.sockets, *conn)
 }
 
-func (ws *wsManager) Write(msg []byte) (n int, e error) {
+func (ws *wsManager) Write(source []byte) (n int, e error) {
+	var msg = make([]byte, len(source))
+	copy(msg, source)
+
 	go func() {
 		ws.locker.Lock()
 		for i := 0; i < len(ws.sockets); i++ {

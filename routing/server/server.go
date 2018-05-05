@@ -38,6 +38,8 @@ import (
 	ppErrors "github.com/pufferpanel/pufferd/errors"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/programs"
+
+	"github.com/satori/go.uuid"
 )
 
 var wsupgrader = websocket.Upgrader{
@@ -59,6 +61,7 @@ func RegisterRoutes(e *gin.Engine) {
 		l.DELETE("/:id", httphandlers.OAuth2Handler("server.delete", true), DeleteServer)
 		l.GET("/:id", httphandlers.OAuth2Handler("server.edit", true), GetServer)
 		l.POST("/:id", httphandlers.OAuth2Handler("server.edit", true), EditServer)
+		l.POST("/:id/reload", httphandlers.OAuth2Handler("server.edit", true), ReloadServer)
 
 		l.GET("/:id/start", httphandlers.OAuth2Handler("server.start", true), StartServer)
 		l.GET("/:id/stop", httphandlers.OAuth2Handler("server.stop", true), StopServer)
@@ -69,8 +72,6 @@ func RegisterRoutes(e *gin.Engine) {
 		l.POST("/:id/kill", httphandlers.OAuth2Handler("server.stop", true), KillServer)
 
 		l.POST("/:id/install", httphandlers.OAuth2Handler("server.install", true), InstallServer)
-		l.POST("/:id/update", httphandlers.OAuth2Handler("server.install", true), UpdateServer)
-		//l.POST("/:id/update", httphandlers.OAuth2Handler("server.update", true), UpdateServer)
 
 		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler("server.file.get", true), GetFile)
 		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler("server.file.put", true), PutFile)
@@ -82,12 +83,12 @@ func RegisterRoutes(e *gin.Engine) {
 			Origins:     "*",
 			Credentials: true,
 		}), GetConsole)
-		l.GET("/:id/logs", httphandlers.OAuth2Handler("server.log", true), GetLogs)
+		l.GET("/:id/logs", httphandlers.OAuth2Handler("server.console", true), GetLogs)
 
 		l.GET("/:id/stats", httphandlers.OAuth2Handler("server.stats", true), GetStats)
-
-		l.POST("/:id/reload", httphandlers.OAuth2Handler("server.reload", true), ReloadServer)
+		l.GET("/:id/status", httphandlers.OAuth2Handler("server.stats", true), GetStatus)
 	}
+	l.POST("", httphandlers.OAuth2Handler("server.create", false), CreateServer)
 	e.GET("/network", httphandlers.OAuth2Handler("server.network", false), NetworkServer)
 }
 
@@ -136,6 +137,10 @@ func KillServer(c *gin.Context) {
 
 func CreateServer(c *gin.Context) {
 	serverId := c.Param("id")
+	if serverId == "" {
+		uuid := uuid.NewV4()
+		serverId = uuid.String()
+	}
 	prg, _ := programs.Get(serverId)
 
 	if prg != nil {
@@ -152,11 +157,13 @@ func CreateServer(c *gin.Context) {
 		return
 	}
 
-	serverType := data["type"].(string)
+	typeServer := data["type"].(string)
 
-	if !programs.Create(serverId, serverType, data) {
+	if !programs.Create(serverId, typeServer, data) {
 		errorConnection(c, nil)
 	} else {
+		data := make(map[string]interface{})
+		data["id"] = serverId
 		http.Respond(c).Send()
 	}
 }
@@ -182,17 +189,6 @@ func InstallServer(c *gin.Context) {
 	}()
 }
 
-func UpdateServer(c *gin.Context) {
-	item, _ := c.Get("server")
-	prg := item.(programs.Program)
-
-	http.Respond(c).Status(202).Send()
-
-	go func() {
-		prg.Update()
-	}()
-}
-
 func EditServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(programs.Program)
@@ -202,6 +198,18 @@ func EditServer(c *gin.Context) {
 
 	prg.Edit(data)
 	http.Respond(c).Send()
+}
+
+func ReloadServer(c *gin.Context) {
+	item, _ := c.Get("server")
+	prg := item.(programs.Program)
+
+	err := programs.Reload(prg.Id())
+	if err != nil {
+		http.Respond(c).Status(500).Data(err).Message("error reloading server").Send()
+	} else {
+		http.Respond(c).Send()
+	}
 }
 
 func GetServer(c *gin.Context) {
@@ -397,16 +405,19 @@ func GetConsole(c *gin.Context) {
 
 func GetStats(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	svr := item.(programs.Program)
 
-	results, err := server.GetEnvironment().GetStats()
+	results, err := svr.GetEnvironment().GetStats()
 	if err != nil {
 		result := make(map[string]interface{})
-		result["error"] = err.Error()
+
 		_, isOffline := err.(ppErrors.ServerOffline)
 		if isOffline {
+			result["memory"] = 0
+			result["cpu"] = 0
 			http.Respond(c).Data(result).Status(200).Send()
 		} else {
+			result["error"] = err.Error()
 			http.Respond(c).Data(result).Status(500).Send()
 		}
 	} else {
@@ -414,27 +425,15 @@ func GetStats(c *gin.Context) {
 	}
 }
 
-func ReloadServer(c *gin.Context) {
-	item, _ := c.Get("server")
-	server := item.(programs.Program)
-
-	err := programs.Reload(server.Id())
-	if err != nil {
-		errorConnection(c, err)
-		return
-	}
-	http.Respond(c).Send()
-}
-
 func NetworkServer(c *gin.Context) {
-	servers := c.DefaultQuery("ids", "")
-	if servers == "" {
+	s := c.DefaultQuery("ids", "")
+	if s == "" {
 		http.Respond(c).Status(400).Code(http.NOSERVERID).Message("no server ids provided").Send()
 		return
 	}
-	serverIds := strings.Split(servers, ",")
+	ids := strings.Split(s, ",")
 	result := make(map[string]string)
-	for _, v := range serverIds {
+	for _, v := range ids {
 		program, _ := programs.Get(v)
 		if program == nil {
 			continue
@@ -466,6 +465,22 @@ func GetLogs(c *gin.Context) {
 	result["epoch"] = epoch
 	result["logs"] = msg
 	http.Respond(c).Data(result).Send()
+}
+
+func GetStatus(c *gin.Context) {
+	item, _ := c.Get("server")
+	program := item.(programs.Program)
+
+	running, err := program.IsRunning()
+	result := make(map[string]interface{})
+
+	if err != nil {
+		result["error"] = err.Error()
+		http.Respond(c).Data(result).Status(500).Send()
+	} else {
+		result["running"] = running
+		http.Respond(c).Data(result).Send()
+	}
 }
 
 func errorConnection(c *gin.Context, err error) {

@@ -29,6 +29,7 @@ func Shutdown() *sync.WaitGroup {
 		}
 	}()
 	wg := sync.WaitGroup{}
+	programs.ShutdownService()
 	manners.Close()
 	prgs := programs.GetAll()
 	wg.Add(len(prgs))
@@ -41,13 +42,23 @@ func Shutdown() *sync.WaitGroup {
 				}
 			}()
 			logging.Warn("Stopping program " + e.Id())
-			err := e.Stop()
+			running, err := e.IsRunning()
 			if err != nil {
 				logging.Error("Error stopping server "+e.Id(), err)
+				return
+			}
+			if !running {
+				return
+			}
+			err = e.Stop()
+			if err != nil {
+				logging.Error("Error stopping server "+e.Id(), err)
+				return
 			}
 			err = e.GetEnvironment().WaitForMainProcess()
 			if err != nil {
 				logging.Error("Error stopping server "+e.Id(), err)
+				return
 			}
 			logging.Warn("Stopped program " + e.Id())
 		}(element)

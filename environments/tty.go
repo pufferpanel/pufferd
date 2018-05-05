@@ -20,6 +20,10 @@ package environments
 
 import (
 	"errors"
+	"github.com/kr/pty"
+	"github.com/pufferpanel/apufferi/logging"
+	ppError "github.com/pufferpanel/pufferd/errors"
+	"github.com/shirou/gopsutil/process"
 	"io"
 	"os"
 	"os/exec"
@@ -27,74 +31,72 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
+	"strings"
 	"fmt"
-
-	"github.com/gorilla/websocket"
-	"github.com/kr/pty"
-	"github.com/pufferpanel/apufferi/cache"
-	"github.com/pufferpanel/apufferi/config"
-	"github.com/pufferpanel/apufferi/logging"
-	ppErrors "github.com/pufferpanel/pufferd/errors"
-	"github.com/pufferpanel/pufferd/utils"
-	"github.com/shirou/gopsutil/process"
 )
 
 type tty struct {
-	RootDirectory string
-	ConsoleBuffer cache.Cache
-	WSManager     utils.WebSocketManager
-	mainProcess   *exec.Cmd
-	stdInWriter   io.Writer
-	wait          sync.WaitGroup
+	*BaseEnvironment
+	mainProcess *exec.Cmd
+	stdInWriter io.Writer
 }
 
-func (s *tty) Execute(cmd string, args []string) (stdOut []byte, err error) {
-	stdOut = make([]byte, 0)
-	err = s.ExecuteAsync(cmd, args)
+func createTty() *tty {
+	t := &tty{BaseEnvironment: &BaseEnvironment{Type: "tty"}}
+	t.BaseEnvironment.executeAsync = t.ttyExecuteAsync
+	t.BaseEnvironment.waitForMainProcess = t.WaitForMainProcess
+	return t
+}
+
+func (s *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error) {
+	running, err := s.IsRunning()
 	if err != nil {
 		return
 	}
-	err = s.WaitForMainProcess()
-	return
-}
-
-func (s *tty) ExecuteAsync(cmd string, args []string) (err error) {
-	if s.IsRunning() {
-		err = errors.New("A process is already running (" + strconv.Itoa(s.mainProcess.Process.Pid) + ")")
+	if running {
+		err = errors.New("process is already running (" + strconv.Itoa(s.mainProcess.Process.Pid) + ")")
 		return
 	}
 	process := exec.Command(cmd, args...)
 	process.Dir = s.RootDirectory
 	process.Env = append(os.Environ(), "HOME="+s.RootDirectory)
-	if err != nil {
-		logging.Error("Error starting process", err)
+	for k, v := range env {
+		s.mainProcess.Env = append(s.mainProcess.Env, fmt.Sprintf("%s=%s", k, v))
 	}
-	wrapper := s.createWrapper()
 
-	if err != nil {
-		logging.Error("Error starting process", err)
-	}
+	wrapper := s.createWrapper()
 	s.wait = sync.WaitGroup{}
 	s.wait.Add(1)
 	process.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
 	s.mainProcess = process
+	logging.Debug("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args, " "))
 	tty, err := pty.Start(process)
 	s.stdInWriter = tty
 	go func() {
 		io.Copy(wrapper, tty)
 		process.Wait()
 		s.wait.Done()
+		if callback != nil {
+			if s.mainProcess == nil || s.mainProcess.ProcessState == nil {
+				callback(false)
+			} else {
+				callback(s.mainProcess.ProcessState.Success())
+			}
+		}
 	}()
-	if err != nil /*&& err.Error() != "exit status 1"*/ {
+	if err != nil {
 		logging.Error("Error starting process", err)
 	}
 	return
 }
 
 func (s *tty) ExecuteInMainProcess(cmd string) (err error) {
-	if !s.IsRunning() {
-		err = errors.New("Main process has not been started")
+	running, err := s.IsRunning()
+	if err != nil {
+		return err
+	}
+	if !running {
+		err = errors.New("main process has not been started")
 		return
 	}
 	stdIn := s.stdInWriter
@@ -103,7 +105,11 @@ func (s *tty) ExecuteInMainProcess(cmd string) (err error) {
 }
 
 func (s *tty) Kill() (err error) {
-	if !s.IsRunning() {
+	running, err := s.IsRunning()
+	if err != nil {
+		return err
+	}
+	if running {
 		return
 	}
 	err = s.mainProcess.Process.Kill()
@@ -112,19 +118,7 @@ func (s *tty) Kill() (err error) {
 	return
 }
 
-func (s *tty) Create() error {
-	return os.Mkdir(s.RootDirectory, 0755)
-}
-
-func (s *tty) Update() error {
-	return nil
-}
-
-func (s *tty) Delete() error {
-	return os.RemoveAll(s.RootDirectory)
-}
-
-func (s *tty) IsRunning() (isRunning bool) {
+func (s *tty) IsRunning() (isRunning bool, err error) {
 	isRunning = s.mainProcess != nil && s.mainProcess.Process != nil
 	if isRunning {
 		process, pErr := os.FindProcess(s.mainProcess.Process.Pid)
@@ -137,44 +131,13 @@ func (s *tty) IsRunning() (isRunning bool) {
 	return
 }
 
-func (s *tty) WaitForMainProcess() error {
-	return s.WaitForMainProcessFor(0)
-}
-
-func (s *tty) WaitForMainProcessFor(timeout int) (err error) {
-	if s.IsRunning() {
-		if timeout > 0 {
-			var timer = time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
-				err = s.Kill()
-			})
-			s.wait.Wait()
-			timer.Stop()
-		} else {
-			s.wait.Wait()
-		}
-	}
-	return
-}
-
-func (s *tty) GetRootDirectory() string {
-	return s.RootDirectory
-}
-
-func (s *tty) GetConsole() ([]string, int64) {
-	return s.ConsoleBuffer.Read()
-}
-
-func (s *tty) GetConsoleFrom(time int64) ([]string, int64) {
-	return s.ConsoleBuffer.ReadFrom(time)
-}
-
-func (s *tty) AddListener(ws *websocket.Conn) {
-	s.WSManager.Register(ws)
-}
-
 func (s *tty) GetStats() (map[string]interface{}, error) {
-	if !s.IsRunning() {
-		return nil, ppErrors.NewServerOffline()
+	running, err := s.IsRunning()
+	if err != nil {
+		return nil, err
+	}
+	if !running {
+		return nil, ppError.NewServerOffline()
 	}
 	process, err := process.NewProcess(int32(s.mainProcess.Process.Pid))
 	if err != nil {
@@ -188,19 +151,39 @@ func (s *tty) GetStats() (map[string]interface{}, error) {
 	return resultMap, nil
 }
 
-func (s *tty) DisplayToConsole(msg string, data ...interface{}) {
-	if len(data) == 0 {
-		fmt.Fprint(s.ConsoleBuffer, msg)
-		fmt.Fprint(s.WSManager, msg)
-	} else {
-		fmt.Fprintf(s.ConsoleBuffer, msg, data...)
-		fmt.Fprintf(s.WSManager, msg, data...)
-	}
+func (e *tty) Create() error {
+	return os.Mkdir(e.RootDirectory, 0755)
 }
 
-func (s *tty) createWrapper() io.Writer {
-	if config.Get("forward") == "true" {
-		return io.MultiWriter(os.Stdout, s.ConsoleBuffer, s.WSManager)
+func (e *tty) WaitForMainProcess() error {
+	return e.WaitForMainProcessFor(0)
+}
+
+func (e *tty) WaitForMainProcessFor(timeout int) (err error) {
+	running, err := e.IsRunning()
+	if err != nil {
+		return
 	}
-	return io.MultiWriter(s.ConsoleBuffer, s.WSManager)
+	if running {
+		if timeout > 0 {
+			var timer = time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
+				err = e.Kill()
+			})
+			e.wait.Wait()
+			timer.Stop()
+		} else {
+			e.wait.Wait()
+		}
+	}
+	return
+}
+
+func (e *tty) SendCode(code int) error {
+	running, err := e.IsRunning()
+
+	if err != nil || !running {
+		return err
+	}
+
+	return e.mainProcess.Process.Signal(syscall.Signal(code))
 }

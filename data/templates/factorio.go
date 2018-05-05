@@ -24,7 +24,7 @@ const Factorio = `{
       "commands": [
         {
           "commands": [
-            "curl -L -o factorio.tar.xz https://www.factorio.com/get-download/${version}/headless/linux64",
+            "curl -L -o factorio.tar.xz https://www.factorio.com/get-download/latest/headless/linux64",
             "mkdir factorio",
             "tar --no-same-owner -xvf factorio.tar.xz",
             "cp factorio/data/server-settings.example.json factorio/data/server-settings.json",
@@ -54,13 +54,6 @@ const Factorio = `{
       "type": "tty"
     },
     "data": {
-      "version": {
-        "value": "0.15.31",
-        "required": true,
-        "desc": "Version",
-        "display": "Version to Install",
-        "internal": true
-      },
       "save": {
         "value": "saves/default.zip",
         "required": true,

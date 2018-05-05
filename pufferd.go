@@ -40,12 +40,12 @@ import (
 	"github.com/pufferpanel/pufferd/sftp"
 	"github.com/pufferpanel/pufferd/shutdown"
 	"github.com/pufferpanel/pufferd/uninstaller"
+	"runtime"
 )
 
 var (
 	VERSION      = "nightly"
 	MAJORVERSION = "nightly"
-	BUILDDATE    = "unknown"
 	GITHASH      = "unknown"
 )
 
@@ -61,7 +61,7 @@ func main() {
 	var uninstall bool
 	var configPath string
 	var pid int
-	var installService bool
+	var runDaemon bool
 	flag.StringVar(&loggingLevel, "logging", "INFO", "Lowest logging level to display")
 	flag.StringVar(&authRoot, "auth", "", "Base URL to the authorization server")
 	flag.StringVar(&authToken, "token", "", "Authorization token")
@@ -73,23 +73,23 @@ func main() {
 	flag.BoolVar(&uninstall, "uninstall", false, "Uninstall pufferd")
 	flag.StringVar(&configPath, "config", "config.json", "Path to pufferd config.json")
 	flag.IntVar(&pid, "shutdown", 0, "PID to shut down")
-	flag.BoolVar(&installService, "installService", false, "Installs the pufferd service file")
+	flag.BoolVar(&runDaemon, "run", false, "Runs the daemon")
 	flag.Parse()
 
-	versionString := fmt.Sprintf("pufferd %s (%s %s)", VERSION, BUILDDATE, GITHASH)
+	versionString := fmt.Sprintf("pufferd %s (%s)", VERSION, GITHASH)
 
 	if pid != 0 {
 		logging.Info("Shutting down")
 		shutdown.Command(pid)
 	}
 
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) && !runInstaller {
 		if _, err := os.Stat("/etc/pufferd/config.json"); err == nil {
 			logging.Info("No config passed, defaulting to /etc/pufferd/config.json")
 			configPath = "/etc/pufferd/config.json"
 		} else {
 			logging.Error("Cannot find a config file!")
-			logging.Warn("pufferd could be unstable")
+			return
 		}
 	}
 
@@ -112,7 +112,7 @@ func main() {
 		return
 	}
 
-	if version {
+	if version || !runDaemon {
 		os.Stdout.WriteString(versionString + "\r\n")
 	}
 
@@ -141,10 +141,6 @@ func main() {
 		migration.MigrateFromScales()
 	}
 
-	if installService {
-		install.InstallService()
-	}
-
 	if license || version || regenerate || migrate || pid != 0 {
 		return
 	}
@@ -152,6 +148,12 @@ func main() {
 	config.Load(configPath)
 
 	logging.SetLevelByString(loggingLevel)
+	var defaultLogFolder = "logs"
+	if runtime.GOOS == "linux" {
+		defaultLogFolder = "/var/log/pufferd"
+	}
+	var logPath = config.GetOrDefault("logPath", defaultLogFolder)
+	logging.SetLogFolder(logPath)
 	logging.Init()
 	gin.SetMode(gin.ReleaseMode)
 
@@ -162,7 +164,7 @@ func main() {
 		install.Install(configPath, authRoot, authToken)
 	}
 
-	if runInstaller || installService {
+	if runInstaller || !runDaemon {
 		return
 	}
 
@@ -188,17 +190,18 @@ func main() {
 
 	programs.LoadFromFolder()
 
+	programs.InitService()
+
 	for _, element := range programs.GetAll() {
 		if element.IsEnabled() && element.IsAutoStart() {
-			logging.Info("Starting server " + element.Id())
-			element.Start()
+			logging.Info("Queued server " + element.Id())
+			programs.StartViaService(element)
 		}
 	}
 
 	r := routing.ConfigureWeb()
 
-	var useHttps bool
-	useHttps = false
+	useHttps := false
 
 	dataFolder := config.GetOrDefault("datafolder", "data")
 	httpsPem := filepath.Join(dataFolder, "https.pem")
@@ -250,5 +253,6 @@ func main() {
 	if err != nil {
 		logging.Error("Error starting web service", err)
 	}
+
 	shutdown.Shutdown()
 }

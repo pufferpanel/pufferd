@@ -70,7 +70,7 @@ func (rp requestPrefix) Filecmd(request *sftp.Request) error {
 			return os.Remove(sourceName)
 		}
 	default:
-		return errors.New(fmt.Sprint("Unknown request method: %s", request.Method))
+		return errors.New(fmt.Sprintf("Unknown request method: %v", request.Method))
 	}
 }
 
@@ -122,7 +122,7 @@ func (rp requestPrefix) Filelist(request *sftp.Request) (sftp.ListerAt, error) {
 			return listerat([]os.FileInfo{fi}), nil
 		}
 	default:
-		return nil, errors.New(fmt.Sprint("Unknown request method: %s", request.Method))
+		return nil, errors.New(fmt.Sprintf("Unknown request method: %s", request.Method))
 	}
 }
 
@@ -148,7 +148,7 @@ func (rp requestPrefix) getFile(path string, flags int, mode os.FileMode) (*os.F
 func (rp requestPrefix) validate(path string) (string, error) {
 	ok, path := rp.tryPrefix(path)
 	if !ok {
-		return "", errors.New("Access denied")
+		return "", errors.New("access denied")
 	}
 	return path, nil
 }

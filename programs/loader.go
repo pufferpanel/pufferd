@@ -29,11 +29,10 @@ import (
 	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments"
-	"github.com/pufferpanel/pufferd/programs/operations"
 )
 
 var (
-	programs       []Program = make([]Program, 0)
+	allPrograms    []Program = make([]Program, 0)
 	ServerFolder   string
 	TemplateFolder string
 )
@@ -61,7 +60,7 @@ func LoadFromFolder() {
 			continue
 		}
 		logging.Infof("Loaded server %s", program.Id())
-		programs = append(programs, program)
+		allPrograms = append(allPrograms, program)
 	}
 }
 
@@ -74,7 +73,7 @@ func Get(id string) (program Program, err error) {
 }
 
 func GetAll() []Program {
-	return programs
+	return allPrograms
 }
 
 func Load(id string) (program Program, err error) {
@@ -83,58 +82,26 @@ func Load(id string) (program Program, err error) {
 	if len(data) == 0 || err != nil {
 		return
 	}
-
 	program, err = LoadFromData(id, data)
 	return
 }
 
 func LoadFromData(id string, source []byte) (program Program, err error) {
-	var data map[string]interface{}
+	var data struct {
+		ProgramData ProgramData `json:"pufferd"`
+	}
+	data.ProgramData = CreateProgram()
 	err = json.Unmarshal(source, &data)
 	if err != nil {
 		return
 	}
-	program, err = LoadFromMapping(id, data)
-	return
-}
 
-func LoadFromMapping(id string, source map[string]interface{}) (program Program, err error) {
-	var pufferdData = common.GetMapOrNull(source, "pufferd")
-	var installSection = getProcessSection(common.GetMapOrNull(pufferdData, "install"))
-	var updateSection = getProcessSection(common.GetMapOrNull(pufferdData, "update"))
-	var runSection = common.GetMapOrNull(pufferdData, "run")
-	var environmentSection = common.GetMapOrNull(pufferdData, "environment")
-	var environment environments.Environment
-	var dataSection = common.GetMapOrNull(pufferdData, "data")
-	dataCasted := make(map[string]interface{}, len(dataSection))
-	for key, value := range dataSection {
-		dataCasted[key] = value
-	}
+	data.ProgramData.Identifier = id
 
-	var environmentType string
-	if environmentSection == nil {
-		environmentType = "standard"
-	} else {
-		environmentType = common.GetStringOrDefault(environmentSection, "type", "standard")
-	}
+	environmentType := common.GetStringOrDefault(data.ProgramData.EnvironmentData, "type", "standard")
 
-	logging.Debugf("Loading server as %s", environmentType)
-
-	environment = environments.LoadEnvironment(environmentType, ServerFolder, id, environmentSection)
-
-	var runBlock Runtime
-	if pufferdData["run"] == nil {
-		runBlock = Runtime{}
-	} else {
-		var stop = common.GetStringOrDefault(runSection, "stop", "")
-		var arguments = common.GetStringArrayOrNull(runSection, "arguments")
-		var enabled = common.GetBooleanOrDefault(runSection, "enabled", true)
-		var autostart = common.GetBooleanOrDefault(runSection, "autostart", true)
-		var program = common.GetStringOrDefault(runSection, "program", "")
-
-		runBlock = Runtime{Stop: stop, Arguments: arguments, Enabled: enabled, AutoStart: autostart, Program: program}
-	}
-	program = &programData{Data: dataCasted, Identifier: id, RunData: runBlock, InstallData: installSection, UpdateData: updateSection, Environment: environment}
+	data.ProgramData.Environment = environments.LoadEnvironment(environmentType, ServerFolder, id, data.ProgramData.EnvironmentData)
+	program = &data.ProgramData
 	return
 }
 
@@ -149,9 +116,11 @@ func Create(id string, serverType string, data map[string]interface{}) bool {
 		return false
 	}
 
-	var templateJson map[string]interface{}
+	var templateJson struct {
+		ProgramData ProgramData `json:"pufferd"`
+	}
+	templateJson.ProgramData = CreateProgram()
 	err = json.Unmarshal(templateData, &templateJson)
-	segment := common.GetMapOrNull(templateJson, "pufferd")
 
 	if err != nil {
 		logging.Error("Error reading template file for type "+serverType, err)
@@ -159,22 +128,26 @@ func Create(id string, serverType string, data map[string]interface{}) bool {
 	}
 
 	if data != nil {
-		var mapper map[string]interface{}
-		mapper = segment["data"].(map[string]interface{})
+		mapper := templateJson.ProgramData.Data
+		if mapper == nil {
+			mapper = make(map[string]DataObject, 0)
+		}
 		for k, v := range data {
-			if mapper[k] == nil {
-				newMap := make(map[string]interface{})
-				newMap["value"] = v
-				newMap["desc"] = "No description"
-				newMap["display"] = k
-				newMap["required"] = false
-				newMap["internal"] = true
-				mapper[k] = newMap
+			if d, ok := mapper[k]; ok {
+				d.Value= v
+				mapper[k] = d
 			} else {
-				mapper[k].(map[string]interface{})["value"] = v
+				newMap := DataObject{
+					Value: v,
+					Description: "No Description",
+					Display: k,
+					Required: false,
+					Internal: true,
+				}
+				mapper[k] = newMap
 			}
 		}
-		segment["data"] = mapper
+		templateJson.ProgramData.Data = mapper
 	}
 
 	f, err := os.Create(common.JoinPath(ServerFolder, id+".json"))
@@ -196,8 +169,15 @@ func Create(id string, serverType string, data map[string]interface{}) bool {
 		return false
 	}
 
-	program, _ := LoadFromMapping(id, templateJson)
-	programs = append(programs, program)
+	newData, err := json.Marshal(templateJson)
+
+	if err != nil {
+		logging.Error("Error regenerating file", err)
+		return false
+	}
+
+	program, _ := LoadFromData(id, newData)
+	allPrograms = append(allPrograms, program)
 	program.Create()
 	return true
 }
@@ -205,7 +185,7 @@ func Create(id string, serverType string, data map[string]interface{}) bool {
 func Delete(id string) (err error) {
 	var index int
 	var program Program
-	for i, element := range programs {
+	for i, element := range allPrograms {
 		if element.Id() == id {
 			program = element
 			index = i
@@ -215,25 +195,30 @@ func Delete(id string) (err error) {
 	if program == nil {
 		return
 	}
+	running, err := program.IsRunning()
 
-	if program.IsRunning() {
+	if err != nil {
+		return
+	}
+
+	if running {
 		err = program.Stop()
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	err = program.Destroy()
 	if err != nil {
-		return err
+		return
 	}
 	os.Remove(common.JoinPath(ServerFolder, program.Id()+".json"))
-	programs = append(programs[:index], programs[index+1:]...)
+	allPrograms = append(allPrograms[:index], allPrograms[index+1:]...)
 	return
 }
 
 func GetFromCache(id string) Program {
-	for _, element := range programs {
+	for _, element := range allPrograms {
 		if element.Id() == id {
 			return element
 		}
@@ -251,21 +236,26 @@ func Save(id string) (err error) {
 	return
 }
 
-func Reload(id string) error {
-	oldPg, err := Get(id)
+func Reload(id string) (err error) {
+	temp := GetFromCache(id)
+	if temp == nil {
+		err = errors.New("server does not exist")
+		return
+	}
+	logging.Infof("Reloading server %s", temp.Id())
+	//have to cast it for this to work
+	program, _ := temp.(*ProgramData)
+
+	newVersion, err := Load(id)
 	if err != nil {
-		return err
+		logging.Error("error reloading server", err)
+		return
 	}
 
-	var newPg Program
+	newV2 := newVersion.(*ProgramData)
 
-	newPg, err = Load(id)
-	if err != nil {
-		return err
-	}
-
-	oldPg.Reload(newPg)
-	return nil
+	program.CopyFrom(newV2)
+	return
 }
 
 func GetPlugins() map[string]interface{} {
@@ -305,10 +295,4 @@ func GetPlugin(name string) (interface{}, error) {
 	dataSec["variables"] = segment["data"].(map[string]interface{})
 	dataSec["display"] = segment["display"]
 	return dataSec, nil
-}
-
-func getProcessSection(mapping map[string]interface{}) operations.Process {
-	return operations.Process{
-		Commands: common.GetObjectArrayOrNull(mapping, "commands"),
-	}
 }
