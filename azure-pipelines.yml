@@ -48,6 +48,78 @@ steps:
   workingDirectory: '$(modulePath)'
   displayName: 'Windows Build'
 
+- task: UseRubyVersion@0
+  inputs:
+    versionSpec: '>= 2.4'
+    addToPath: true
+
+- script: |
+    gem install --no-ri --no-rdoc rake
+    gem install --no-ri --no-rdoc fpm && fpm -v
+    gem install --no-ri --no-rdoc package_cloud && package_cloud version
+  displayName: 'Install gem deps'
+
+- script: |
+    git clone https://github.com/PufferPanel/systemd
+    git clone https://github.com/PufferPanel/templates
+  displayName: 'Get supporting files'
+
+- script: |
+    mkdir $(GOPATH)/build/templates
+    cd templates
+    cp */*.json $(GOPATH)/build/templates
+  displayName: 'Build templates'
+
+- script: |
+    fpm -s dir -t deb \
+      --name pufferd -v 0.0.0 \
+      --maintainer dev@pufferpanel.com \
+      --deb-user pufferd --deb-group pufferd \
+      --deb-systemd servicefiles/systemd/pufferd \
+      --before-install scripts/preinst.sh \
+      --after-upgrade scripts/postupgrade.sh \
+      --before-remove scripts/prerm.sh \
+      --deb-after-purge scripts/purge.sh \
+      $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
+      $(GOPATH)/build/templates=/var/lib/pufferd/
+
+    mkdir $(GOPATH)/build/xenial
+    mv *.deb $(GOPATH)/build/xenial
+  displayName: 'Create packages'
+  workingDirectory: systemd/xenial
+
+- script: |
+    fpm -s deb -t rpm \
+      --name pufferd -v 0.0.0 \
+      --maintainer dev@pufferpanel.com \
+      --rpm-user pufferd --rpm-group pufferd \
+      --before-install scripts/preinst.sh \
+      --after-upgrade scripts/postupgrade.sh \
+      --before-remove scripts/prerm.sh \
+      $(GOPATH)/build/xenial/pufferd_*_amd64.deb
+
+    mkdir $(GOPATH)/build/rpm
+    mv *.rpm $(GOPATH)/build/rpm
+  displayName: 'Create packages'
+  workingDirectory: systemd/rpm7
+
+- script: |
+    fpm -s dir -t deb \
+      --name pufferd -v 0.0.0 \
+      --maintainer dev@pufferpanel.com \
+      --deb-user pufferd --deb-group pufferd \
+      --deb-init servicefiles/initd/pufferd \
+      --before-install scripts/preinst.sh \
+      --before-remove scripts/prerm.sh \
+      --deb-after-purge scripts/purge.sh \
+      $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
+      $(GOPATH)/build/templates=/var/lib/pufferd/
+    
+    mkdir $(GOPATH)/build/trusty
+    mv *.deb $(GOPATH)/build/trusty
+  displayName: 'Create packages'
+  workingDirectory: systemd/trusty
+
 - task: PublishPipelineArtifact@0
   inputs:
     artifactName: 'pufferd'
