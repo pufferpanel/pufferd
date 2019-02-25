@@ -19,16 +19,14 @@ package httphandlers
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/pufferpanel/apufferi/common"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 
 	"fmt"
-	"time"
-
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/config"
 	pufferdHttp "github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/apufferi/logging"
@@ -37,8 +35,7 @@ import (
 
 type oauthCache struct {
 	oauthToken string
-	serverId   string
-	scopes     []string
+	scopes     map[string][]string
 	expireTime int64
 }
 
@@ -72,57 +69,45 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 			authToken = authArr[1]
 		}
 
-		cached := isCachedRequest(authToken)
-
-		if cached != nil {
-			gin.Set("server_id", cached.serverId)
-			gin.Set("scopes", cached.scopes)
-		} else {
-			if !validateToken(authToken, gin) {
-				gin.Abort()
-				return
-			}
+		if !validateToken(authToken, gin) {
+			gin.Abort()
+			return
 		}
 
-		rawScopes, _ := gin.Get("scopes")
+		serverId := gin.Param("id")
+		internalMap, _ := gin.Get("serverScopes")
+		scopes := internalMap.(map[string][]string)
 
-		if scope != "" {
-			scopes := rawScopes.([]string)
-			if !common.ContainsValue(scopes, scope) {
-				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("missing scope " + scope).Send()
-				gin.Abort()
-				return
-			}
-		}
+		var scopeSet []string
 
 		if requireServer {
-			serverId := gin.Param("id")
-			canAccessId, _ := gin.Get("server_id")
-
-			accessId := canAccessId.(string)
-
-			var program programs.Program
-
-			if accessId == "*" {
-				program, _ = programs.Get(serverId)
-			} else {
-				program, _ = programs.Get(accessId)
-			}
-
-			if program == nil {
-				pufferdHttp.Respond(gin).Fail().Status(404).Code(pufferdHttp.NOSERVER).Message("no server with id " + serverId).Send()
-				gin.Abort()
+			scopeSet = scopes[serverId]
+			if scopeSet == nil || len(scopeSet) == 0 {
+				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("invalid access").Send()
 				return
 			}
 
-			if accessId != program.Id() && accessId != "*" {
-				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("invalid server access").Send()
-				gin.Abort()
+			var program programs.Program
+			program, _ = programs.Get(serverId)
+			if program == nil {
+				pufferdHttp.Respond(gin).Fail().Status(404).Code(pufferdHttp.NOSERVER).Message("no server with id " + serverId).Send()
 				return
 			}
 
 			gin.Set("server", program)
+		} else {
+			scopeSet = scopes[""]
+			if scopeSet == nil || len(scopeSet) == 0 {
+				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("invalid access").Send()
+				return
+			}
 		}
+
+		if !common.ContainsValue(scopeSet, scope) {
+			pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("missing scope " + scope).Send()
+			return
+		}
+
 		failure = false
 	}
 }
@@ -140,9 +125,7 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 	response, err := client.Do(request)
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
-		errMsg := make(map[string]string)
-		errMsg["error"] = err.Error()
-		gin.JSON(500, errMsg)
+		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false
 	}
@@ -150,70 +133,33 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 
 	if response.StatusCode != 200 {
 		logging.Error("Unexpected response code from auth server", response.StatusCode)
-		errMsg := make(map[string]string)
-		errMsg["error"] = fmt.Sprintf("Received response %d", response.StatusCode)
-		gin.JSON(500, errMsg)
+		pufferdHttp.Respond(gin).Message(fmt.Sprintf("unexpected response code %d", response.StatusCode)).Fail().Status(500).Send()
 		gin.Abort()
 		return false
 	}
 	var respArr map[string]interface{}
-	json.NewDecoder(response.Body).Decode(&respArr)
+	err = json.NewDecoder(response.Body).Decode(&respArr)
 
-	logging.Develf("%+v", respArr)
-	if respArr["error"] != nil {
+	if  err != nil {
 		logging.Error("Error parsing response from auth server", err)
-		errMsg := make(map[string]string)
-		errMsg["error"] = "Failed to parse auth server response"
-		gin.JSON(500, errMsg)
+		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
+		gin.Abort()
+		return false
+	} else if respArr["error"] != nil {
+		pufferdHttp.Respond(gin).Message(respArr["error"].(string)).Fail().Status(500).Send()
 		gin.Abort()
 		return false
 	}
-	if respArr["active"].(bool) == false {
+
+	active, ok := respArr["active"].(bool)
+
+	if !ok || !active {
 		gin.AbortWithStatus(401)
 		return false
 	}
 
-	serverId := respArr["server_id"].(string)
-	scopes := strings.Split(respArr["scope"].(string), " ")
+	serverMapping := respArr["servers"].(map[string][]string)
 
-	cache := &oauthCache{
-		oauthToken: accessToken,
-		serverId:   serverId,
-		scopes:     scopes,
-	}
-	cacheRequest(cache)
-
-	gin.Set("server_id", serverId)
-	gin.Set("scopes", scopes)
+	gin.Set("serverScopes", serverMapping)
 	return true
-}
-
-func isCachedRequest(accessToken string) *oauthCache {
-	currentTime := time.Now().Unix()
-	for k, v := range cache {
-		if v == nil {
-			continue
-		}
-		if v.oauthToken == accessToken {
-			if v.expireTime < currentTime {
-				return v
-			}
-			copy(cache[k:], cache[k+1:])
-			cache[len(cache)-1] = nil
-			cache = cache[:len(cache)-1]
-			return nil
-		}
-	}
-	return nil
-}
-
-func cacheRequest(request *oauthCache) {
-	currentTime := time.Now().Unix()
-	request.expireTime = time.Now().Add(time.Minute * 2).Unix()
-	for k, v := range cache {
-		if v == nil || v.expireTime > currentTime {
-			cache[k] = request
-			return
-		}
-	}
 }
