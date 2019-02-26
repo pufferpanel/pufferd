@@ -46,7 +46,6 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 		failure := true
 		defer func() {
 			if failure && !gin.IsAborted() {
-				pufferdHttp.Respond(gin).Code(pufferdHttp.UNKNOWN).Fail().Status(500).Message("unknown error").Send()
 				gin.Abort()
 			}
 		}()
@@ -158,8 +157,14 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 		return false
 	}
 
-	serverMapping := respArr["servers"].(map[string][]string)
+	serverMapping := respArr["servers"].(map[string]interface{})
 
-	gin.Set("serverScopes", serverMapping)
+	mapping := make(map[string][]string)
+
+	for k, v := range serverMapping {
+		mapping[k] = common.ToStringArray(v)
+	}
+
+	gin.Set("serverScopes", mapping)
 	return true
 }
