@@ -17,20 +17,12 @@
 package httphandlers
 
 import (
-	"bytes"
-	"encoding/json"
-	"github.com/pufferpanel/apufferi/common"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
-
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/config"
+	"github.com/pufferpanel/apufferi/common"
 	pufferdHttp "github.com/pufferpanel/apufferi/http"
-	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/programs"
+	"strings"
 )
 
 type oauthCache struct {
@@ -38,8 +30,6 @@ type oauthCache struct {
 	scopes     map[string][]string
 	expireTime int64
 }
-
-var cache = make([]*oauthCache, 20)
 
 func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 	return func(gin *gin.Context) {
@@ -68,7 +58,7 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 			authToken = authArr[1]
 		}
 
-		if !validateToken(authToken, gin) {
+		if !oauth2.ValidateToken(authToken, gin) {
 			gin.Abort()
 			return
 		}
@@ -109,62 +99,4 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 
 		failure = false
 	}
-}
-
-func validateToken(accessToken string, gin *gin.Context) bool {
-	authUrl := config.GetString("infoServer")
-	token := config.GetString("authToken")
-	client := &http.Client{}
-	data := url.Values{}
-	data.Set("token", accessToken)
-	request, _ := http.NewRequest("POST", authUrl, bytes.NewBufferString(data.Encode()))
-	request.Header.Add("Authorization", "Bearer "+token)
-	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-	response, err := client.Do(request)
-	if err != nil {
-		logging.Error("Error talking to auth server", err)
-		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
-		gin.Abort()
-		return false
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 200 {
-		logging.Error("Unexpected response code from auth server", response.StatusCode)
-		pufferdHttp.Respond(gin).Message(fmt.Sprintf("unexpected response code %d", response.StatusCode)).Fail().Status(500).Send()
-		gin.Abort()
-		return false
-	}
-	var respArr map[string]interface{}
-	err = json.NewDecoder(response.Body).Decode(&respArr)
-
-	if  err != nil {
-		logging.Error("Error parsing response from auth server", err)
-		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
-		gin.Abort()
-		return false
-	} else if respArr["error"] != nil {
-		pufferdHttp.Respond(gin).Message(respArr["error"].(string)).Fail().Status(500).Send()
-		gin.Abort()
-		return false
-	}
-
-	active, ok := respArr["active"].(bool)
-
-	if !ok || !active {
-		gin.AbortWithStatus(401)
-		return false
-	}
-
-	serverMapping := respArr["servers"].(map[string]interface{})
-
-	mapping := make(map[string][]string)
-
-	for k, v := range serverMapping {
-		mapping[k] = common.ToStringArray(v)
-	}
-
-	gin.Set("serverScopes", mapping)
-	return true
 }

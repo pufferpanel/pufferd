@@ -22,6 +22,7 @@ import (
 	"github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/apufferi/http/handler"
 	"github.com/pufferpanel/pufferd/httphandlers"
+	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/routing/server"
 	"github.com/pufferpanel/pufferd/routing/template"
 	"github.com/pufferpanel/pufferd/shutdown"
@@ -33,12 +34,16 @@ func ConfigureWeb() *gin.Engine {
 		r.Use(gin.Recovery())
 		if config.GetBoolOrDefault("log.api", false) {
 			r.Use(handler.ApiLogging())
+		} else {
+			r.Use(gin.Logger())
 		}
 		r.Use(handler.Recovery())
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
 		template.RegisterRoutes(r)
 	}
+
+	oauth2.RefreshToken()
 
 	return r
 }

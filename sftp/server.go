@@ -17,27 +17,20 @@
 package sftp
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/json"
 	"encoding/pem"
-	"io/ioutil"
-	"net"
-	"net/http"
-	"net/url"
-	"os"
-	"path"
-	"strconv"
-	"strings"
-
-	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
 	configuration "github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/programs"
 	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"net"
+	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -57,7 +50,7 @@ func Stop() {
 func runServer() error {
 	config := &ssh.ServerConfig{
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
-			return validateSSH(c.User(), string(pass))
+			return oauth2.ValidateSSH(c.User(), string(pass))
 		},
 	}
 
@@ -192,55 +185,4 @@ func PrintDiscardRequests(in <-chan *ssh.Request) {
 			req.Reply(false, nil)
 		}
 	}
-}
-
-func validateSSH(username string, password string) (*ssh.Permissions, error) {
-	authUrl := configuration.GetString("authServer")
-	client := &http.Client{}
-	data := url.Values{}
-	data.Set("grant_type", "password")
-	data.Set("username", username)
-	data.Set("password", password)
-	data.Set("scope", "sftp")
-	token := configuration.GetString("authToken")
-	request, _ := http.NewRequest("POST", authUrl, bytes.NewBufferString(data.Encode()))
-	request.Header.Add("Authorization", "Bearer "+token)
-	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-	response, err := client.Do(request)
-	if err != nil {
-		logging.Error("Error talking to auth server", err)
-		return nil, errors.New("Invalid response from authorization server")
-	}
-	defer response.Body.Close()
-
-	//we should only get a 200, if we get any others, we have a problem
-	if response.StatusCode != 200 {
-		msg, _ := ioutil.ReadAll(response.Body)
-
-		logging.Errorf("Error talking to auth server: [%d] [%s]", response.StatusCode, msg)
-		return nil, errors.New("Invalid response from authorization server")
-	}
-
-	var respArr map[string]interface{}
-	err = json.NewDecoder(response.Body).Decode(&respArr)
-	if err != nil {
-		return nil, err
-	}
-	if respArr["error"] != nil {
-		return nil, errors.New("Incorrect username or password")
-	}
-	sshPerms := &ssh.Permissions{}
-	scopes := strings.Split(respArr["scope"].(string), " ")
-	if len(scopes) != 2 {
-		return nil, errors.New("Invalid response from authorization server")
-	}
-	for _, v := range scopes {
-		if v != "sftp" {
-			sshPerms.Extensions = make(map[string]string)
-			sshPerms.Extensions["server_id"] = v
-			return sshPerms, nil
-		}
-	}
-	return nil, errors.New("Incorrect username or password")
 }
