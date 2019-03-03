@@ -18,7 +18,6 @@ package routing
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/apufferi/http/handler"
 	"github.com/pufferpanel/pufferd/httphandlers"
@@ -32,11 +31,7 @@ func ConfigureWeb() *gin.Engine {
 	r := gin.New()
 	{
 		r.Use(gin.Recovery())
-		if config.GetBoolOrDefault("log.api", false) {
-			r.Use(handler.ApiLogging())
-		} else {
-			r.Use(gin.Logger())
-		}
+		r.Use(gin.Logger())
 		r.Use(handler.Recovery())
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
