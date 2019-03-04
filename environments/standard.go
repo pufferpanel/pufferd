@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"sync"
 	"syscall"
@@ -110,7 +111,10 @@ func (s *standard) Kill() (err error) {
 		return
 	}
 	err = s.mainProcess.Process.Kill()
-	s.mainProcess.Process.Release()
+	err2 := s.mainProcess.Process.Release()
+	if err == nil {
+		err = err2
+	}
 	s.mainProcess = nil
 	return
 }
@@ -118,10 +122,10 @@ func (s *standard) Kill() (err error) {
 func (s *standard) IsRunning() (isRunning bool, err error) {
 	isRunning = s.mainProcess != nil && s.mainProcess.Process != nil
 	if isRunning {
-		process, pErr := os.FindProcess(s.mainProcess.Process.Pid)
-		if process == nil || pErr != nil {
+		pr, pErr := os.FindProcess(s.mainProcess.Process.Pid)
+		if pr == nil || pErr != nil {
 			isRunning = false
-		} else if process.Signal(syscall.Signal(0)) != nil {
+		} else if runtime.GOOS != "windows" && pr.Signal(syscall.Signal(0)) != nil{
 			isRunning = false
 		}
 	}
@@ -136,14 +140,14 @@ func (s *standard) GetStats() (map[string]interface{}, error) {
 	if !running {
 		return nil, ppError.NewServerOffline()
 	}
-	process, err := process.NewProcess(int32(s.mainProcess.Process.Pid))
+	pr, err := process.NewProcess(int32(s.mainProcess.Process.Pid))
 	if err != nil {
 		return nil, err
 	}
 	resultMap := make(map[string]interface{})
-	memMap, _ := process.MemoryInfo()
+	memMap, _ := pr.MemoryInfo()
 	resultMap["memory"] = memMap.RSS
-	cpu, _ := process.Percent(time.Millisecond * 50)
+	cpu, _ := pr.Percent(time.Second * 1)
 	resultMap["cpu"] = cpu
 	return resultMap, nil
 }
