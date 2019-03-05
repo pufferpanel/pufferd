@@ -19,10 +19,10 @@ package spongeforgedl
 import (
 	"encoding/json"
 	"errors"
-	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/environments"
 	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/forgedl"
 	"net/http"
 	"os"
 	"path"
@@ -30,7 +30,6 @@ import (
 
 const DOWNLOAD_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads?type=stable&limit=1"
 const RECOMMENDED_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads/recommended"
-const FORGE_URL = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/${minecraft}-${forge}/forge-${minecraft}-${forge}-installer.jar"
 
 type SpongeForgeDl struct {
 	ReleaseType string
@@ -103,11 +102,13 @@ func (op SpongeForgeDl) Run(env environments.Environment) error {
 		return errors.New("no artifacts found to download")
 	}
 
-	var versionMapping = make(map[string]interface{})
-	versionMapping["forge"] = versionData.Dependencies.Forge
-	versionMapping["minecraft"] = versionData.Dependencies.Minecraft
+	//convert to a forge operation and have built-in process run this
+	mapping := make(map[string]interface{})
+	mapping["version"] = versionData.Dependencies.Minecraft + "-" + versionData.Dependencies.Forge
+	mapping["target"] = "forge-installer.jar"
+	forgeDlOp := forgedl.Factory.Create(ops.CreateOperation{OperationArgs: mapping})
 
-	err := commons.DownloadFile(common.ReplaceTokens(FORGE_URL, versionMapping), "forge-installer.jar", env)
+	err := forgeDlOp.Run(env)
 	if err != nil {
 		return err
 	}
@@ -117,7 +118,12 @@ func (op SpongeForgeDl) Run(env environments.Environment) error {
 		return err
 	}
 
-	err = commons.DownloadFile(versionData.Artifacts[""].Url, path.Join("mods", "spongeforge.jar"), env)
+	file, err := commons.DownloadViaMaven(versionData.Artifacts[""].Url, env)
+	if err != nil {
+		return err
+	}
+
+	err = commons.CopyFile(file, path.Join("mods", "spongeforge.jar"))
 	if err != nil {
 		return err
 	}
@@ -126,7 +132,10 @@ func (op SpongeForgeDl) Run(env environments.Environment) error {
 }
 
 func (of SpongeForgeDlOperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	releaseType := op.OperationArgs["releaseType"].(string)
+	releaseType, ok := op.OperationArgs["releaseType"].(string)
+	if !ok {
+		releaseType = "recommended"
+	}
 
 	return SpongeForgeDl{ReleaseType: releaseType}
 }

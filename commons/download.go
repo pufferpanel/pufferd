@@ -17,12 +17,18 @@
 package commons
 
 import (
+	"crypto/sha1"
+	"fmt"
+	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 func DownloadFile(url, fileName string, env environments.Environment) error {
@@ -48,22 +54,88 @@ func DownloadFile(url, fileName string, env environments.Environment) error {
 }
 
 func DownloadFileToCache(url, fileName string) error {
+	parent := filepath.Dir(fileName)
+	err := os.MkdirAll(parent, 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
 	target, err := os.Create(fileName)
+	defer Close(target)
 	if err != nil {
 		return err
 	}
-	defer target.Close()
 
 	client := &http.Client{}
 
 	logging.Debug("Downloading: " + url)
 
 	response, err := client.Get(url)
+	defer CloseResponse(response)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	_, err = io.Copy(target, response.Body)
 	return err
+}
+
+func DownloadViaMaven(downloadUrl string, env environments.Environment) (string, error) {
+	localPath := path.Join(config.GetStringOrDefault("cache", "tmp"), strings.TrimPrefix(strings.TrimPrefix(downloadUrl, "http://"), "https://"))
+
+	if os.PathSeparator != '/' {
+		localPath = strings.Replace(localPath, "/", string(os.PathSeparator), -1)
+	}
+
+	sha1Url := downloadUrl + ".sha1"
+
+	useCache := true
+	f, err := os.Open(localPath)
+	defer Close(f)
+	//cache was readable, so validate
+	if err == nil {
+		h := sha1.New()
+		if _, err := io.Copy(h, f); err != nil {
+			log.Fatal(err)
+		}
+		Close(f)
+
+		actualHash := fmt.Sprintf("%x", h.Sum(nil))
+
+		client := &http.Client{}
+		logging.Develf("Downloading hash from %s", sha1Url)
+		response, err := client.Get(sha1Url)
+		defer CloseResponse(response)
+		if err != nil {
+			useCache = false
+		} else {
+			data := make([]byte, 40)
+			_, err := response.Body.Read(data)
+			expectedHash := string(data)
+
+			if err != nil {
+				useCache = false
+			} else if expectedHash != actualHash {
+				logging.Warnf("Cache expected %s but was actually %s", expectedHash, actualHash)
+				useCache = false
+			}
+		}
+	} else if !os.IsNotExist(err) {
+		logging.Warnf("Cached file is not readable, will download (%s)", localPath)
+	} else {
+		useCache = false
+	}
+
+	//if we can't use cache, redownload it to the cache
+	if !useCache {
+		logging.Infof("Downloading new version and caching to %s", localPath)
+		if env != nil {
+			env.DisplayToConsole("Downloading:" + downloadUrl)
+		}
+		err = DownloadFileToCache(downloadUrl, localPath)
+	}
+	if err == nil {
+		return localPath, err
+	} else {
+		return "", err
+	}
 }

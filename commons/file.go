@@ -3,6 +3,7 @@ package commons
 import (
 	"io"
 	"os"
+	"path/filepath"
 )
 
 func CopyFile(src, dest string) error {
@@ -12,6 +13,10 @@ func CopyFile(src, dest string) error {
 	}
 	defer Close(source)
 
+	err = os.MkdirAll(filepath.Dir(dest), 0755)
+	if err != nil {
+		return err
+	}
 	destination, err := os.Create(dest)
 	if err != nil {
 		return err
