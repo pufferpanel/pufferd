@@ -23,6 +23,7 @@ import (
 	"github.com/pufferpanel/pufferd/programs/operations/ops"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/command"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/download"
+	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/forgedl"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/mkdir"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/mojangdl"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/move"
@@ -59,7 +60,7 @@ func GenerateProcess(directions []map[string]interface{}, environment environmen
 
 		//replace tokens
 		for k, v := range mapping {
-			if k != "type" {
+			if k == "type" {
 				continue
 			}
 
@@ -140,4 +141,7 @@ func loadCoreModules() {
 
 	spongeforgeDlFactory := spongeforgedl.Factory
 	commandMapping[spongeforgeDlFactory.Key()] = spongeforgeDlFactory
+
+	forgeDlFactory := forgedl.Factory
+	commandMapping[forgeDlFactory.Key()] = forgeDlFactory
 }

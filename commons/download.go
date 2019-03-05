@@ -46,3 +46,24 @@ func DownloadFile(url, fileName string, env environments.Environment) error {
 	_, err = io.Copy(target, response.Body)
 	return err
 }
+
+func DownloadFileToCache(url, fileName string) error {
+	target, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer target.Close()
+
+	client := &http.Client{}
+
+	logging.Debug("Downloading: " + url)
+
+	response, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	_, err = io.Copy(target, response.Body)
+	return err
+}
