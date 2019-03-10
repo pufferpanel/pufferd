@@ -65,7 +65,7 @@ func (s *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	s.wait.Add(1)
 	process.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
 	s.mainProcess = process
-	logging.Debug("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args, " "))
+	logging.Debug("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args[1:], " "))
 	tty, err := pty.Start(process)
 	s.stdInWriter = tty
 	go func() {

@@ -52,6 +52,7 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 		return
 	}
 	s.wait.Wait()
+	s.wait.Add(1)
 	s.mainProcess = exec.Command(cmd, args...)
 	s.mainProcess.Dir = s.RootDirectory
 	s.mainProcess.Env = append(os.Environ(), "HOME="+s.RootDirectory)
@@ -66,25 +67,15 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 		logging.Error("Error creating process", err)
 	}
 	s.stdInWriter = pipe
-	s.wait.Add(1)
-	logging.Debugf("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args, " "))
+	logging.Debugf("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args[1:], " "))
 	err = s.mainProcess.Start()
-	go func() {
-		err := s.mainProcess.Wait()
-		s.wait.Done()
-		if callback != nil {
-			if s.mainProcess == nil || s.mainProcess.ProcessState == nil || err != nil  {
-				callback(false)
-			} else {
-				callback(s.mainProcess.ProcessState.Success())
-			}
-		}
-	}()
 	if err != nil && err.Error() != "exit status 1" {
 		logging.Error("Error starting process", err)
 	} else {
 		logging.Debug("Process started (" + strconv.Itoa(s.mainProcess.Process.Pid) + ")")
 	}
+
+	go s.handleClose(callback)
 	return
 }
 
@@ -125,7 +116,7 @@ func (s *standard) IsRunning() (isRunning bool, err error) {
 		pr, pErr := os.FindProcess(s.mainProcess.Process.Pid)
 		if pr == nil || pErr != nil {
 			isRunning = false
-		} else if runtime.GOOS != "windows" && pr.Signal(syscall.Signal(0)) != nil{
+		} else if runtime.GOOS != "windows" && pr.Signal(syscall.Signal(0)) != nil {
 			isRunning = false
 		}
 	}
@@ -207,4 +198,25 @@ func (sf StandardFactory) Create(folder, id string, environmentSection map[strin
 
 func (sf StandardFactory) Key() string {
 	return "standard"
+}
+
+func (s *standard) handleClose(callback func(graceful bool)) {
+	err := s.mainProcess.Wait()
+	s.wait.Done()
+	logging.Develf("Firing callbacks for %s", s.mainProcess.ProcessState.Pid())
+
+	var graceful bool
+	if s.mainProcess == nil || s.mainProcess.ProcessState == nil || err != nil {
+		graceful = false
+		callback(false)
+	} else {
+		graceful = s.mainProcess.ProcessState.Success()
+	}
+
+	s.mainProcess = nil
+	s.stdInWriter = nil
+
+	if callback != nil {
+		callback(graceful)
+	}
 }

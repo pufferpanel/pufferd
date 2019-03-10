@@ -17,5 +17,5 @@
 package environments
 
 func loadAdditionalModules(mapping map[string]EnvironmentFactory) {
-	
+	mapping["docker"] = DockerFactory{}
 }
