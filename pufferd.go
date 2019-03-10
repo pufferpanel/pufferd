@@ -41,8 +41,8 @@ import (
 )
 
 var (
-	VERSION      = "nightly"
-	GITHASH      = "unknown"
+	VERSION = "nightly"
+	GITHASH = "unknown"
 )
 
 var runService = true
@@ -209,7 +209,7 @@ func runServices() {
 
 func CreateHook() {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.Signal(15), syscall.Signal(1))
+	signal.Notify(c, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGPIPE)
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
@@ -219,13 +219,15 @@ func CreateHook() {
 
 		var sig os.Signal
 
-		for sig != syscall.Signal(15) {
+		for sig != syscall.SIGTERM {
 			sig = <-c
 			switch sig {
-			case syscall.Signal(1):
+			case syscall.SIGHUP:
 				manners.Close()
 				sftp.Stop()
 				config.Load(configPath)
+			case syscall.SIGPIPE:
+				logging.Debug("SIGPIPE received, this is interesting!")
 			}
 		}
 
