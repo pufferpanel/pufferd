@@ -43,6 +43,7 @@ type oauthCache struct {
 }
 
 var cache = make([]*oauthCache, 20)
+var client = &http.Client{}
 
 func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 	return func(gin *gin.Context) {
@@ -130,7 +131,6 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 func validateToken(accessToken string, gin *gin.Context) bool {
 	authUrl := config.GetString("infoServer")
 	token := config.GetString("authToken")
-	client := &http.Client{}
 	data := url.Values{}
 	data.Set("token", accessToken)
 	request, _ := http.NewRequest("POST", authUrl, bytes.NewBufferString(data.Encode()))
@@ -138,6 +138,11 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	response, err := client.Do(request)
+	defer func() {
+		if response != nil {
+			response.Body.Close()
+		}
+	}()
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
 		errMsg := make(map[string]string)
@@ -146,7 +151,6 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 		gin.Abort()
 		return false
 	}
-	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
 		logging.Error("Unexpected response code from auth server", response.StatusCode)
@@ -157,9 +161,9 @@ func validateToken(accessToken string, gin *gin.Context) bool {
 		return false
 	}
 	var respArr map[string]interface{}
-	json.NewDecoder(response.Body).Decode(&respArr)
+	err = json.NewDecoder(response.Body).Decode(&respArr)
 
-	if respArr["error"] != nil {
+	if err != nil || respArr["error"] != nil {
 		logging.Error("Error parsing response from auth server", err)
 		errMsg := make(map[string]string)
 		errMsg["error"] = "Failed to parse auth server response"

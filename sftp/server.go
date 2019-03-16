@@ -134,10 +134,14 @@ func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
 }
 func handleConn(conn net.Conn, config *ssh.ServerConfig) error {
 	sc, chans, reqs, e := ssh.NewServerConn(conn, config)
+	defer func() {
+		if sc != nil {
+			sc.Close()
+		}
+	}()
 	if e != nil {
 		return e
 	}
-	defer sc.Close()
 
 	// The incoming Request channel must be serviced.
 	go PrintDiscardRequests(reqs)
@@ -194,9 +198,10 @@ func PrintDiscardRequests(in <-chan *ssh.Request) {
 	}
 }
 
+var client = &http.Client{}
+
 func validateSSH(username string, password string) (*ssh.Permissions, error) {
 	authUrl := configuration.GetString("authServer")
-	client := &http.Client{}
 	data := url.Values{}
 	data.Set("grant_type", "password")
 	data.Set("username", username)
@@ -208,11 +213,15 @@ func validateSSH(username string, password string) (*ssh.Permissions, error) {
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	response, err := client.Do(request)
+	defer func() {
+		if response != nil {
+			response.Body.Close()
+		}
+	}()
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
 		return nil, errors.New("Invalid response from authorization server")
 	}
-	defer response.Body.Close()
 
 	//we should only get a 200, if we get any others, we have a problem
 	if response.StatusCode != 200 {
