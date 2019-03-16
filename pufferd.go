@@ -233,7 +233,7 @@ func CreateHook() {
 				sftp.Stop()
 				config.Load(configPath)
 			case syscall.SIGPIPE:
-				logging.Debug("SIGPIPE received, this is interesting!")
+				//ignore SIGPIPEs for now, we're somehow getting them and it's causing issues
 			}
 		}
 
