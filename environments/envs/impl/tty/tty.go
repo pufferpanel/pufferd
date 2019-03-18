@@ -185,8 +185,8 @@ func (t *tty) handleClose(callback func(graceful bool)) {
 		success = t.mainProcess.ProcessState.Success()
 	}
 
-	if s.mainProcess != nil && s.mainProcess.Process != nil {
-		s.mainProcess.Process.Release()
+	if t.mainProcess != nil && t.mainProcess.Process != nil {
+		t.mainProcess.Process.Release()
 	}
 	t.mainProcess = nil
 	t.wait.Done()
