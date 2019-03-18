@@ -29,8 +29,8 @@ import (
 	"path"
 )
 
-const DOWNLOAD_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads?type=stable&limit=1"
-const RECOMMENDED_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads/recommended"
+const DownloadApiUrl = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads?type=stable&limit=1"
+const RecommendedApiUrl = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads/recommended"
 
 var client = &http.Client{}
 
@@ -56,7 +56,7 @@ func (op SpongeForgeDl) Run(env envs.Environment) error {
 	var versionData download
 
 	if op.ReleaseType == "latest" {
-		response, err := client.Get(DOWNLOAD_API_URL)
+		response, err := client.Get(DownloadApiUrl)
 		defer commons.CloseResponse(response)
 		if err != nil {
 			return err
@@ -74,7 +74,7 @@ func (op SpongeForgeDl) Run(env envs.Environment) error {
 
 		versionData = all[0]
 	} else {
-		response, err := client.Get(RECOMMENDED_API_URL)
+		response, err := client.Get(RecommendedApiUrl)
 		defer commons.CloseResponse(response)
 
 		if err != nil {

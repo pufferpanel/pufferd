@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-const JAR_DOWNLOAD = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/${version}/forge-${version}-installer.jar"
+const InstallerUrl = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/${version}/forge-${version}-installer.jar"
 
 type ForgeDl struct {
 	Version string
@@ -33,7 +33,7 @@ type ForgeDl struct {
 
 
 func (op ForgeDl) Run(env envs.Environment) error {
-	jarDownload := strings.Replace(JAR_DOWNLOAD, "${version}", op.Version, -1)
+	jarDownload := strings.Replace(InstallerUrl, "${version}", op.Version, -1)
 
 	localFile, err := environments.DownloadViaMaven(jarDownload, env)
 	if err != nil {
