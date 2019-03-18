@@ -17,12 +17,11 @@
 package writefile
 
 import (
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"io/ioutil"
 
 	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
 )
 
 type WriteFile struct {
@@ -30,25 +29,9 @@ type WriteFile struct {
 	Text       string
 }
 
-func (c WriteFile) Run(env environments.Environment) error {
+func (c WriteFile) Run(env envs.Environment) error {
 	logging.Debugf("Writing data to file: %s", c.TargetFile)
 	env.DisplayToConsole("Writing some data to file: %s\n ", c.TargetFile)
 	target := common.JoinPath(env.GetRootDirectory(), c.TargetFile)
 	return ioutil.WriteFile(target, []byte(c.Text), 0644)
 }
-
-type WriteFileOperationFactory struct {
-}
-
-func (of WriteFileOperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	text := op.OperationArgs["text"].(string)
-	target := op.OperationArgs["target"].(string)
-	return WriteFile{TargetFile: target, Text: text}
-}
-
-func (of WriteFileOperationFactory) Key() string {
-	return "writefile"
-}
-
-
-var Factory WriteFileOperationFactory

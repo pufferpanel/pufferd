@@ -23,26 +23,26 @@ import (
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/environments"
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"net/http"
 )
 
-const VERSION_JSON = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+const VersionJsonUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+
+var client = &http.Client{}
 
 type MojangDl struct {
 	Version string
 	Target  string
 }
 
-func (op MojangDl) Run(env environments.Environment) error {
-	client := &http.Client{}
-
-	response, err := client.Get(VERSION_JSON)
+func (op MojangDl) Run(env envs.Environment) error {
+	response, err := client.Get(VersionJsonUrl)
 	if err != nil {
 		return err
 	}
 
-	var data MojangLauncherJson
+	var data LauncherJson
 	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return err
@@ -54,14 +54,14 @@ func (op MojangDl) Run(env environments.Environment) error {
 
 	var targetVersion string
 	switch op.Version {
-		case "release":
-			targetVersion = data.Latest.Release
-		case "latest":
-			targetVersion = data.Latest.Release
-		case "snapshot":
-			targetVersion = data.Latest.Snapshot
-		default:
-			targetVersion = op.Version
+	case "release":
+		targetVersion = data.Latest.Release
+	case "latest":
+		targetVersion = data.Latest.Release
+	case "snapshot":
+		targetVersion = data.Latest.Snapshot
+	default:
+		targetVersion = op.Version
 	}
 
 	for _, version := range data.Versions {
@@ -78,14 +78,14 @@ func (op MojangDl) Run(env environments.Environment) error {
 	return errors.New("Version not located: " + op.Version)
 }
 
-func downloadServerFromJson(url, target string, env environments.Environment) error {
-	client := &http.Client{}
+func downloadServerFromJson(url, target string, env envs.Environment) error {
 	response, err := client.Get(url)
+	defer commons.CloseResponse(response)
 	if err != nil {
 		return err
 	}
 
-	var data MojangVersionJson
+	var data VersionJson
 	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return err
@@ -100,47 +100,31 @@ func downloadServerFromJson(url, target string, env environments.Environment) er
 	logging.Debugf("Version jar located, downloading from %s", serverBlock.Url)
 	env.DisplayToConsole(fmt.Sprintf("Version jar located, downloading from %s\n", serverBlock.Url))
 
-	return commons.DownloadFile(serverBlock.Url, target, env)
+	return environments.DownloadFile(serverBlock.Url, target, env)
 }
 
-type MojangDlOperationFactory struct {
+type LauncherJson struct {
+	Versions []LauncherVersion `json:"versions"`
+	Latest   Latest            `json:"latest"`
 }
 
-func (of MojangDlOperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	version := op.OperationArgs["version"].(string)
-	target := op.OperationArgs["target"].(string)
-
-	return MojangDl{Version: version, Target: target}
-}
-
-func (of MojangDlOperationFactory) Key() string {
-	return "mojangdl"
-}
-
-type MojangLauncherJson struct {
-	Versions []MojangLauncherVersion `json:"versions"`
-	Latest MojangLatest `json:"latest"`
-}
-
-type MojangLatest struct {
-	Release string `json:"release"`
+type Latest struct {
+	Release  string `json:"release"`
 	Snapshot string `json:"snapshot"`
 }
 
-type MojangLauncherVersion struct {
+type LauncherVersion struct {
 	Id   string `json:"id"`
 	Url  string `json:"url"`
 	Type string `json:"type"`
 }
 
-type MojangVersionJson struct {
-	Downloads map[string]MojangDownloadType `json:"downloads"`
+type VersionJson struct {
+	Downloads map[string]DownloadType `json:"downloads"`
 }
 
-type MojangDownloadType struct {
+type DownloadType struct {
 	Sha1 string `json:"sha1"`
 	Size uint64 `json:"size"`
 	Url  string `json:"url"`
 }
-
-var Factory MojangDlOperationFactory

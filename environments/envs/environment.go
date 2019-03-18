@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package environments
+package envs
 
 import (
 	"fmt"
@@ -24,7 +24,6 @@ import (
 	"github.com/pufferpanel/pufferd/utils"
 	"io"
 	"os"
-	"sync"
 )
 
 type Environment interface {
@@ -71,13 +70,12 @@ type Environment interface {
 
 type BaseEnvironment struct {
 	Environment
-	RootDirectory      string                 `json:"-"`
-	ConsoleBuffer      cache.Cache            `json:"-"`
-	WSManager          utils.WebSocketManager `json:"-"`
-	wait               sync.WaitGroup
-	Type               string `json:"type"`
-	executeAsync       func(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error)
-	waitForMainProcess func() (err error)
+	RootDirectory     string                 `json:"-"`
+	ConsoleBuffer     cache.Cache            `json:"-"`
+	WSManager         utils.WebSocketManager `json:"-"`
+	Type              string                 `json:"type"`
+	ExecutionFunction func(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error)
+	WaitFunction      func() (err error)
 }
 
 func (e *BaseEnvironment) Execute(cmd string, args []string, env map[string]string, callback func(graceful bool)) (stdOut []byte, err error) {
@@ -91,11 +89,11 @@ func (e *BaseEnvironment) Execute(cmd string, args []string, env map[string]stri
 }
 
 func (e *BaseEnvironment) WaitForMainProcess() (err error) {
-	return e.waitForMainProcess()
+	return e.WaitFunction()
 }
 
 func (e *BaseEnvironment) ExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error) {
-	return e.executeAsync(cmd, args, env, callback)
+	return e.ExecutionFunction(cmd, args, env, callback)
 }
 
 func (e *BaseEnvironment) GetRootDirectory() string {
@@ -135,7 +133,7 @@ func (e *BaseEnvironment) Delete() (err error) {
 	return
 }
 
-func (e *BaseEnvironment) createWrapper() io.Writer {
+func (e *BaseEnvironment) CreateWrapper() io.Writer {
 	if config.GetBoolOrDefault("forward", false) {
 		return io.MultiWriter(os.Stdout, e.ConsoleBuffer, e.WSManager)
 	}

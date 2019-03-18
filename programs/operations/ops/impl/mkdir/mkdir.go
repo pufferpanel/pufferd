@@ -17,36 +17,20 @@
 package mkdir
 
 import (
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"os"
 
 	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
 )
 
 type Mkdir struct {
-	TargetFile  string
+	TargetFile string
 }
 
-func (m *Mkdir) Run(env environments.Environment) error {
+func (m *Mkdir) Run(env envs.Environment) error {
 	logging.Debugf("Making directory: %s\n", m.TargetFile)
 	env.DisplayToConsole("Creating directory: %s\n", m.TargetFile)
 	target := common.JoinPath(env.GetRootDirectory(), m.TargetFile)
 	return os.MkdirAll(target, 0755)
 }
-
-type MkdirOperationFactory struct {
-}
-
-func (of MkdirOperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	target := op.OperationArgs["target"].(string)
-	return &Mkdir{TargetFile: target}
-}
-
-func (of MkdirOperationFactory) Key() string {
-	return "mkdir"
-}
-
-
-var Factory MkdirOperationFactory

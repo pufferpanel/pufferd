@@ -16,7 +16,11 @@
 
 package environments
 
-func loadAdditionalModules(mapping map[string]EnvironmentFactory) {
-	mapping["docker"] = DockerFactory{}
-	mapping["tty"] = TtyFactory{}
+import (
+	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/environments/envs/impl/tty"
+)
+
+func loadAdditionalModules(mapping map[string]envs.EnvironmentFactory) {
+	mapping["tty"] = tty.EnvironmentFactory{}
 }

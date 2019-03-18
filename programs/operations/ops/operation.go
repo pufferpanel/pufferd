@@ -16,10 +16,12 @@
 
 package ops
 
-import "github.com/pufferpanel/pufferd/environments"
+import (
+	"github.com/pufferpanel/pufferd/environments/envs"
+)
 
 type Operation interface {
-	Run(env environments.Environment) error
+	Run(env envs.Environment) error
 }
 
 type OperationFactory interface {

@@ -14,14 +14,15 @@
  limitations under the License.
 */
 
-package commons
+package environments
 
 import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
+	"github.com/pufferpanel/pufferd/commons"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"io"
 	"log"
 	"net/http"
@@ -31,12 +32,12 @@ import (
 	"strings"
 )
 
-func DownloadFile(url, fileName string, env environments.Environment) error {
+func DownloadFile(url, fileName string, env envs.Environment) error {
 	target, err := os.Create(path.Join(env.GetRootDirectory(), fileName))
+	defer commons.Close(target)
 	if err != nil {
 		return err
 	}
-	defer target.Close()
 
 	client := &http.Client{}
 
@@ -44,10 +45,10 @@ func DownloadFile(url, fileName string, env environments.Environment) error {
 	env.DisplayToConsole("Downloading: " + url + "\n")
 
 	response, err := client.Get(url)
+	defer commons.CloseResponse(response)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	_, err = io.Copy(target, response.Body)
 	return err
@@ -59,8 +60,9 @@ func DownloadFileToCache(url, fileName string) error {
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
+
 	target, err := os.Create(fileName)
-	defer Close(target)
+	defer commons.Close(target)
 	if err != nil {
 		return err
 	}
@@ -70,7 +72,7 @@ func DownloadFileToCache(url, fileName string) error {
 	logging.Debug("Downloading: " + url)
 
 	response, err := client.Get(url)
-	defer CloseResponse(response)
+	defer commons.CloseResponse(response)
 	if err != nil {
 		return err
 	}
@@ -79,7 +81,7 @@ func DownloadFileToCache(url, fileName string) error {
 	return err
 }
 
-func DownloadViaMaven(downloadUrl string, env environments.Environment) (string, error) {
+func DownloadViaMaven(downloadUrl string, env envs.Environment) (string, error) {
 	localPath := path.Join(config.GetStringOrDefault("cache", "tmp"), strings.TrimPrefix(strings.TrimPrefix(downloadUrl, "http://"), "https://"))
 
 	if os.PathSeparator != '/' {
@@ -90,21 +92,21 @@ func DownloadViaMaven(downloadUrl string, env environments.Environment) (string,
 
 	useCache := true
 	f, err := os.Open(localPath)
-	defer Close(f)
+	defer commons.Close(f)
 	//cache was readable, so validate
 	if err == nil {
 		h := sha1.New()
 		if _, err := io.Copy(h, f); err != nil {
 			log.Fatal(err)
 		}
-		Close(f)
+		commons.Close(f)
 
 		actualHash := fmt.Sprintf("%x", h.Sum(nil))
 
 		client := &http.Client{}
 		logging.Develf("Downloading hash from %s", sha1Url)
 		response, err := client.Get(sha1Url)
-		defer CloseResponse(response)
+		defer commons.CloseResponse(response)
 		if err != nil {
 			useCache = false
 		} else {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/commons"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -41,11 +42,11 @@ func RefreshToken() bool {
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
 	response, err := client.Do(request)
+	defer commons.CloseResponse(response)
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
 		return false
 	}
-	defer response.Body.Close()
 
 	var responseData requestResponse
 	err = json.NewDecoder(response.Body).Decode(&responseData)

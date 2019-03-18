@@ -55,7 +55,5 @@ func RegisterRoutes(e *gin.Engine) {
 
 func Shutdown(c *gin.Context) {
 	http.Respond(c).Message("shutting down").Send()
-	go func() {
-		shutdown.CompleteShutdown()
-	}()
+	go shutdown.CompleteShutdown()
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/pufferpanel/apufferi/config"
 	pufferdHttp "github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/commons"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -35,13 +36,13 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
 	response, err := client.Do(request)
+	defer commons.CloseResponse(response)
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
 		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false
 	}
-	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
 		if response.StatusCode == 401 {

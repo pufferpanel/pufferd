@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/commons"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net/http"
@@ -35,11 +36,11 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
 	response, err := client.Do(request)
+	defer commons.CloseResponse(response)
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
 		return nil, errors.New("Invalid response from authorization server")
 	}
-	defer response.Body.Close()
 
 	//we should only get a 200, if we get any others, we have a problem
 	if response.StatusCode != 200 {

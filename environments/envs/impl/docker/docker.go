@@ -14,17 +14,12 @@
  limitations under the License.
 */
 
-package environments
+package docker
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"github.com/pufferpanel/apufferi/cache"
-	"github.com/pufferpanel/apufferi/common"
-	"github.com/pufferpanel/pufferd/utils"
-	"sync"
-
-	"context"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -33,23 +28,27 @@ import (
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/commons"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	ppError "github.com/pufferpanel/pufferd/errors"
 	"io"
 	"io/ioutil"
 	"os"
 	"runtime"
+	"sync"
 	"syscall"
 	"time"
 )
 
 type docker struct {
-	*BaseEnvironment
+	*envs.BaseEnvironment
 	ContainerId      string `json:"-"`
 	ImageName        string `json:"image"`
 	connection       types.HijackedResponse
 	cli              *client.Client
 	downloadingImage bool
 	enforceNetwork   bool
+	wait             *sync.WaitGroup
 }
 
 func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) error {
@@ -68,10 +67,10 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 		return errors.New("container image is downloading, cannot execute")
 	}
 
-	client, err := d.getClient()
+	dockerClient, err := d.getClient()
 	ctx := context.Background()
 
-	exists, err := d.doesContainerExist(client, ctx)
+	exists, err := d.doesContainerExist(dockerClient, ctx)
 
 	if err != nil {
 		return err
@@ -79,7 +78,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 
 	//container does not exist
 	if !exists {
-		err = d.createContainer(client, ctx, cmd, args, env, d.RootDirectory)
+		err = d.createContainer(dockerClient, ctx, cmd, args, env, d.RootDirectory)
 		if err != nil {
 			return err
 		}
@@ -92,7 +91,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 		Stream: true,
 	}
 
-	d.connection, err = client.ContainerAttach(ctx, d.ContainerId, config)
+	d.connection, err = dockerClient.ContainerAttach(ctx, d.ContainerId, config)
 	if err != nil {
 		return err
 	}
@@ -101,7 +100,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 
 	go func() {
 		defer d.connection.Close()
-		wrapper := d.createWrapper()
+		wrapper := d.CreateWrapper()
 		io.Copy(wrapper, d.connection.Reader)
 		c, _ := d.getClient()
 		c.ContainerStop(context.Background(), d.ContainerId, nil)
@@ -114,7 +113,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 
 	startOpts := types.ContainerStartOptions{}
 
-	err = client.ContainerStart(ctx, d.ContainerId, startOpts)
+	err = dockerClient.ContainerStart(ctx, d.ContainerId, startOpts)
 	if err != nil {
 		return err
 	}
@@ -145,9 +144,9 @@ func (d *docker) Kill() (err error) {
 		return
 	}
 
-	client, err := d.getClient()
+	dockerClient, err := d.getClient()
 	ctx := context.Background()
-	err = client.ContainerKill(ctx, d.ContainerId, "SIGKILL")
+	err = dockerClient.ContainerKill(ctx, d.ContainerId, "SIGKILL")
 	return
 }
 
@@ -169,7 +168,7 @@ func (d *docker) Create() error {
 }
 
 func (d *docker) IsRunning() (bool, error) {
-	client, err := d.getClient()
+	dockerClient, err := d.getClient()
 	if err != nil {
 		logging.Error("Error checking run status", err)
 		return false, err
@@ -177,12 +176,12 @@ func (d *docker) IsRunning() (bool, error) {
 
 	ctx := context.Background()
 
-	exists, err := d.doesContainerExist(client, ctx)
+	exists, err := d.doesContainerExist(dockerClient, ctx)
 	if !exists {
 		return false, err
 	}
 
-	stats, err := client.ContainerInspect(ctx, d.ContainerId)
+	stats, err := dockerClient.ContainerInspect(ctx, d.ContainerId)
 	if err != nil {
 		logging.Error("Error checking run status", err)
 		return false, err
@@ -200,18 +199,17 @@ func (d *docker) GetStats() (map[string]interface{}, error) {
 		return nil, ppError.NewServerOffline()
 	}
 
-	client, err := d.getClient()
+	dockerClient, err := d.getClient()
 
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := client.ContainerStats(context.Background(), d.ContainerId, false)
+	res, err := dockerClient.ContainerStats(context.Background(), d.ContainerId, false)
+	defer commons.Close(res.Body)
 	if err != nil {
 		return nil, err
 	}
-
-	defer res.Body.Close()
 
 	data := make(map[string]interface{})
 	err = json.NewDecoder(res.Body).Decode(&data)
@@ -225,24 +223,24 @@ func (d *docker) GetStats() (map[string]interface{}, error) {
 	return resultMap, nil
 }
 
-func (e *docker) WaitForMainProcess() error {
-	return e.WaitForMainProcessFor(0)
+func (d *docker) WaitForMainProcess() error {
+	return d.WaitForMainProcessFor(0)
 }
 
-func (e *docker) WaitForMainProcessFor(timeout int) (err error) {
-	running, err := e.IsRunning()
+func (d *docker) WaitForMainProcessFor(timeout int) (err error) {
+	running, err := d.IsRunning()
 	if err != nil {
 		return
 	}
 	if running {
 		if timeout > 0 {
 			var timer = time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
-				err = e.Kill()
+				err = d.Kill()
 			})
-			e.wait.Wait()
+			d.wait.Wait()
 			timer.Stop()
 		} else {
-			e.wait.Wait()
+			d.wait.Wait()
 		}
 	}
 	return
@@ -309,7 +307,7 @@ func (d *docker) pullImage(client *client.Client, ctx context.Context, force boo
 	d.downloadingImage = true
 
 	r, err := client.ImagePull(ctx, d.ImageName, op)
-	defer r.Close()
+	defer commons.Close(r)
 	if err != nil {
 		return err
 	}
@@ -374,46 +372,19 @@ func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd
 	return err
 }
 
-func (e *docker) SendCode(code int) error {
-	running, err := e.IsRunning()
+func (d *docker) SendCode(code int) error {
+	running, err := d.IsRunning()
 
 	if err != nil || !running {
 		return err
 	}
 
-	client, err := e.getClient()
+	dockerClient, err := d.getClient()
 
 	if err != nil {
 		return err
 	}
 
 	ctx := context.Background()
-	return client.ContainerKill(ctx, e.ContainerId, syscall.Signal(code).String())
-}
-
-type DockerFactory struct {
-	EnvironmentFactory
-}
-
-func (df DockerFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache cache.Cache, wsManager utils.WebSocketManager) Environment {
-	imageName := common.GetStringOrDefault(environmentSection, "image", "")
-	enforceNetwork := common.GetBooleanOrDefault(environmentSection, "enforceNetwork", false)
-
-	if imageName == "" {
-		imageName = "pufferpanel/generic"
-	}
-
-	d := &docker{BaseEnvironment: &BaseEnvironment{Type: "docker"}, ContainerId: id, ImageName: imageName, enforceNetwork: enforceNetwork}
-	d.BaseEnvironment.executeAsync = d.dockerExecuteAsync
-	d.BaseEnvironment.waitForMainProcess = d.WaitForMainProcess
-	d.wait = sync.WaitGroup{}
-
-	d.RootDirectory = rootDirectory
-	d.ConsoleBuffer = cache
-	d.WSManager = wsManager
-	return d
-}
-
-func (df DockerFactory) Key() string {
-	return "docker"
+	return dockerClient.ContainerKill(ctx, d.ContainerId, syscall.Signal(code).String())
 }

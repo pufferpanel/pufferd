@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/sftp"
 	configuration "github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/programs"
 	"golang.org/x/crypto/ssh"
@@ -116,7 +117,7 @@ func runServer() error {
 }
 
 func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
-	defer conn.Close()
+	defer commons.Close(conn)
 	logging.Debugf("SFTP connection from %s", conn.RemoteAddr().String())
 	e := handleConn(conn, config)
 	if e != nil {
@@ -127,10 +128,10 @@ func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
 }
 func handleConn(conn net.Conn, config *ssh.ServerConfig) error {
 	sc, chans, reqs, e := ssh.NewServerConn(conn, config)
+	defer commons.Close(sc)
 	if e != nil {
 		return e
 	}
-	defer sc.Close()
 
 	// The incoming Request channel must be serviced.
 	go PrintDiscardRequests(reqs)

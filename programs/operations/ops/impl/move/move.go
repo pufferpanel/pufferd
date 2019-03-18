@@ -17,13 +17,12 @@
 package move
 
 import (
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"os"
 	"path/filepath"
 
 	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
 )
 
 type Move struct {
@@ -31,7 +30,7 @@ type Move struct {
 	TargetFile  string
 }
 
-func (m Move) Run(env environments.Environment) error {
+func (m Move) Run(env envs.Environment) error {
 	source := common.JoinPath(env.GetRootDirectory(), m.SourceFile)
 	target := common.JoinPath(env.GetRootDirectory(), m.TargetFile)
 	result, valid := validateMove(source, target)
@@ -83,18 +82,3 @@ func validateMove(source string, target string) (result map[string]string, valid
 	valid = true
 	return
 }
-
-type MoveOperationFactory struct {
-}
-
-func (of MoveOperationFactory) 	Create(op ops.CreateOperation) ops.Operation {
-	source := op.OperationArgs["source"].(string)
-	target := op.OperationArgs["target"].(string)
-	return Move{SourceFile: source, TargetFile: target}
-}
-
-func (of MoveOperationFactory) Key() string {
-	return "move"
-}
-
-var Factory MoveOperationFactory

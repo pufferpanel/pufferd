@@ -16,6 +16,7 @@
 
 package environments
 
-func loadAdditionalModules(mapping map[string]EnvironmentFactory) {
-	mapping["docker"] = DockerFactory{}
+import "github.com/pufferpanel/pufferd/environments/envs"
+
+func loadAdditionalModules(mapping map[string]envs.EnvironmentFactory) {
 }

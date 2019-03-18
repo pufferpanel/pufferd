@@ -18,7 +18,7 @@ package programs
 
 import (
 	"container/list"
-	"github.com/pufferpanel/pufferd/environments"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"sync"
 	"time"
 )
@@ -61,11 +61,11 @@ type Program interface {
 
 	IsAutoStart() (isAutoStart bool)
 
-	SetEnvironment(environment environments.Environment) (err error)
+	SetEnvironment(environment envs.Environment) (err error)
 
 	Id() string
 
-	GetEnvironment() environments.Environment
+	GetEnvironment() envs.Environment
 
 	Save(file string) (err error)
 

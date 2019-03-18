@@ -22,7 +22,7 @@ import (
 	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/programs/operations"
 	"io/ioutil"
 	"os"
@@ -43,7 +43,7 @@ type ProgramData struct {
 	RunData         RunObject              `json:"run,omitempty"`
 	Template        string                 `json:"template,omitempty"`
 
-	Environment  environments.Environment `json:"-"`
+	Environment  envs.Environment `json:"-"`
 	CrashCounter int                      `json:"-"`
 }
 
@@ -278,7 +278,7 @@ func (p *ProgramData) IsEnabled() (isEnabled bool) {
 	return
 }
 
-func (p *ProgramData) SetEnvironment(environment environments.Environment) (err error) {
+func (p *ProgramData) SetEnvironment(environment envs.Environment) (err error) {
 	p.Environment = environment
 	return
 }
@@ -287,7 +287,7 @@ func (p *ProgramData) Id() string {
 	return p.Identifier
 }
 
-func (p *ProgramData) GetEnvironment() environments.Environment {
+func (p *ProgramData) GetEnvironment() envs.Environment {
 	return p.Environment
 }
 

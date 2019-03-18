@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package environments
+package envs
 
 import (
 	"github.com/pufferpanel/apufferi/cache"

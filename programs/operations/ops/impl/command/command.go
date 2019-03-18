@@ -17,13 +17,11 @@
 package command
 
 import (
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"strings"
 
 	"fmt"
-	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
 )
 
 type Command struct {
@@ -31,7 +29,7 @@ type Command struct {
 	Env      map[string]string
 }
 
-func (c Command) Run(env environments.Environment) error {
+func (c Command) Run(env envs.Environment) error {
 	for _, cmd := range c.Commands {
 		logging.Debugf("Executing command: %s", cmd)
 		env.DisplayToConsole(fmt.Sprintf("Executing: %s\n", cmd))
@@ -46,18 +44,3 @@ func (c Command) Run(env environments.Environment) error {
 
 	return nil
 }
-
-type CommandOperationFactory struct {
-}
-
-func (of CommandOperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	cmds := common.ToStringArray(op.OperationArgs["commands"])
-	return Command{Commands: cmds, Env: op.EnvironmentVariables}
-}
-
-func (of CommandOperationFactory) Key() string {
-	return "command"
-}
-
-
-var Factory CommandOperationFactory

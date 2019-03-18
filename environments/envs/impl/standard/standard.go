@@ -14,12 +14,11 @@
  limitations under the License.
 */
 
-package environments
+package standard
 
 import (
 	"errors"
-	"github.com/pufferpanel/apufferi/cache"
-	"github.com/pufferpanel/pufferd/utils"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"io"
 	"os"
 	"os/exec"
@@ -37,9 +36,10 @@ import (
 )
 
 type standard struct {
-	*BaseEnvironment
+	*envs.BaseEnvironment
 	mainProcess *exec.Cmd
 	stdInWriter io.Writer
+	wait *sync.WaitGroup
 }
 
 func (s *standard) standardExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error) {
@@ -59,7 +59,7 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 	for k, v := range env {
 		s.mainProcess.Env = append(s.mainProcess.Env, fmt.Sprintf("%s=%s", k, v))
 	}
-	wrapper := s.createWrapper()
+	wrapper := s.CreateWrapper()
 	s.mainProcess.Stdout = wrapper
 	s.mainProcess.Stderr = wrapper
 	pipe, err := s.mainProcess.StdinPipe()
@@ -101,13 +101,7 @@ func (s *standard) Kill() (err error) {
 	if !running {
 		return
 	}
-	err = s.mainProcess.Process.Kill()
-	err2 := s.mainProcess.Process.Release()
-	if err == nil {
-		err = err2
-	}
-	s.mainProcess = nil
-	return
+	return s.mainProcess.Process.Kill()
 }
 
 func (s *standard) IsRunning() (isRunning bool, err error) {
@@ -143,67 +137,46 @@ func (s *standard) GetStats() (map[string]interface{}, error) {
 	return resultMap, nil
 }
 
-func (e *standard) Create() error {
-	return os.Mkdir(e.RootDirectory, 0755)
+func (s *standard) Create() error {
+	return os.Mkdir(s.RootDirectory, 0755)
 }
 
-func (e *standard) WaitForMainProcess() error {
-	return e.WaitForMainProcessFor(0)
+func (s *standard) WaitForMainProcess() error {
+	return s.WaitForMainProcessFor(0)
 }
 
-func (e *standard) WaitForMainProcessFor(timeout int) (err error) {
-	running, err := e.IsRunning()
+func (s *standard) WaitForMainProcessFor(timeout int) (err error) {
+	running, err := s.IsRunning()
 	if err != nil {
 		return
 	}
 	if running {
 		if timeout > 0 {
 			var timer = time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
-				err = e.Kill()
+				err = s.Kill()
 			})
-			e.wait.Wait()
+			s.wait.Wait()
 			timer.Stop()
 		} else {
-			e.wait.Wait()
+			s.wait.Wait()
 		}
 	}
 	return
 }
 
-func (e *standard) SendCode(code int) error {
-	running, err := e.IsRunning()
+func (s *standard) SendCode(code int) error {
+	running, err := s.IsRunning()
 
 	if err != nil || !running {
 		return err
 	}
 
-	return e.mainProcess.Process.Signal(syscall.Signal(code))
-}
-
-type StandardFactory struct {
-	EnvironmentFactory
-}
-
-func (sf StandardFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache cache.Cache, wsManager utils.WebSocketManager) Environment {
-	s := &standard{BaseEnvironment: &BaseEnvironment{Type: "standard"}}
-	s.BaseEnvironment.executeAsync = s.standardExecuteAsync
-	s.BaseEnvironment.waitForMainProcess = s.WaitForMainProcess
-	s.wait = sync.WaitGroup{}
-
-	s.RootDirectory = rootDirectory
-	s.ConsoleBuffer = cache
-	s.WSManager = wsManager
-	return s
-}
-
-func (sf StandardFactory) Key() string {
-	return "standard"
+	return s.mainProcess.Process.Signal(syscall.Signal(code))
 }
 
 func (s *standard) handleClose(callback func(graceful bool)) {
 	err := s.mainProcess.Wait()
 	s.wait.Done()
-	logging.Develf("Firing callbacks for %s", s.mainProcess.ProcessState.Pid())
 
 	var graceful bool
 	if s.mainProcess == nil || s.mainProcess.ProcessState == nil || err != nil {
@@ -211,6 +184,10 @@ func (s *standard) handleClose(callback func(graceful bool)) {
 		callback(false)
 	} else {
 		graceful = s.mainProcess.ProcessState.Success()
+	}
+
+	if s.mainProcess != nil && s.mainProcess.Process != nil {
+		s.mainProcess.Process.Release()
 	}
 
 	s.mainProcess = nil

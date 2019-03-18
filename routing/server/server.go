@@ -18,6 +18,7 @@ package server
 
 import (
 	"encoding/json"
+	"github.com/pufferpanel/pufferd/commons"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -188,9 +189,7 @@ func InstallServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(programs.Program)
 
-	go func() {
-		prg.Install()
-	}()
+	go prg.Install()
 	http.Respond(c).Send()
 }
 
@@ -340,7 +339,7 @@ func PutFile(c *gin.Context) {
 		return
 	}
 	file, err := os.Create(targetFile)
-	defer file.Close()
+	defer commons.Close(file)
 
 	if err != nil {
 		errorConnection(c, err)

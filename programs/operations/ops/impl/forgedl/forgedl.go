@@ -3,7 +3,7 @@ package forgedl
 import (
 	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/environments"
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"path"
 	"strings"
 )
@@ -15,17 +15,11 @@ type ForgeDl struct {
 	Filename string
 }
 
-type ForgeDlOperationFactory struct {
-}
 
-func (of ForgeDlOperationFactory) Key() string {
-	return "forgedl"
-}
-
-func (op ForgeDl) Run(env environments.Environment) error {
+func (op ForgeDl) Run(env envs.Environment) error {
 	jarDownload := strings.Replace(JAR_DOWNLOAD, "${version}", op.Version, -1)
 
-	localFile, err := commons.DownloadViaMaven(jarDownload, env)
+	localFile, err := environments.DownloadViaMaven(jarDownload, env)
 	if err != nil {
 		return err
 	}
@@ -34,11 +28,3 @@ func (op ForgeDl) Run(env environments.Environment) error {
 	return commons.CopyFile(localFile, path.Join(env.GetRootDirectory(), op.Filename))
 }
 
-func (of ForgeDlOperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	version := op.OperationArgs["version"].(string)
-	filename := op.OperationArgs["target"].(string)
-
-	return ForgeDl{Version: version, Filename: filename}
-}
-
-var Factory ForgeDlOperationFactory

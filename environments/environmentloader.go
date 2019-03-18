@@ -21,20 +21,24 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/pufferd/cache"
+	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/environments/envs/impl/docker"
+	"github.com/pufferpanel/pufferd/environments/envs/impl/standard"
 	"github.com/pufferpanel/pufferd/utils"
 )
 
-var mapping map[string]EnvironmentFactory
+var mapping map[string]envs.EnvironmentFactory
 
 func LoadModules() {
-	mapping = make(map[string]EnvironmentFactory)
+	mapping = make(map[string]envs.EnvironmentFactory)
 
-	mapping["standard"] = StandardFactory{}
+	mapping["standard"] = standard.EnvironmentFactory{}
+	mapping["docker"] = docker.EnvironmentFactory{}
 
 	loadAdditionalModules(mapping)
 }
 
-func Create(environmentType, folder, id string, environmentSection map[string]interface{}) (Environment, error) {
+func Create(environmentType, folder, id string, environmentSection map[string]interface{}) (envs.Environment, error) {
 	factory := mapping[environmentType]
 
 	if factory == nil {
@@ -43,10 +47,10 @@ func Create(environmentType, folder, id string, environmentSection map[string]in
 
 	serverRoot := common.JoinPath(folder, id)
 	rootDirectory := common.GetStringOrDefault(environmentSection, "root", serverRoot)
-	cache := cache.CreateCache()
+	envCache := cache.CreateCache()
 	wsManager := utils.CreateWSManager()
 
-	env := factory.Create(folder, id, environmentSection, rootDirectory, cache, wsManager)
+	env := factory.Create(folder, id, environmentSection, rootDirectory, envCache, wsManager)
 
 	return env, nil
 }

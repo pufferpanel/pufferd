@@ -19,16 +19,14 @@ package download
 import (
 	"github.com/cavaliercoder/grab"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
-	"github.com/pufferpanel/apufferi/common"
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/pufferd/environments/envs"
 )
 
 type Download struct {
-	Files        []string
+	Files []string
 }
 
-func (d Download) Run(env environments.Environment) error {
+func (d Download) Run(env envs.Environment) error {
 	for _, file := range d.Files {
 		logging.Debugf("Download file from %s to %s", file, env.GetRootDirectory())
 		env.DisplayToConsole("Downloading file %s\n", file)
@@ -39,17 +37,3 @@ func (d Download) Run(env environments.Environment) error {
 	}
 	return nil
 }
-
-type DownloadOperationFactory struct {
-}
-
-func (of DownloadOperationFactory) 	Create(op ops.CreateOperation) ops.Operation {
-	files := common.ToStringArray(op.OperationArgs["files"])
-	return &Download{Files: files}
-}
-
-func (of DownloadOperationFactory) Key() string {
-	return "download"
-}
-
-var Factory DownloadOperationFactory

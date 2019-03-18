@@ -21,6 +21,7 @@ import (
 	"errors"
 	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/environments"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/programs/operations/ops"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/forgedl"
 	"net/http"
@@ -31,15 +32,10 @@ import (
 const DOWNLOAD_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads?type=stable&limit=1"
 const RECOMMENDED_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads/recommended"
 
+var client = &http.Client{}
+
 type SpongeForgeDl struct {
 	ReleaseType string
-}
-
-type SpongeForgeDlOperationFactory struct {
-}
-
-func (of SpongeForgeDlOperationFactory) Key() string {
-	return "spongeforgedl"
 }
 
 type download struct {
@@ -56,14 +52,12 @@ type artifact struct {
 	Url string `json:"url"`
 }
 
-func (op SpongeForgeDl) Run(env environments.Environment) error {
-
+func (op SpongeForgeDl) Run(env envs.Environment) error {
 	var versionData download
 
 	if op.ReleaseType == "latest" {
-		client := &http.Client{}
-
 		response, err := client.Get(DOWNLOAD_API_URL)
+		defer commons.CloseResponse(response)
 		if err != nil {
 			return err
 		}
@@ -80,9 +74,8 @@ func (op SpongeForgeDl) Run(env environments.Environment) error {
 
 		versionData = all[0]
 	} else {
-		client := &http.Client{}
-
 		response, err := client.Get(RECOMMENDED_API_URL)
+		defer commons.CloseResponse(response)
 
 		if err != nil {
 			return err
@@ -118,7 +111,7 @@ func (op SpongeForgeDl) Run(env environments.Environment) error {
 		return err
 	}
 
-	file, err := commons.DownloadViaMaven(versionData.Artifacts[""].Url, env)
+	file, err := environments.DownloadViaMaven(versionData.Artifacts[""].Url, env)
 	if err != nil {
 		return err
 	}
@@ -130,14 +123,3 @@ func (op SpongeForgeDl) Run(env environments.Environment) error {
 
 	return nil
 }
-
-func (of SpongeForgeDlOperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	releaseType, ok := op.OperationArgs["releaseType"].(string)
-	if !ok {
-		releaseType = "recommended"
-	}
-
-	return SpongeForgeDl{ReleaseType: releaseType}
-}
-
-var Factory SpongeForgeDlOperationFactory

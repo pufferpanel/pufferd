@@ -19,7 +19,7 @@ package operations
 import (
 	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
+	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/programs/operations/ops"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/command"
 	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/download"
@@ -41,7 +41,7 @@ func LoadOperations() {
 	loadOpModules()
 }
 
-func GenerateProcess(directions []map[string]interface{}, environment environments.Environment, dataMapping map[string]interface{}, env map[string]string) OperationProcess {
+func GenerateProcess(directions []map[string]interface{}, environment envs.Environment, dataMapping map[string]interface{}, env map[string]string) OperationProcess {
 	dataMap := make(map[string]interface{})
 	for k, v := range dataMapping {
 		dataMap[k] = v
@@ -98,7 +98,7 @@ type OperationProcess struct {
 	processInstructions []ops.Operation
 }
 
-func (p *OperationProcess) Run(env environments.Environment) (err error) {
+func (p *OperationProcess) Run(env envs.Environment) (err error) {
 	for p.HasNext() {
 		err = p.RunNext(env)
 		if err != nil {
@@ -109,7 +109,7 @@ func (p *OperationProcess) Run(env environments.Environment) (err error) {
 	return
 }
 
-func (p *OperationProcess) RunNext(env environments.Environment) error {
+func (p *OperationProcess) RunNext(env envs.Environment) error {
 	var op ops.Operation
 	op, p.processInstructions = p.processInstructions[0], p.processInstructions[1:]
 	err := op.Run(env)

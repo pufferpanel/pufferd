@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/pufferpanel/pufferd/commons"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -161,13 +162,11 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 	program := templateJson.Create(env)
 
 	f, err := os.Create(common.JoinPath(ServerFolder, id+".json"))
-
+	defer commons.Close(f)
 	if err != nil {
 		logging.Error("Error writing server file", err)
 		return false
 	}
-
-	defer f.Close()
 
 	encoder := json.NewEncoder(f)
 	encoder.SetEscapeHTML(false)
@@ -272,7 +271,6 @@ func Reload(id string) (err error) {
 }
 
 func GetPlugins() map[string]interface{} {
-
 	temps, _ := ioutil.ReadDir(TemplateFolder)
 
 	mapping := make(map[string]interface{})

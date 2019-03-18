@@ -12,7 +12,7 @@ func Close(closer io.Closer) {
 }
 
 func CloseResponse(response *http.Response) {
-	if response != nil && response.Body != nil {
+	if response != nil {
 		Close(response.Body)
 	}
 }
