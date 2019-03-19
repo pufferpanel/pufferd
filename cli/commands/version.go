@@ -1,5 +1,5 @@
 /*
- Copyright 2016 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,20 +14,33 @@
  limitations under the License.
 */
 
-package main
+package commands
 
 import (
+	"flag"
 	"fmt"
-	"github.com/pufferpanel/pufferd/cli"
+
+	"github.com/pufferpanel/pufferd/version"
 )
 
-func main() {
-
-	err := cli.Run()
-
-	if err != nil {
-		fmt.Printf("Error running commands")
-		fmt.Printf(err.Error())
-	}
+type Version struct {
+	Command
+	version bool
 }
 
+func (v *Version) Load() {
+	flag.BoolVar(&v.version, "version", false, "Get the version")
+}
+
+func (v *Version) ShouldRun() bool {
+	return v.version
+}
+
+func (*Version) ShouldRunNext() bool {
+	return false
+}
+
+func (v *Version) Run() error {
+	fmt.Printf(version.Display)
+	return nil
+}

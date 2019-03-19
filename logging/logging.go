@@ -1,5 +1,5 @@
 /*
- Copyright 2016 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  limitations under the License.
 */
 
-package main
+package logging
 
 import (
-	"fmt"
-	"github.com/pufferpanel/pufferd/cli"
+	"github.com/pufferpanel/apufferi/config"
+	"github.com/pufferpanel/apufferi/logging"
+	"runtime"
 )
 
-func main() {
-
-	err := cli.Run()
-
-	if err != nil {
-		fmt.Printf("Error running commands")
-		fmt.Printf(err.Error())
+func Load() {
+	var defaultLogFolder = "logs"
+	if runtime.GOOS == "linux" {
+		defaultLogFolder = "/var/log/pufferd"
 	}
+	var logPath = config.GetStringOrDefault("logPath", defaultLogFolder)
+	logging.SetLogFolder(logPath)
+	logging.Init()
 }
-

@@ -1,5 +1,5 @@
 /*
- Copyright 2016 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,20 +14,39 @@
  limitations under the License.
 */
 
-package main
+package commands
 
 import (
-	"fmt"
-	"github.com/pufferpanel/pufferd/cli"
+	"errors"
+	"flag"
+	"os"
+	"syscall"
 )
 
-func main() {
-
-	err := cli.Run()
-
-	if err != nil {
-		fmt.Printf("Error running commands")
-		fmt.Printf(err.Error())
-	}
+type Reload struct {
+	Command
+	pid int
 }
 
+func (r *Reload) Load() {
+	flag.IntVar(&r.pid, "reload", 0, "PID to reload")
+}
+
+func (r *Reload) ShouldRun() bool {
+	return r.pid != 0
+}
+
+func (*Reload) ShouldRunNext() bool {
+	return false
+}
+
+func (r *Reload) Run() error {
+	proc, err := os.FindProcess(r.pid)
+	if err != nil || proc == nil {
+		if err == nil && proc == nil {
+			err = errors.New("no process found")
+		}
+		return err
+	}
+	return proc.Signal(syscall.Signal(1))
+}

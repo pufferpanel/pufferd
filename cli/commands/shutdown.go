@@ -1,5 +1,5 @@
 /*
- Copyright 2018 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -18,25 +18,40 @@ package commands
 
 import (
 	"errors"
-	"github.com/pufferpanel/apufferi/logging"
+	"flag"
 	"os"
 	"syscall"
 	"time"
 )
 
-func Shutdown(pid int) {
-	proc, err := os.FindProcess(pid)
+type Shutdown struct {
+	Command
+	pid int
+}
+
+func (s *Shutdown) Load() {
+	flag.IntVar(&s.pid, "shutdown", 0, "PID to shut down")
+}
+
+func (s *Shutdown) ShouldRun() bool {
+	return s.pid != 0
+}
+
+func (s *Shutdown) ShouldRunNext() bool {
+	return false
+}
+
+func (s *Shutdown) Run() error {
+	proc, err := os.FindProcess(s.pid)
 	if err != nil || proc == nil {
 		if err == nil && proc == nil {
 			err = errors.New("no process found")
 		}
-		logging.Error("Error shutting down pufferd", err)
-		return
+		return err
 	}
 	err = proc.Signal(syscall.Signal(15))
 	if err != nil {
-		logging.Error("Error shutting down pufferd", err)
-		return
+		return err
 	}
 
 	wait := make(chan error)
@@ -46,14 +61,15 @@ func Shutdown(pid int) {
 	err = <-wait
 
 	if err != nil {
-		logging.Error("Error shutting down pufferd", err)
-		return
+		return err
 	}
+
 	err = proc.Release()
 	if err != nil {
-		logging.Error("Error shutting down pufferd", err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 func waitForProcess(process *os.Process, c chan error) {

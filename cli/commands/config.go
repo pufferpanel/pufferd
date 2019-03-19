@@ -1,5 +1,5 @@
 /*
- Copyright 2016 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,20 +14,31 @@
  limitations under the License.
 */
 
-package main
+package commands
 
 import (
-	"fmt"
-	"github.com/pufferpanel/pufferd/cli"
+	"flag"
+	"github.com/pufferpanel/pufferd/config"
 )
 
-func main() {
-
-	err := cli.Run()
-
-	if err != nil {
-		fmt.Printf("Error running commands")
-		fmt.Printf(err.Error())
-	}
+type Config struct {
+	Command
+	path string
 }
 
+func (c *Config) Load() {
+	flag.StringVar(&c.path, "config", "", "Path to config.json")
+}
+
+func (*Config) ShouldRun() bool {
+	return true
+}
+
+func (*Config) ShouldRunNext() bool {
+	return true
+}
+
+func (c *Config) Run() error {
+	config.SetPath(c.path)
+	return nil
+}

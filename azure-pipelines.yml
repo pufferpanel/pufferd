@@ -38,14 +38,14 @@ steps:
 - script: |
     export GOOS=linux
     dep ensure -v
-    go build -o $(GOPATH)/build/pufferd -ldflags "-X main.GITHASH=$(Build.SourceVersion) -X main.VERSION=$(version)" -v github.com/pufferpanel/pufferd
+    go build -o $(GOPATH)/build/pufferd -ldflags "-X version.GITHASH=$(Build.SourceVersion) -X version.VERSION=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
   displayName: 'Linux Build'
 
 - script: |
     export GOOS=windows
     dep ensure -v
-    go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X main.GITHASH=$(Build.SourceVersion) -X main.VERSION=$(version)" -v github.com/pufferpanel/pufferd
+    go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X version.GITHASH=$(Build.SourceVersion) -X version.VERSION=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
   displayName: 'Windows Build'
 

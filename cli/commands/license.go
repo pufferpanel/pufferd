@@ -1,5 +1,5 @@
 /*
- Copyright 2018 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -17,24 +17,29 @@
 package commands
 
 import (
-	"errors"
-	"github.com/pufferpanel/apufferi/logging"
-	"os"
-	"syscall"
+	"flag"
+	"fmt"
+	"github.com/pufferpanel/pufferd/data"
 )
 
-func Reload(pid int) {
-	proc, err := os.FindProcess(pid)
-	if err != nil || proc == nil {
-		if err == nil && proc == nil {
-			err = errors.New("no process found")
-		}
-		logging.Error("Error reloading pufferd", err)
-		return
-	}
-	err = proc.Signal(syscall.Signal(1))
-	if err != nil {
-		logging.Error("Error reloading pufferd", err)
-		return
-	}
+type License struct {
+	Command
+	license bool
+}
+
+func (l *License) Load() {
+	flag.BoolVar(&l.license, "license", false, "View license")
+}
+
+func (l *License) ShouldRun() bool {
+	return l.license
+}
+
+func (*License) ShouldRunNext() bool {
+	return false
+}
+
+func (l *License) Run() error {
+	fmt.Println(data.LICENSE)
+	return nil
 }

@@ -1,5 +1,5 @@
 /*
- Copyright 2016 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  limitations under the License.
 */
 
-package main
+package commands
 
-import (
-	"fmt"
-	"github.com/pufferpanel/pufferd/cli"
-)
+type Command interface {
+	Load()
 
-func main() {
+	ShouldRun() bool
 
-	err := cli.Run()
+	ShouldRunNext() bool
 
-	if err != nil {
-		fmt.Printf("Error running commands")
-		fmt.Printf(err.Error())
-	}
+	Run() (err error)
 }
-
