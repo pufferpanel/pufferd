@@ -20,6 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/apufferi/http/handler"
+	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/routing/server"
@@ -31,8 +32,10 @@ func ConfigureWeb() *gin.Engine {
 	r := gin.New()
 	{
 		r.Use(gin.Recovery())
-		r.Use(gin.Logger())
-		r.Use(handler.Recovery())
+		r.Use(gin.LoggerWithWriter(logging.Writer))
+		r.Use(func(c *gin.Context) {
+			handler.ExecuteAndRecover(c)
+		})
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
 		template.RegisterRoutes(r)

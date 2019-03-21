@@ -19,6 +19,7 @@ package spongeforgedl
 import (
 	"encoding/json"
 	"errors"
+	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/environments"
 	"github.com/pufferpanel/pufferd/environments/envs"
@@ -116,7 +117,7 @@ func (op SpongeForgeDl) Run(env envs.Environment) error {
 		return err
 	}
 
-	err = commons.CopyFile(file, path.Join("mods", "spongeforge.jar"))
+	err = common.CopyFile(file, path.Join("mods", "spongeforge.jar"))
 	if err != nil {
 		return err
 	}

@@ -66,7 +66,7 @@ func (op MojangDl) Run(env envs.Environment) error {
 
 	for _, version := range data.Versions {
 		if version.Id == targetVersion {
-			logging.Debugf("Version %s json located, downloading from %s", version.Id, version.Url)
+			logging.Debug("Version %s json located, downloading from %s", version.Id, version.Url)
 			env.DisplayToConsole(fmt.Sprintf("Version %s json located, downloading from %s\n", version.Id, version.Url))
 			//now, get the version json for this one...
 			return downloadServerFromJson(version.Url, op.Target, env)
@@ -97,7 +97,7 @@ func downloadServerFromJson(url, target string, env envs.Environment) error {
 
 	serverBlock := data.Downloads["server"]
 
-	logging.Debugf("Version jar located, downloading from %s", serverBlock.Url)
+	logging.Debug("Version jar located, downloading from %s", serverBlock.Url)
 	env.DisplayToConsole(fmt.Sprintf("Version jar located, downloading from %s\n", serverBlock.Url))
 
 	return environments.DownloadFile(serverBlock.Url, target, env)

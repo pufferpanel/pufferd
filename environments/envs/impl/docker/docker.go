@@ -27,8 +27,8 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
+	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	ppError "github.com/pufferpanel/pufferd/errors"
 	"io"
@@ -206,7 +206,7 @@ func (d *docker) GetStats() (map[string]interface{}, error) {
 	}
 
 	res, err := dockerClient.ContainerStats(context.Background(), d.ContainerId, false)
-	defer commons.Close(res.Body)
+	defer common.Close(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func (d *docker) doesContainerExist(client *client.Client, ctx context.Context) 
 
 	existingContainers, err := client.ContainerList(ctx, opts)
 
-	logging.Debugf("Does container (%s) exist?: %t", d.ContainerId, len(existingContainers) > 0)
+	logging.Debug("Does container (%s) exist?: %t", d.ContainerId, len(existingContainers) > 0)
 
 	if len(existingContainers) == 0 {
 		return false, err
@@ -293,7 +293,7 @@ func (d *docker) pullImage(client *client.Client, ctx context.Context, force boo
 		exists = true
 	}
 
-	logging.Debugf("Does image %v exist? %v", d.ImageName, exists)
+	logging.Debug("Does image %v exist? %v", d.ImageName, exists)
 
 	if exists && !force {
 		return nil
@@ -301,20 +301,20 @@ func (d *docker) pullImage(client *client.Client, ctx context.Context, force boo
 
 	op := types.ImagePullOptions{}
 
-	logging.Debugf("Downloading image %v", d.ImageName)
+	logging.Debug("Downloading image %v", d.ImageName)
 	d.DisplayToConsole("Downloading image for container, please wait\n")
 
 	d.downloadingImage = true
 
 	r, err := client.ImagePull(ctx, d.ImageName, op)
-	defer commons.Close(r)
+	defer common.Close(r)
 	if err != nil {
 		return err
 	}
 	_, err = io.Copy(ioutil.Discard, r)
 
 	d.downloadingImage = false
-	logging.Debugf("Downloaded image %v", d.ImageName)
+	logging.Debug("Downloaded image %v", d.ImageName)
 	d.DisplayToConsole("Downloaded image for container\n")
 	return err
 }

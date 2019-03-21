@@ -19,13 +19,14 @@ package commands
 import (
 	"errors"
 	"flag"
+	"github.com/pufferpanel/apufferi/cli"
 	"os"
 	"syscall"
 	"time"
 )
 
 type Shutdown struct {
-	Command
+	cli.Command
 	pid int
 }
 

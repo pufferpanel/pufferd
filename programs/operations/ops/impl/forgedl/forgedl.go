@@ -17,7 +17,7 @@
 package forgedl
 
 import (
-	"github.com/pufferpanel/pufferd/commons"
+	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/pufferd/environments"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"path"
@@ -41,6 +41,6 @@ func (op ForgeDl) Run(env envs.Environment) error {
 	}
 
 	//copy from the cache
-	return commons.CopyFile(localFile, path.Join(env.GetRootDirectory(), op.Filename))
+	return common.CopyFile(localFile, path.Join(env.GetRootDirectory(), op.Filename))
 }
 

@@ -20,6 +20,7 @@ import (
 	"flag"
 	"github.com/braintree/manners"
 	"github.com/gin-gonic/gin"
+	"github.com/pufferpanel/apufferi/cli"
 	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	config2 "github.com/pufferpanel/pufferd/config"
@@ -32,19 +33,22 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"runtime/debug"
 	"syscall"
 )
 
 type Run struct {
-	Command
+	cli.Command
 	run        bool
 	runService bool
+	logLevel   string
 }
 
 func (r *Run) Load() {
 	r.runService = true
 	flag.BoolVar(&r.run, "run", false, "Runs the daemon")
+	flag.StringVar(&r.logLevel, "logging", "INFO", "Lowest logging level to display")
 }
 
 func (r *Run) ShouldRun() bool {
@@ -62,7 +66,21 @@ func (r *Run) Run() error {
 		return err
 	}
 
-	logging.Init()
+	level := logging.GetLevel(r.logLevel)
+	if level == nil {
+		level = logging.INFO
+	}
+
+	var defaultLogFolder = "logs"
+	if runtime.GOOS == "linux" {
+		defaultLogFolder = "/var/log/pufferd"
+	}
+	var logPath = config.GetStringOrDefault("logPath", defaultLogFolder)
+
+	err = logging.WithLogDirectory(logPath, level, nil)
+	if err != nil {
+		logging.Error("Error creating log directory", err)
+	}
 
 	gin.SetMode(gin.ReleaseMode)
 	logging.Info(version.Display)
@@ -137,7 +155,7 @@ func (r *Run) runServices() {
 
 	web := config.GetStringOrDefault("web", config.GetStringOrDefault("webHost", "0.0.0.0")+":"+config.GetStringOrDefault("webPort", "5656"))
 
-	logging.Infof("Starting web access on %s", web)
+	logging.Info("Starting web access on %s", web)
 	var err error
 	if useHttps {
 		err = manners.ListenAndServeTLS(web, httpsPem, httpsKey, router)
@@ -155,7 +173,7 @@ func (r *Run) createHook() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				logging.Errorf("Error: %+v\n%s", err, debug.Stack())
+				logging.Error("%+v\n%s", err, debug.Stack())
 			}
 		}()
 

@@ -108,10 +108,10 @@ func CreateProgram() ProgramData {
 //This includes starting the environment if it is not running.
 func (p *ProgramData) Start() (err error) {
 	if !p.IsEnabled() {
-		logging.Errorf("Server %s is not enabled, cannot start", p.Id())
+		logging.Error("Server %s is not enabled, cannot start", p.Id())
 		return errors.New("server not enabled")
 	}
-	logging.Debugf("Starting server %s", p.Id())
+	logging.Debug("Starting server %s", p.Id())
 	p.Environment.DisplayToConsole("Starting server\n")
 	data := make(map[string]interface{})
 	for k, v := range p.Data {
@@ -140,7 +140,7 @@ func (p *ProgramData) Start() (err error) {
 //Stops the program.
 //This will also stop the environment it is ran in.
 func (p *ProgramData) Stop() (err error) {
-	logging.Debugf("Stopping server %s", p.Id())
+	logging.Debug("Stopping server %s", p.Id())
 	if p.RunData.StopCode != 0 {
 		err = p.Environment.SendCode(p.RunData.StopCode)
 	} else {
@@ -157,7 +157,7 @@ func (p *ProgramData) Stop() (err error) {
 //Kills the program.
 //This will also stop the environment it is ran in.
 func (p *ProgramData) Kill() (err error) {
-	logging.Debugf("Killing server %s", p.Id())
+	logging.Debug("Killing server %s", p.Id())
 	err = p.Environment.Kill()
 	if err != nil {
 		p.Environment.DisplayToConsole("Failed to kill server\n")
@@ -170,7 +170,7 @@ func (p *ProgramData) Kill() (err error) {
 //Creates any files needed for the program.
 //This includes creating the environment.
 func (p *ProgramData) Create() (err error) {
-	logging.Debugf("Creating server %s", p.Id())
+	logging.Debug("Creating server %s", p.Id())
 	p.Environment.DisplayToConsole("Allocating server\n")
 	err = p.Environment.Create()
 	p.Environment.DisplayToConsole("Server allocated\n")
@@ -181,7 +181,7 @@ func (p *ProgramData) Create() (err error) {
 //Destroys the server.
 //This will delete the server, environment, and any files related to it.
 func (p *ProgramData) Destroy() (err error) {
-	logging.Debugf("Destroying server %s", p.Id())
+	logging.Debug("Destroying server %s", p.Id())
 	process := operations.GenerateProcess(p.UninstallData.Operations, p.Environment, p.DataToMap(), p.RunData.EnvironmentVariables)
 	err = process.Run(p.Environment)
 	if err != nil {
@@ -194,11 +194,11 @@ func (p *ProgramData) Destroy() (err error) {
 
 func (p *ProgramData) Install() (err error) {
 	if !p.IsEnabled() {
-		logging.Errorf("Server %s is not enabled, cannot install", p.Id())
+		logging.Error("Server %s is not enabled, cannot install", p.Id())
 		return errors.New("server not enabled")
 	}
 
-	logging.Debugf("Installing server %s", p.Id())
+	logging.Debug("Installing server %s", p.Id())
 	running, err := p.IsRunning()
 	if err != nil {
 		logging.Error("Error stopping server to install: ", err)
@@ -223,7 +223,7 @@ func (p *ProgramData) Install() (err error) {
 	var process operations.OperationProcess
 
 	if len(p.InstallData.Operations) == 0 && p.Template != "" {
-		logging.Debugf("Server %s has no defined install data, using template", p.Id())
+		logging.Debug("Server %s has no defined install data, using template", p.Id())
 		templateData, err := ioutil.ReadFile(common.JoinPath(TemplateFolder, p.Template+".json"))
 		if err != nil {
 			logging.Error("Error reading template for "+p.Template, err)
@@ -242,7 +242,7 @@ func (p *ProgramData) Install() (err error) {
 		process = operations.GenerateProcess(templateJson.ProgramData.InstallData.Operations, p.GetEnvironment(), p.DataToMap(), p.RunData.EnvironmentVariables)
 
 	} else {
-		logging.Debugf("Server %s has defined install data", p.Id())
+		logging.Debug("Server %s has defined install data", p.Id())
 		process = operations.GenerateProcess(p.InstallData.Operations, p.GetEnvironment(), p.DataToMap(), p.RunData.EnvironmentVariables)
 	}
 
@@ -302,7 +302,7 @@ func (p *ProgramData) IsAutoStart() (isAutoStart bool) {
 }
 
 func (p *ProgramData) Save(file string) (err error) {
-	logging.Debugf("Saving server %s", p.Id())
+	logging.Debug("Saving server %s", p.Id())
 
 	endResult := ServerJson{}
 	endResult.ProgramData = *p
@@ -378,7 +378,7 @@ func (p *ProgramData) afterExit(graceful bool) {
 	processes := operations.GenerateProcess(p.RunData.Post, p.Environment, mapping, p.RunData.EnvironmentVariables)
 
 	p.Environment.DisplayToConsole("Running post-execution steps\n")
-	logging.Debugf("Running post execution steps: %s", p.Id())
+	logging.Debug("Running post execution steps: %s", p.Id())
 
 	err := processes.Run(p.Environment)
 	if err != nil {

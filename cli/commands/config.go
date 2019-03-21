@@ -18,11 +18,12 @@ package commands
 
 import (
 	"flag"
+	"github.com/pufferpanel/apufferi/cli"
 	"github.com/pufferpanel/pufferd/config"
 )
 
 type Config struct {
-	Command
+	cli.Command
 	path string
 }
 

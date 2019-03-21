@@ -17,18 +17,12 @@
 package commons
 
 import (
-	"io"
+	"github.com/pufferpanel/apufferi/common"
 	"net/http"
 )
 
-func Close(closer io.Closer) {
-	if closer != nil {
-		closer.Close()
-	}
-}
-
 func CloseResponse(response *http.Response) {
 	if response != nil {
-		Close(response.Body)
+		common.Close(response.Body)
 	}
 }

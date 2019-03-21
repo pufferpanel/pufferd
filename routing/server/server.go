@@ -18,7 +18,6 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/pufferpanel/pufferd/commons"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -239,7 +238,7 @@ func GetFile(c *gin.Context) {
 	server := item.(programs.Program)
 
 	targetPath := c.Param("filename")
-	logging.Debugf("Getting following file: %s", targetPath)
+	logging.Debug("Getting following file: %s", targetPath)
 
 	targetFile := common.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
 
@@ -339,7 +338,7 @@ func PutFile(c *gin.Context) {
 		return
 	}
 	file, err := os.Create(targetFile)
-	defer commons.Close(file)
+	defer common.Close(file)
 
 	if err != nil {
 		errorConnection(c, err)
@@ -552,7 +551,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program) {
 				}
 			}
 		} else {
-			logging.Errorf("message type is not a string, but was %s", reflect.TypeOf(messageType))
+			logging.Error("message type is not a string, but was %s", reflect.TypeOf(messageType))
 		}
 	}
 }

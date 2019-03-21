@@ -22,6 +22,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/pufferpanel/apufferi/cli"
 	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/data"
@@ -30,7 +31,7 @@ import (
 )
 
 type Install struct {
-	Command
+	cli.Command
 	install      bool
 	authUrl      string
 	clientId     string

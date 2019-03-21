@@ -19,6 +19,7 @@ package environments
 import (
 	"crypto/sha1"
 	"fmt"
+	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commons"
@@ -34,7 +35,7 @@ import (
 
 func DownloadFile(url, fileName string, env envs.Environment) error {
 	target, err := os.Create(path.Join(env.GetRootDirectory(), fileName))
-	defer commons.Close(target)
+	defer common.Close(target)
 	if err != nil {
 		return err
 	}
@@ -62,7 +63,7 @@ func DownloadFileToCache(url, fileName string) error {
 	}
 
 	target, err := os.Create(fileName)
-	defer commons.Close(target)
+	defer common.Close(target)
 	if err != nil {
 		return err
 	}
@@ -92,19 +93,19 @@ func DownloadViaMaven(downloadUrl string, env envs.Environment) (string, error) 
 
 	useCache := true
 	f, err := os.Open(localPath)
-	defer commons.Close(f)
+	defer common.Close(f)
 	//cache was readable, so validate
 	if err == nil {
 		h := sha1.New()
 		if _, err := io.Copy(h, f); err != nil {
 			log.Fatal(err)
 		}
-		commons.Close(f)
+		common.Close(f)
 
 		actualHash := fmt.Sprintf("%x", h.Sum(nil))
 
 		client := &http.Client{}
-		logging.Develf("Downloading hash from %s", sha1Url)
+		logging.Devel("Downloading hash from %s", sha1Url)
 		response, err := client.Get(sha1Url)
 		defer commons.CloseResponse(response)
 		if err != nil {
@@ -117,19 +118,19 @@ func DownloadViaMaven(downloadUrl string, env envs.Environment) (string, error) 
 			if err != nil {
 				useCache = false
 			} else if expectedHash != actualHash {
-				logging.Warnf("Cache expected %s but was actually %s", expectedHash, actualHash)
+				logging.Warn("Cache expected %s but was actually %s", expectedHash, actualHash)
 				useCache = false
 			}
 		}
 	} else if !os.IsNotExist(err) {
-		logging.Warnf("Cached file is not readable, will download (%s)", localPath)
+		logging.Warn("Cached file is not readable, will download (%s)", localPath)
 	} else {
 		useCache = false
 	}
 
 	//if we can't use cache, redownload it to the cache
 	if !useCache {
-		logging.Infof("Downloading new version and caching to %s", localPath)
+		logging.Info("Downloading new version and caching to %s", localPath)
 		if env != nil {
 			env.DisplayToConsole("Downloading:" + downloadUrl)
 		}

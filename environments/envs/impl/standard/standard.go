@@ -67,7 +67,7 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 		logging.Error("Error creating process", err)
 	}
 	s.stdInWriter = pipe
-	logging.Debugf("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args[1:], " "))
+	logging.Debug("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args[1:], " "))
 	err = s.mainProcess.Start()
 	if err != nil && err.Error() != "exit status 1" {
 		logging.Error("Error starting process", err)

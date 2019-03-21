@@ -29,7 +29,7 @@ type Mkdir struct {
 }
 
 func (m *Mkdir) Run(env envs.Environment) error {
-	logging.Debugf("Making directory: %s\n", m.TargetFile)
+	logging.Debug("Making directory: %s\n", m.TargetFile)
 	env.DisplayToConsole("Creating directory: %s\n", m.TargetFile)
 	target := common.JoinPath(env.GetRootDirectory(), m.TargetFile)
 	return os.MkdirAll(target, 0755)

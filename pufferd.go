@@ -17,7 +17,7 @@
 package main
 
 import (
-	"fmt"
+	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/cli"
 )
 
@@ -26,8 +26,6 @@ func main() {
 	err := cli.Run()
 
 	if err != nil {
-		fmt.Printf("Error running commands")
-		fmt.Printf(err.Error())
+		logging.Error("Error running command", err)
 	}
 }
-

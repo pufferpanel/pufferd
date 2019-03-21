@@ -19,11 +19,12 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"github.com/pufferpanel/apufferi/cli"
 	"github.com/pufferpanel/pufferd/data"
 )
 
 type License struct {
-	Command
+	cli.Command
 	license bool
 }
 

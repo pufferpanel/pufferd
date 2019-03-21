@@ -36,7 +36,7 @@ func CompleteShutdown() {
 func Shutdown() *sync.WaitGroup {
 	defer func() {
 		if err := recover(); err != nil {
-			logging.Errorf("Error: %+v\n%s", err, debug.Stack())
+			logging.Error("%+v\n%s", err, debug.Stack())
 		}
 	}()
 	wg := sync.WaitGroup{}
@@ -49,7 +49,7 @@ func Shutdown() *sync.WaitGroup {
 			defer wg.Done()
 			defer func() {
 				if err := recover(); err != nil {
-					logging.Errorf("Error: %+v\n%s", err, debug.Stack())
+					logging.Error("%+v\n%s", err, debug.Stack())
 				}
 			}()
 			logging.Warn("Stopping program " + e.Id())

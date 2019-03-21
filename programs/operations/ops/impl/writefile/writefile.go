@@ -30,7 +30,7 @@ type WriteFile struct {
 }
 
 func (c WriteFile) Run(env envs.Environment) error {
-	logging.Debugf("Writing data to file: %s", c.TargetFile)
+	logging.Debug("Writing data to file: %s", c.TargetFile)
 	env.DisplayToConsole("Writing some data to file: %s\n ", c.TargetFile)
 	target := common.JoinPath(env.GetRootDirectory(), c.TargetFile)
 	return ioutil.WriteFile(target, []byte(c.Text), 0644)

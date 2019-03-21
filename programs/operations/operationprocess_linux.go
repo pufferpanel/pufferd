@@ -38,7 +38,7 @@ func loadOpModules() {
 	}
 
 	for _, file := range files {
-		logging.Infof("Loading operation module: %s", file.Name())
+		logging.Info("Loading operation module: %s", file.Name())
 		p, e := plugin.Open(path.Join(directory, file.Name()))
 		if err != nil {
 			logging.Error("Unable to load module", e)
@@ -53,12 +53,12 @@ func loadOpModules() {
 
 		fty, ok := factory.(ops.OperationFactory)
 		if !ok {
-			logging.Errorf("Expected OperationFactory, but found %s", reflect.TypeOf(factory).Name())
+			logging.Error("Expected OperationFactory, but found %s", reflect.TypeOf(factory).Name())
 			continue
 		}
 
 		commandMapping[fty.Key()] = fty
 
-		logging.Infof("Loaded operation module: %s", fty.Key())
+		logging.Info("Loaded operation module: %s", fty.Key())
 	}
 }

@@ -22,9 +22,9 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/pkg/sftp"
+	"github.com/pufferpanel/apufferi/common"
 	configuration "github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/programs"
 	"golang.org/x/crypto/ssh"
@@ -102,7 +102,7 @@ func runServer() error {
 	if e != nil {
 		return e
 	}
-	logging.Infof("Started SFTP Server on %s", bind)
+	logging.Info("Started SFTP Server on %s", bind)
 
 	go func() {
 		for {
@@ -117,8 +117,8 @@ func runServer() error {
 }
 
 func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
-	defer commons.Close(conn)
-	logging.Debugf("SFTP connection from %s", conn.RemoteAddr().String())
+	defer common.Close(conn)
+	logging.Debug("SFTP connection from %s", conn.RemoteAddr().String())
 	e := handleConn(conn, config)
 	if e != nil {
 		if e.Error() != "EOF" {
@@ -128,7 +128,7 @@ func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
 }
 func handleConn(conn net.Conn, config *ssh.ServerConfig) error {
 	sc, chans, reqs, e := ssh.NewServerConn(conn, config)
-	defer commons.Close(sc)
+	defer common.Close(sc)
 	if e != nil {
 		return e
 	}

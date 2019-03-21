@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pufferpanel/pufferd/commons"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -66,7 +65,7 @@ func LoadFromFolder() {
 			logging.Error(fmt.Sprintf("Error loading server details from json (%s)", element.Name()), err)
 			continue
 		}
-		logging.Infof("Loaded server %s", program.Id())
+		logging.Info("Loaded server %s", program.Id())
 		allPrograms = append(allPrograms, program)
 	}
 }
@@ -162,7 +161,7 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 	program := templateJson.Create(env)
 
 	f, err := os.Create(common.JoinPath(ServerFolder, id+".json"))
-	defer commons.Close(f)
+	defer common.Close(f)
 	if err != nil {
 		logging.Error("Error writing server file", err)
 		return false
@@ -254,7 +253,7 @@ func Reload(id string) (err error) {
 		err = errors.New("server does not exist")
 		return
 	}
-	logging.Infof("Reloading server %s", temp.Id())
+	logging.Info("Reloading server %s", temp.Id())
 	//have to cast it for this to work
 	program, _ := temp.(*ProgramData)
 

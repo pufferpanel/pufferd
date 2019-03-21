@@ -31,7 +31,7 @@ type Command struct {
 
 func (c Command) Run(env envs.Environment) error {
 	for _, cmd := range c.Commands {
-		logging.Debugf("Executing command: %s", cmd)
+		logging.Debug("Executing command: %s", cmd)
 		env.DisplayToConsole(fmt.Sprintf("Executing: %s\n", cmd))
 		parts := strings.Split(cmd, " ")
 		cmd := parts[0]

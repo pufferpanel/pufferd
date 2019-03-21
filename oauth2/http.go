@@ -65,7 +65,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 			//refresh token and repeat call
 			//if we didn't refresh, then there's no reason to try again
 			if recurse && RefreshToken() {
-				response.Body.Close()
+				commons.CloseResponse(response)
 				return validateToken(accessToken, gin, false)
 			}
 		}

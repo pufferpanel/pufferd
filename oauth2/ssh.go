@@ -62,14 +62,14 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 	if response.StatusCode != 200 {
 		if response.StatusCode == 401 {
 			if recurse && RefreshToken() {
-				response.Body.Close()
+				commons.CloseResponse(response)
 				return validateSSH(username, password, false)
 			}
 		}
 
 		msg, _ := ioutil.ReadAll(response.Body)
 
-		logging.Errorf("Error talking to auth server: [%d] [%s]", response.StatusCode, msg)
+		logging.Error("Error talking to auth server: [%d] [%s]", response.StatusCode, msg)
 		return nil, errors.New("Invalid response from authorization server")
 	}
 

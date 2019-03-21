@@ -42,9 +42,9 @@ func CreateRequestPrefix(prefix string) sftp.Handlers {
 func (rp requestPrefix) Fileread(request *sftp.Request) (io.ReaderAt, error) {
 	logging.Devel("-----------------")
 	logging.Devel("read request: " + request.Filepath)
-	logging.Develf("Flags: %v", request.Flags)
-	logging.Develf("Attributes: %v", request.Attrs)
-	logging.Develf("Target: %v", request.Target)
+	logging.Devel("Flags: %v", request.Flags)
+	logging.Devel("Attributes: %v", request.Attrs)
+	logging.Devel("Target: %v", request.Target)
 	logging.Devel("-----------------")
 	file, err := rp.getFile(request.Filepath, os.O_RDONLY, 0644)
 	if err != nil {
@@ -56,9 +56,9 @@ func (rp requestPrefix) Fileread(request *sftp.Request) (io.ReaderAt, error) {
 func (rp requestPrefix) Filewrite(request *sftp.Request) (io.WriterAt, error) {
 	logging.Devel("-----------------")
 	logging.Devel("write request: " + request.Filepath)
-	logging.Develf("Flags: %v", request.Flags)
-	logging.Develf("Attributes: %v", request.Attrs)
-	logging.Develf("Target: %v", request.Target)
+	logging.Devel("Flags: %v", request.Flags)
+	logging.Devel("Attributes: %v", request.Attrs)
+	logging.Devel("Target: %v", request.Target)
 	logging.Devel("-----------------")
 	file, err := rp.getFile(request.Filepath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	return file, err
@@ -66,10 +66,10 @@ func (rp requestPrefix) Filewrite(request *sftp.Request) (io.WriterAt, error) {
 
 func (rp requestPrefix) Filecmd(request *sftp.Request) error {
 	logging.Devel("-----------------")
-	logging.Develf("cmd request [%s]: %s", request.Method, request.Filepath)
-	logging.Develf("Flags: %v", request.Flags)
-	logging.Develf("Attributes: %v", request.Attrs)
-	logging.Develf("Target: %v", request.Target)
+	logging.Devel("cmd request [%s]: %s", request.Method, request.Filepath)
+	logging.Devel("Flags: %v", request.Flags)
+	logging.Devel("Attributes: %v", request.Attrs)
+	logging.Devel("Target: %v", request.Target)
 	logging.Devel("-----------------")
 	sourceName, err := rp.validate(request.Filepath)
 	if err != nil {
@@ -116,10 +116,10 @@ func (rp requestPrefix) Filecmd(request *sftp.Request) error {
 
 func (rp requestPrefix) Filelist(request *sftp.Request) (sftp.ListerAt, error) {
 	logging.Devel("-----------------")
-	logging.Develf("list request [%s]: %s", request.Method, request.Filepath)
-	logging.Develf("Flags: %v", request.Flags)
-	logging.Develf("Attributes: %v", request.Attrs)
-	logging.Develf("Target: %v", request.Target)
+	logging.Devel("list request [%s]: %s", request.Method, request.Filepath)
+	logging.Devel("Flags: %v", request.Flags)
+	logging.Devel("Attributes: %v", request.Attrs)
+	logging.Devel("Target: %v", request.Target)
 	logging.Devel("-----------------")
 	sourceName, err := rp.validate(request.Filepath)
 	if err != nil {
@@ -200,7 +200,7 @@ func (rp requestPrefix) Filelist(request *sftp.Request) (sftp.ListerAt, error) {
 }
 
 func (rp requestPrefix) getFile(path string, flags int, mode os.FileMode) (*os.File, error) {
-	logging.Develf("Requesting path: %s", path)
+	logging.Devel("Requesting path: %s", path)
 	filePath, err := rp.validate(path)
 	if err != nil {
 		logging.Devel("pp-sftp internal error: ", err)

@@ -47,7 +47,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2a92c7d42e75fe3f8b20b8a35b1ee31c48ded01d5af64925c83ec4ef66d92937"
+  digest = "1:71e4657868955ce6abfac33285754728178d3c0d66cc833081e841c36d95a60c"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -70,7 +70,7 @@
     "errdefs",
   ]
   pruneopts = "UT"
-  revision = "6dfd5bd74f15202d6cbffb94c033f0f0dc3de9b4"
+  revision = "119f892016efc2417b5afa08be6b059776884df4"
 
 [[projects]]
   digest = "1:811c86996b1ca46729bad2724d4499014c4b9effd05ef8c71b852aad90deb0ce"
@@ -255,7 +255,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d6d81831fb28966ae1b66127cca7f275654690d56c7669c9dbfba392408e1973"
+  digest = "1:e62ab56f2561b9528739ea63563e480bea758e8b6a451d48053be846259a116c"
   name = "github.com/pufferpanel/apufferi"
   packages = [
     "cache",
@@ -267,7 +267,7 @@
     "logging",
   ]
   pruneopts = "UT"
-  revision = "a3eae583cb995a55aacfb68e58d155f399d4960e"
+  revision = "81edd151dcd782c43fb50430cf5c2047b0498c26"
 
 [[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
@@ -331,7 +331,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
+  revision = "b7391e95e576cacdcdd422573063bc057239113d"
 
 [[projects]]
   branch = "master"
@@ -346,7 +346,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0e4f34158c22c3cf5eb5687d853447779a1a1df7076bbacfac3228e3e8666e8e"
+  digest = "1:51e9c8a64ecddbba456f24b2119aade9dc8e062fc6d10b30548f75f483e08b76"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -354,7 +354,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "6c81ef8f67ca3f42fc9cd71dfbd5f35b0c4b5771"
+  revision = "f7bb7a8bee54210937e93ec56d007d892c1f0580"
 
 [[projects]]
   branch = "master"
@@ -372,8 +372,8 @@
     "status",
   ]
   pruneopts = "UT"
-  revision = "2fdaae294f38ed9a121193c51ec99fecd3b13eb7"
-  version = "v1.19.0"
+  revision = "3507fb8e1a5ad030303c106fef3a47c9fdad16ad"
+  version = "v1.19.1"
 
 [[projects]]
   digest = "1:cbc72c4c4886a918d6ab4b95e347ffe259846260f99ebdd8a198c2331cf2b2e9"

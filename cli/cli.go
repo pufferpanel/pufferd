@@ -31,7 +31,6 @@ func Run() error {
 
 		//configuration
 		&commands.Config{},
-		&commands.Logging{},
 
 		//install
 		&commands.Install{},

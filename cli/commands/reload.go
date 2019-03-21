@@ -19,12 +19,13 @@ package commands
 import (
 	"errors"
 	"flag"
+	"github.com/pufferpanel/apufferi/cli"
 	"os"
 	"syscall"
 )
 
 type Reload struct {
-	Command
+	cli.Command
 	pid int
 }
 
