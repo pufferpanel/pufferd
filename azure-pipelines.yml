@@ -36,18 +36,19 @@ steps:
   displayName: 'Download dep and run `dep ensure`'
 
 - script: |
-    export GOOS=linux
-    dep ensure -v
-    go build -o $(GOPATH)/build/pufferd -ldflags "-X version.Hash=$(Build.SourceVersion) -X version.Version=$(version)" -v github.com/pufferpanel/pufferd
-  workingDirectory: '$(modulePath)'
-  displayName: 'Linux Build'
-
-- script: |
     export GOOS=windows
     dep ensure -v
     go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X version.Hash=$(Build.SourceVersion) -X version.Version=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
   displayName: 'Windows Build'
+
+- script: |
+    export GOOS=linux
+    rm -f *.syso
+    dep ensure -v
+    go build -o $(GOPATH)/build/pufferd -ldflags "-X version.Hash=$(Build.SourceVersion) -X version.Version=$(version)" -v github.com/pufferpanel/pufferd
+  workingDirectory: '$(modulePath)'
+  displayName: 'Linux Build'
 
 - task: UseRubyVersion@0
   inputs:
@@ -73,7 +74,7 @@ steps:
 
 - script: |
     fpm -s dir -t deb \
-      --name pufferd -v $(version).$(Build.BuildNumber) \
+      --name pufferd -v $(version) \
       --maintainer dev@pufferpanel.com \
       --deb-user pufferd --deb-group pufferd \
       --deb-systemd servicefiles/systemd/pufferd \
@@ -106,7 +107,7 @@ steps:
 
 - script: |
     fpm -s dir -t deb \
-      --name pufferd -v $(version).$(Build.BuildNumber) \
+      --name pufferd -v $(version) \
       --maintainer dev@pufferpanel.com \
       --deb-user pufferd --deb-group pufferd \
       --deb-init servicefiles/initd/pufferd \
