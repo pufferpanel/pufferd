@@ -19,11 +19,11 @@ package version
 import "fmt"
 
 var (
-	VERSION = "nightly"
-	GITHASH = "unknown"
+	Version = "nightly"
+	Hash = "unknown"
 	Display string
 )
 
 func init() {
-	Display = fmt.Sprintf("pufferd %s (%s)", VERSION, GITHASH)
+	Display = fmt.Sprintf("pufferd %s (%s)", Version, Hash)
 }

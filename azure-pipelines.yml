@@ -14,7 +14,7 @@ variables:
   GOROOT: '/usr/local/go1.11' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/pufferpanel/pufferd' # Path to the module's code
-  version: 2.0.0
+  version: 2.0.0.$(Build.BuildId)
 
 steps:
 - script: |
@@ -38,14 +38,14 @@ steps:
 - script: |
     export GOOS=linux
     dep ensure -v
-    go build -o $(GOPATH)/build/pufferd -ldflags "-X version.GITHASH=$(Build.SourceVersion) -X version.VERSION=$(version)" -v github.com/pufferpanel/pufferd
+    go build -o $(GOPATH)/build/pufferd -ldflags "-X version.Hash=$(Build.SourceVersion) -X version.Version=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
   displayName: 'Linux Build'
 
 - script: |
     export GOOS=windows
     dep ensure -v
-    go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X version.GITHASH=$(Build.SourceVersion) -X version.VERSION=$(version)" -v github.com/pufferpanel/pufferd
+    go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X version.Hash=$(Build.SourceVersion) -X version.Version=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
   displayName: 'Windows Build'
 
