@@ -17,18 +17,19 @@
 package operations
 
 import (
-	"github.com/pufferpanel/apufferi/config"
-	"github.com/pufferpanel/apufferi/logging"
 	"io/ioutil"
 	"os"
 	"path"
 	"plugin"
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
 	"reflect"
+
+	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/pufferd/programs/operations/ops"
 )
 
 func loadOpModules() {
-	var directory = path.Join(config.GetStringOrDefault("dataFolder", ""), "modules", "operations")
+	var directory = path.Join(config.Get().Data.ModuleFolder, "operations")
 
 	files, err := ioutil.ReadDir(directory)
 	if err != nil && os.IsNotExist(err) {

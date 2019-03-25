@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/pufferpanel/apufferi/common"
-	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/programs/operations"
 	"io/ioutil"
@@ -393,7 +393,7 @@ func (p *ProgramData) afterExit(graceful bool) {
 
 	if graceful && p.RunData.AutoRestartFromGraceful {
 		StartViaService(p)
-	} else if !graceful && p.RunData.AutoRestartFromCrash && p.CrashCounter < config.GetIntOrDefault("crashlimit", 3) {
+	} else if !graceful && p.RunData.AutoRestartFromCrash && p.CrashCounter < config.Get().Data.CrashLimit {
 		p.CrashCounter++
 		StartViaService(p)
 	}

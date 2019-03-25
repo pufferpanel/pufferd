@@ -23,15 +23,14 @@ import (
 	"encoding/pem"
 	"github.com/pkg/sftp"
 	"github.com/pufferpanel/apufferi/common"
-	configuration "github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
+	pufferdConfig "github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/programs"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net"
 	"os"
-	"path"
 	"path/filepath"
 )
 
@@ -55,7 +54,7 @@ func runServer() error {
 		},
 	}
 
-	serverKeyFile := path.Join(configuration.GetStringOrDefault("dataFolder", "data"), "server.key")
+	serverKeyFile := pufferdConfig.Get().Listener.SFTPKey
 
 	_, e := os.Stat(serverKeyFile)
 
@@ -96,7 +95,7 @@ func runServer() error {
 
 	config.AddHostKey(hkey)
 
-	bind := configuration.GetStringOrDefault("sftp", "0.0.0.0:5657")
+	bind := pufferdConfig.Get().Listener.SFTP
 
 	sftpServer, e = net.Listen("tcp", bind)
 	if e != nil {

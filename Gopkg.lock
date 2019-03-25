@@ -47,7 +47,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:71e4657868955ce6abfac33285754728178d3c0d66cc833081e841c36d95a60c"
+  digest = "1:6681f7e1321b9730027eb98958b11e3a498333047a8b0c38da07eac0c950f426"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -70,7 +70,7 @@
     "errdefs",
   ]
   pruneopts = "UT"
-  revision = "119f892016efc2417b5afa08be6b059776884df4"
+  revision = "5635c248cd3bead105b4b6d336a8502b1d25a6ee"
 
 [[projects]]
   digest = "1:811c86996b1ca46729bad2724d4499014c4b9effd05ef8c71b852aad90deb0ce"
@@ -255,19 +255,18 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e62ab56f2561b9528739ea63563e480bea758e8b6a451d48053be846259a116c"
+  digest = "1:1f1bc545d13d8809512b1bac9ffe8787a9015054b43e2376b364302ed389761c"
   name = "github.com/pufferpanel/apufferi"
   packages = [
     "cache",
     "cli",
     "common",
-    "config",
     "http",
     "http/handler",
     "logging",
   ]
   pruneopts = "UT"
-  revision = "81edd151dcd782c43fb50430cf5c2047b0498c26"
+  revision = "00296eda0c0d3b18b6b3b086bbbf6d3f14353293"
 
 [[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
@@ -318,7 +317,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e86b06b02faaecaa9eb62062d3e7b65b58399b65a86056dbad6be5e5857e4598"
+  digest = "1:2f853a86c2a5f407020543d2db12d00b6408e0726ce6d55231d9a4b5b2f2a189"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -331,7 +330,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "b7391e95e576cacdcdd422573063bc057239113d"
+  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
 
 [[projects]]
   branch = "master"
@@ -342,11 +341,11 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "1272bf9dcd53ea65c09668fb4c76e65deb740072"
+  revision = "e3b2ff56ed879efa686c9d09ed74f9bfe42f1a1d"
 
 [[projects]]
   branch = "master"
-  digest = "1:51e9c8a64ecddbba456f24b2119aade9dc8e062fc6d10b30548f75f483e08b76"
+  digest = "1:78ed3d0c6d5b4996ef2867e280f39ea7b44438558c6331721740ab9061db532c"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -354,7 +353,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "f7bb7a8bee54210937e93ec56d007d892c1f0580"
+  revision = "f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb"
 
 [[projects]]
   branch = "master"
@@ -362,7 +361,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "5fe7a883aa19554f42890211544aa549836af7b7"
+  revision = "e79c0c59cdb5e117ef82a6f885294df3d74065d5"
 
 [[projects]]
   digest = "1:4a251721b698c0e6285aec21d4ba3f79ddeccd903690144461b360ea7f948106"
@@ -412,7 +411,6 @@
     "github.com/pufferpanel/apufferi/cache",
     "github.com/pufferpanel/apufferi/cli",
     "github.com/pufferpanel/apufferi/common",
-    "github.com/pufferpanel/apufferi/config",
     "github.com/pufferpanel/apufferi/http",
     "github.com/pufferpanel/apufferi/http/handler",
     "github.com/pufferpanel/apufferi/logging",

@@ -17,37 +17,76 @@
 package config
 
 import (
-	"github.com/pufferpanel/apufferi/config"
+	"encoding/json"
+	"io/ioutil"
 	"os"
+	"path"
 	"runtime"
 )
 
-var path string
+var filePath string
+var global = Base{}
 
 func init() {
+	var baseDataPath string
+	var logPath string
+
 	if runtime.GOOS == "windows" {
-		path = "config.json"
+		filePath = "config.json"
+		baseDataPath = "data"
+		logPath = "logs"
 	} else {
-		path = "/etc/pufferd/config.json"
+		filePath = "/etc/pufferd/config.json"
+		baseDataPath = "/var/lib/pufferd"
+		logPath = "/var/log/pufferd"
 	}
+
+	global.Console = Console{
+		Buffer:  50,
+		Forward: false,
+	}
+
+	global.Auth = Auth{
+	}
+
+	global.Listener = Listener{
+		Web:     "0.0.0.0:5656",
+		SFTP:    "0.0.0.0:5657",
+		SFTPKey: path.Join(baseDataPath, "server.key"),
+	}
+
+	global.Data = Data{
+		CacheFolder:    path.Join(baseDataPath, "cache"),
+		ServerFolder:   path.Join(baseDataPath, "servers"),
+		TemplateFolder: path.Join(baseDataPath, "templates"),
+		ModuleFolder:   path.Join(baseDataPath, "modules"),
+		BasePath:       baseDataPath,
+		LogFolder:      logPath,
+		CrashLimit:     3,
+	}
+}
+
+func Get() Base {
+	return global
 }
 
 func SetPath(newPath string) {
 	//only change path if the new path is actually valid
 	if newPath != "" {
-		path = newPath
+		filePath = newPath
 	}
 }
 
 func GetPath() string {
-	return path
+	return filePath
 }
 
 func LoadConfig() error {
-	if _, err := os.Stat(path); err != nil && !os.IsNotExist(err) {
+	file, err := ioutil.ReadFile(filePath)
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	config.Load(path)
-	return nil
+	err = json.Unmarshal(file, &global)
+	return err
 }

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pufferpanel/apufferi/cache"
-	"github.com/pufferpanel/apufferi/config"
+	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/utils"
 	"io"
 	"os"
@@ -134,7 +134,7 @@ func (e *BaseEnvironment) Delete() (err error) {
 }
 
 func (e *BaseEnvironment) CreateWrapper() io.Writer {
-	if config.GetBoolOrDefault("forward", false) {
+	if config.Get().Console.Forward {
 		return io.MultiWriter(os.Stdout, e.ConsoleBuffer, e.WSManager)
 	}
 	return io.MultiWriter(e.ConsoleBuffer, e.WSManager)

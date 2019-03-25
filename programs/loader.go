@@ -20,13 +20,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/pufferpanel/pufferd/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/pufferpanel/apufferi/common"
-	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments"
 	"github.com/pufferpanel/pufferd/programs/operations"
@@ -39,8 +39,8 @@ var (
 )
 
 func Initialize() {
-	ServerFolder = config.GetStringOrDefault("serverFolder", common.JoinPath("data", "servers"))
-	TemplateFolder = config.GetStringOrDefault("templateFolder", common.JoinPath("data", "templates"))
+	ServerFolder = config.Get().Data.ServerFolder
+	TemplateFolder = config.Get().Data.TemplateFolder
 
 	operations.LoadOperations()
 }

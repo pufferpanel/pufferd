@@ -20,9 +20,9 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/pufferpanel/apufferi/common"
-	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commons"
+	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"io"
 	"log"
@@ -83,7 +83,7 @@ func DownloadFileToCache(url, fileName string) error {
 }
 
 func DownloadViaMaven(downloadUrl string, env envs.Environment) (string, error) {
-	localPath := path.Join(config.GetStringOrDefault("cache", "tmp"), strings.TrimPrefix(strings.TrimPrefix(downloadUrl, "http://"), "https://"))
+	localPath := path.Join(config.Get().Data.CacheFolder, strings.TrimPrefix(strings.TrimPrefix(downloadUrl, "http://"), "https://"))
 
 	if os.PathSeparator != '/' {
 		localPath = strings.Replace(localPath, "/", string(os.PathSeparator), -1)

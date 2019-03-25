@@ -19,9 +19,9 @@ package oauth2
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commons"
+	"github.com/pufferpanel/pufferd/config"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -44,15 +44,15 @@ func RefreshToken() bool {
 		return false
 	}
 
-	clientId := config.GetString("clientId")
-	clientSecret := config.GetString("clientSecret")
+	clientId := config.Get().Auth.ClientID
+	clientSecret := config.Get().Auth.ClientSecret
 
 	data := url.Values{}
 	data.Set("grant_type", "client_credentials")
 	data.Set("client_id", clientId)
 	data.Set("client_secret", clientSecret)
 	encodedData := data.Encode()
-	request, _ := http.NewRequest("POST", config.GetString("authServer"), bytes.NewBufferString(encodedData))
+	request, _ := http.NewRequest("POST", config.Get().Auth.AuthURL, bytes.NewBufferString(encodedData))
 
 	request.Header.Add("Authorization", "Bearer "+daemonToken)
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")

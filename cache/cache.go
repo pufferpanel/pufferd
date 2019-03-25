@@ -18,13 +18,13 @@ package cache
 
 import (
 	"github.com/pufferpanel/apufferi/cache"
-	"github.com/pufferpanel/apufferi/config"
+	"github.com/pufferpanel/pufferd/config"
 )
 
 func CreateCache() *cache.MemoryCache {
-	capacity := config.GetIntOrDefault("console-buffer", 0)
-	if capacity == 0 {
-		capacity = config.GetIntOrDefault("consoleBuffer", 50)
+	capacity := config.Get().Console.Buffer
+	if capacity <= 0 {
+		capacity = 50
 	}
 	return &cache.MemoryCache{
 		Buffer:   make([]cache.Message, 0),

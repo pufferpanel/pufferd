@@ -20,9 +20,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commons"
+	"github.com/pufferpanel/pufferd/config"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net/http"
@@ -42,7 +42,7 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 	data.Set("password", password)
 	data.Set("scope", "sftp")
 	encodedData := data.Encode()
-	request, _ := http.NewRequest("POST", config.GetString("authServer"), bytes.NewBufferString(encodedData))
+	request, _ := http.NewRequest("POST", config.Get().Auth.AuthURL, bytes.NewBufferString(encodedData))
 
 	RefreshIfStale()
 
@@ -55,7 +55,7 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 	defer commons.CloseResponse(response)
 	if err != nil {
 		logging.Error("Error talking to auth server", err)
-		return nil, errors.New("Invalid response from authorization server")
+		return nil, errors.New("invalid response from authorization server")
 	}
 
 	//we should only get a 200, if we get any others, we have a problem
@@ -70,7 +70,7 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 		msg, _ := ioutil.ReadAll(response.Body)
 
 		logging.Error("Error talking to auth server: [%d] [%s]", response.StatusCode, msg)
-		return nil, errors.New("Invalid response from authorization server")
+		return nil, errors.New("invalid response from authorization server")
 	}
 
 	var respArr map[string]interface{}
@@ -79,12 +79,12 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 		return nil, err
 	}
 	if respArr["error"] != nil {
-		return nil, errors.New("Incorrect username or password")
+		return nil, errors.New("incorrect username or password")
 	}
 	sshPerms := &ssh.Permissions{}
 	scopes := strings.Split(respArr["scope"].(string), " ")
 	if len(scopes) != 2 {
-		return nil, errors.New("Invalid response from authorization server")
+		return nil, errors.New("invalid response from authorization server")
 	}
 	for _, v := range scopes {
 		if v != "sftp" {
@@ -93,5 +93,5 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 			return sshPerms, nil
 		}
 	}
-	return nil, errors.New("Incorrect username or password")
+	return nil, errors.New("incorrect username or password")
 }

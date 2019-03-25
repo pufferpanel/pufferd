@@ -23,10 +23,10 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pufferpanel/apufferi/common"
-	"github.com/pufferpanel/apufferi/config"
 	pufferdHttp "github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commons"
+	"github.com/pufferpanel/pufferd/config"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -38,7 +38,7 @@ func ValidateToken(accessToken string, gin *gin.Context) bool {
 }
 
 func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
-	authUrl := config.GetString("infoServer")
+	authUrl := config.Get().Auth.InfoURL
 	data := url.Values{}
 	data.Set("token", accessToken)
 	encodedData := data.Encode()

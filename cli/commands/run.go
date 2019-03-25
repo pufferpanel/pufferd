@@ -21,9 +21,8 @@ import (
 	"github.com/braintree/manners"
 	"github.com/gin-gonic/gin"
 	"github.com/pufferpanel/apufferi/cli"
-	"github.com/pufferpanel/apufferi/config"
 	"github.com/pufferpanel/apufferi/logging"
-	config2 "github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/environments"
 	"github.com/pufferpanel/pufferd/programs"
 	"github.com/pufferpanel/pufferd/routing"
@@ -33,7 +32,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"runtime"
 	"runtime/debug"
 	"syscall"
 )
@@ -60,7 +58,7 @@ func (*Run) ShouldRunNext() bool {
 }
 
 func (r *Run) Run() error {
-	err := config2.LoadConfig()
+	err := config.LoadConfig()
 
 	if err != nil {
 		return err
@@ -71,11 +69,7 @@ func (r *Run) Run() error {
 		level = logging.INFO
 	}
 
-	var defaultLogFolder = "logs"
-	if runtime.GOOS == "linux" {
-		defaultLogFolder = "/var/log/pufferd"
-	}
-	var logPath = config.GetStringOrDefault("logPath", defaultLogFolder)
+	var logPath = config.Get().Data.LogFolder
 
 	err = logging.WithLogDirectory(logPath, level, nil)
 	if err != nil {
@@ -139,7 +133,7 @@ func (r *Run) runServices() {
 
 	useHttps := false
 
-	dataFolder := config.GetStringOrDefault("dataFolder", "data")
+	dataFolder := config.Get().Data.BasePath
 	httpsPem := filepath.Join(dataFolder, "https.pem")
 	httpsKey := filepath.Join(dataFolder, "https.key")
 
@@ -153,7 +147,7 @@ func (r *Run) runServices() {
 
 	sftp.Run()
 
-	web := config.GetStringOrDefault("web", config.GetStringOrDefault("webHost", "0.0.0.0")+":"+config.GetStringOrDefault("webPort", "5656"))
+	web := config.Get().Listener.Web
 
 	logging.Info("Starting web access on %s", web)
 	var err error
@@ -185,7 +179,7 @@ func (r *Run) createHook() {
 			case syscall.SIGHUP:
 				manners.Close()
 				sftp.Stop()
-				config.Load(config2.GetPath())
+				config.LoadConfig()
 			case syscall.SIGPIPE:
 				//ignore SIGPIPEs for now, we're somehow getting them and it's causing issues
 			}
