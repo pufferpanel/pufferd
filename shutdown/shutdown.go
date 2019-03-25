@@ -52,10 +52,10 @@ func Shutdown() *sync.WaitGroup {
 					logging.Error("%+v\n%s", err, debug.Stack())
 				}
 			}()
-			logging.Warn("Stopping program " + e.Id())
+			logging.Warn("Stopping program %s", e.Id())
 			running, err := e.IsRunning()
 			if err != nil {
-				logging.Error("Error stopping server "+e.Id(), err)
+				logging.Error("Error stopping server %s: %s", e.Id(), err.Error())
 				return
 			}
 			if !running {
@@ -63,15 +63,15 @@ func Shutdown() *sync.WaitGroup {
 			}
 			err = e.Stop()
 			if err != nil {
-				logging.Error("Error stopping server "+e.Id(), err)
+				logging.Error("Error stopping server %: %s", e.Id(), err.Error())
 				return
 			}
 			err = e.GetEnvironment().WaitForMainProcess()
 			if err != nil {
-				logging.Error("Error stopping server "+e.Id(), err)
+				logging.Error("Error stopping server %s: %s", e.Id(), err.Error())
 				return
 			}
-			logging.Warn("Stopped program " + e.Id())
+			logging.Warn("Stopped program %s", e.Id())
 		}(element)
 	}
 	return &wg

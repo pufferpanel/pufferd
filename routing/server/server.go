@@ -155,7 +155,7 @@ func CreateServer(c *gin.Context) {
 	err := json.NewDecoder(c.Request.Body).Decode(&createData)
 
 	if err != nil {
-		logging.Error("Error decoding JSON body", err)
+		logging.Error("Error decoding JSON body: %s", err.Error())
 		http.Respond(c).Status(400).Message("error parsing json").Data(err).Code(http.MALFORMEDJSON).Send()
 		return
 	}
@@ -342,7 +342,7 @@ func PutFile(c *gin.Context) {
 
 	if err != nil {
 		errorConnection(c, err)
-		logging.Error("Error writing file", err)
+		logging.Error("Error writing file: %s", err.Error())
 		return
 	}
 
@@ -357,7 +357,7 @@ func PutFile(c *gin.Context) {
 
 	if err != nil {
 		errorConnection(c, err)
-		logging.Error("Error writing file", err)
+		logging.Error("Error writing file: %s", err.Error())
 	} else {
 		_, err = io.Copy(file, sourceFile)
 		http.Respond(c).Send()
@@ -380,7 +380,7 @@ func DeleteFile(c *gin.Context) {
 	err := os.RemoveAll(targetFile)
 	if err != nil {
 		errorConnection(c, err)
-		logging.Error("Failed to delete file", err)
+		logging.Error("Failed to delete file: %s", err.Error())
 	} else {
 		http.Respond(c).Send()
 	}
@@ -406,7 +406,7 @@ func GetConsole(c *gin.Context) {
 
 	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		logging.Error("Error creating websocket", err)
+		logging.Error("Error creating websocket: %s", err.Error())
 		errorConnection(c, err)
 		return
 	}
@@ -502,7 +502,7 @@ func GetStatus(c *gin.Context) {
 }
 
 func errorConnection(c *gin.Context, err error) {
-	logging.Error("error on api call", err)
+	logging.Error("Error on api call: %s", err.Error())
 	http.Respond(c).Status(500).Code(http.UNKNOWN).Data(err).Message("error handling request").Send()
 }
 
@@ -510,7 +510,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program) {
 	for {
 		msgType, data, err := conn.ReadMessage()
 		if err != nil {
-			logging.Error("error on websocket", err)
+			logging.Error("Error on websocket", err.Error())
 			return
 		}
 		if msgType != websocket.TextMessage {
@@ -520,7 +520,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program) {
 
 		err = json.Unmarshal(data, &mapping)
 		if err != nil {
-			logging.Error("error on websocket", err)
+			logging.Error("Error on websocket: %s", err.Error())
 			continue
 		}
 

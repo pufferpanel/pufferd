@@ -44,7 +44,7 @@ type ProgramData struct {
 	Template        string                 `json:"template,omitempty"`
 
 	Environment  envs.Environment `json:"-"`
-	CrashCounter int                      `json:"-"`
+	CrashCounter int              `json:"-"`
 }
 
 type DataObject struct {
@@ -91,9 +91,9 @@ func CreateProgram() ProgramData {
 			AutoStart:               false,
 			AutoRestartFromCrash:    false,
 			AutoRestartFromGraceful: false,
-			Pre:                  make([]map[string]interface{}, 0),
-			Post:                 make([]map[string]interface{}, 0),
-			EnvironmentVariables: make(map[string]string, 0),
+			Pre:                     make([]map[string]interface{}, 0),
+			Post:                    make([]map[string]interface{}, 0),
+			EnvironmentVariables:    make(map[string]string, 0),
 		},
 		Type:    "standard",
 		Data:    make(map[string]DataObject, 0),
@@ -201,7 +201,7 @@ func (p *ProgramData) Install() (err error) {
 	logging.Debug("Installing server %s", p.Id())
 	running, err := p.IsRunning()
 	if err != nil {
-		logging.Error("Error stopping server to install: ", err)
+		logging.Error("Error stopping server to install: %s", err.Error())
 		p.Environment.DisplayToConsole("Error stopping server\n")
 		return
 	}
@@ -211,7 +211,7 @@ func (p *ProgramData) Install() (err error) {
 	}
 
 	if err != nil {
-		logging.Error("Error stopping server to install: ", err)
+		logging.Error("Error stopping server to install: %s", err.Error())
 		p.Environment.DisplayToConsole("Error stopping server\n")
 		return
 	}
@@ -226,7 +226,7 @@ func (p *ProgramData) Install() (err error) {
 		logging.Debug("Server %s has no defined install data, using template", p.Id())
 		templateData, err := ioutil.ReadFile(common.JoinPath(TemplateFolder, p.Template+".json"))
 		if err != nil {
-			logging.Error("Error reading template for "+p.Template, err)
+			logging.Error("Error reading template for %s: %s", p.Template, err.Error())
 			p.Environment.DisplayToConsole("Error running installer, check daemon logs\n")
 			return err
 		}
@@ -234,7 +234,7 @@ func (p *ProgramData) Install() (err error) {
 		templateJson := ServerJson{}
 		err = json.Unmarshal(templateData, &templateJson)
 		if err != nil {
-			logging.Error("Malformed json for program "+p.Template, err)
+			logging.Error("Malformed json for program %s: %s", p.Template, err.Error())
 			p.Environment.DisplayToConsole("Error running installer, check daemon logs\n")
 			return err
 		}

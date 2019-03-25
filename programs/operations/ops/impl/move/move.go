@@ -42,7 +42,7 @@ func (m Move) Run(env envs.Environment) error {
 		env.DisplayToConsole("Moving file from %s to %s\n", m.SourceFile, m.TargetFile)
 		err := os.Rename(k, v)
 		if err != nil {
-			logging.Error("Error moving file", err)
+			logging.Error("Error moving file: %s", err.Error())
 		}
 	}
 	return nil
@@ -55,12 +55,12 @@ func validateMove(source string, target string) (result map[string]string, valid
 
 	if err != nil {
 		if os.IsNotExist(err) && len(sourceFiles) > 1 {
-			logging.Error("Target folder does not exist", err)
+			logging.Error("Target folder does not exist: %s", err.Error())
 			valid = false
 			return
 		} else if !os.IsNotExist(err) {
 			valid = false
-			logging.Error("Error reading target file on move", err)
+			logging.Error("Error reading target file on move: %s", err.Error())
 			return
 		}
 	} else if info.IsDir() && len(sourceFiles) > 1 {

@@ -54,7 +54,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 	response, err := client.Do(request)
 	defer commons.CloseResponse(response)
 	if err != nil {
-		logging.Error("Error talking to auth server", err)
+		logging.Error("Error talking to auth server: %s", err.Error())
 		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false
@@ -70,7 +70,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 			}
 		}
 
-		logging.Error("Unexpected response code from auth server", response.StatusCode)
+		logging.Error("Unexpected response code from auth server: %s", response.StatusCode)
 		pufferdHttp.Respond(gin).Message(fmt.Sprintf("unexpected response code %d", response.StatusCode)).Fail().Status(500).Send()
 		gin.Abort()
 		return false
@@ -80,7 +80,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 	err = json.NewDecoder(response.Body).Decode(&respArr)
 
 	if err != nil {
-		logging.Error("Error parsing response from auth server", err)
+		logging.Error("Error parsing response from auth server: %s", err.Error())
 		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false
@@ -88,7 +88,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 		errStr, ok := respArr["error"].(string)
 		if !ok {
 			err = errors.New(fmt.Sprintf("error is %s instead of string", reflect.TypeOf(respArr["error"])))
-			logging.Error("Error parsing response from auth server", err)
+			logging.Error("Error parsing response from auth server: %s", err.Error())
 		} else {
 			err = errors.New(errStr)
 		}
@@ -107,7 +107,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 	serverMapping, ok := respArr["servers"].(map[string]interface{})
 	if !ok {
 		err = errors.New(fmt.Sprintf("auth server did not respond in the format expected, got %s instead of map[string]interface{} for servers", reflect.TypeOf(respArr["servers"])))
-		logging.Error("Error parsing response from auth server", err)
+		logging.Error("Error parsing response from auth server: %s", err.Error())
 		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false

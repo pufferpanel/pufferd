@@ -102,7 +102,7 @@ func (p *OperationProcess) Run(env envs.Environment) (err error) {
 	for p.HasNext() {
 		err = p.RunNext(env)
 		if err != nil {
-			logging.Error("Error running process: ", err)
+			logging.Error("Error running process: %s", err.Error())
 			break
 		}
 	}

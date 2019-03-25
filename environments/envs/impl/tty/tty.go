@@ -75,7 +75,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 
 	go t.handleClose(callback)
 	if err != nil {
-		logging.Error("Error starting process", err)
+		logging.Error("Error starting process: %s", err.Error())
 	}
 	return
 }

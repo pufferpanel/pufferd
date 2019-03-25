@@ -19,7 +19,6 @@ package programs
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/pufferpanel/pufferd/config"
 	"io/ioutil"
 	"os"
@@ -48,11 +47,11 @@ func Initialize() {
 func LoadFromFolder() {
 	err := os.Mkdir(ServerFolder, 0755)
 	if err != nil && !os.IsExist(err) {
-		logging.Critical("Error creating server data folder", err)
+		logging.Critical("Error creating server data folder: %s", err.Error())
 	}
 	programFiles, err := ioutil.ReadDir(ServerFolder)
 	if err != nil {
-		logging.Critical("Error reading from server data folder", err)
+		logging.Critical("Error reading from server data folder: %s", err.Error())
 	}
 	var program Program
 	for _, element := range programFiles {
@@ -62,7 +61,7 @@ func LoadFromFolder() {
 		id := strings.TrimSuffix(element.Name(), filepath.Ext(element.Name()))
 		program, err = Load(id)
 		if err != nil {
-			logging.Error(fmt.Sprintf("Error loading server details from json (%s)", element.Name()), err)
+			logging.Error("Error loading server details from json (%s): %s", element.Name(), err.Error())
 			continue
 		}
 		logging.Info("Loaded server %s", program.Id())
@@ -119,7 +118,7 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 
 	templateData, err := ioutil.ReadFile(common.JoinPath(TemplateFolder, serverType+".json"))
 	if err != nil {
-		logging.Error("Error reading template file for type "+serverType, err)
+		logging.Error("Error reading template file for type %s: %s", serverType, err.Error())
 		return false
 	}
 
@@ -131,7 +130,7 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 	err = json.Unmarshal(templateData, &templateJson)
 
 	if err != nil {
-		logging.Error("Error reading template file for type "+serverType, err)
+		logging.Error("Error reading template file for type %s: %s", serverType, err.Error())
 		return false
 	}
 
@@ -163,7 +162,7 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 	f, err := os.Create(common.JoinPath(ServerFolder, id+".json"))
 	defer common.Close(f)
 	if err != nil {
-		logging.Error("Error writing server file", err)
+		logging.Error("Error writing server file: %s", err.Error())
 		return false
 	}
 
@@ -173,14 +172,14 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 	err = encoder.Encode(program)
 
 	if err != nil {
-		logging.Error("Error writing server file", err)
+		logging.Error("Error writing server file: %s", err.Error())
 		return false
 	}
 
 	newData, err := json.Marshal(program)
 
 	if err != nil {
-		logging.Error("Error regenerating file", err)
+		logging.Error("Error regenerating file: %s", err.Error())
 		return false
 	}
 
@@ -222,7 +221,7 @@ func Delete(id string) (err error) {
 	}
 	err = os.Remove(common.JoinPath(ServerFolder, program.Id()+".json"))
 	if err != nil {
-		logging.Error("Error removing server json", err)
+		logging.Error("Error removing server json: %s", err.Error())
 	}
 	allPrograms = append(allPrograms[:index], allPrograms[index+1:]...)
 	return
@@ -259,7 +258,7 @@ func Reload(id string) (err error) {
 
 	newVersion, err := Load(id)
 	if err != nil {
-		logging.Error("error reloading server", err)
+		logging.Error("Error reloading server: %s", err.Error())
 		return
 	}
 
@@ -297,7 +296,7 @@ func GetPlugin(name string) (ProgramTemplateData, error) {
 	var template ProgramTemplate
 	err = json.Unmarshal(templateData, &template)
 	if err != nil {
-		logging.Error("Malformed json for program "+name, err)
+		logging.Error("Malformed json for program %s: %s", name, err.Error())
 		return ProgramTemplateData{}, err
 	}
 	return template.Core, nil

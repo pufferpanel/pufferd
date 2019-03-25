@@ -42,7 +42,7 @@ func DownloadFile(url, fileName string, env envs.Environment) error {
 
 	client := &http.Client{}
 
-	logging.Debug("Downloading: " + url)
+	logging.Debug("Downloading: %s", url)
 	env.DisplayToConsole("Downloading: " + url + "\n")
 
 	response, err := client.Get(url)

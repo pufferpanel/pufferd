@@ -73,7 +73,7 @@ func (r *Run) Run() error {
 
 	err = logging.WithLogDirectory(logPath, level, nil)
 	if err != nil {
-		logging.Error("Error creating log directory", err)
+		logging.Error("Error creating log directory: %s", err.Error())
 	}
 
 	gin.SetMode(gin.ReleaseMode)
@@ -86,7 +86,7 @@ func (r *Run) Run() error {
 		logging.Info("No template directory found, creating")
 		err = os.MkdirAll(programs.TemplateFolder, 0755)
 		if err != nil {
-			logging.Error("Error creating template folder", err)
+			logging.Error("Error creating template folder: %s", err.Error())
 		}
 
 	}
@@ -95,7 +95,7 @@ func (r *Run) Run() error {
 		logging.Info("No server directory found, creating")
 		err = os.MkdirAll(programs.ServerFolder, 0755)
 		if err != nil {
-			logging.Error("Error creating server folder directory", err)
+			logging.Error("Error creating server folder directory: %s", err.Error())
 			return nil
 		}
 	}
@@ -108,7 +108,7 @@ func (r *Run) Run() error {
 		if element.IsEnabled() {
 			element.GetEnvironment().DisplayToConsole("Daemon has been started\n")
 			if element.IsAutoStart() {
-				logging.Info("Queued server " + element.Id())
+				logging.Info("Queued server %s", element.Id())
 				element.GetEnvironment().DisplayToConsole("Server has been queued to start\n")
 				programs.StartViaService(element)
 			}
@@ -157,7 +157,7 @@ func (r *Run) runServices() {
 		err = manners.ListenAndServe(web, router)
 	}
 	if err != nil {
-		logging.Error("Error starting web service", err)
+		logging.Error("Error starting web service: %s", err.Error())
 	}
 }
 
@@ -193,6 +193,6 @@ func (r *Run) createHook() {
 func recoverPanic() {
 	if rec := recover(); rec != nil {
 		err := rec.(error)
-		logging.Critical("Unhandled error", err)
+		logging.Critical("Unhandled error: %s", err.Error())
 	}
 }

@@ -39,7 +39,7 @@ var sftpServer net.Listener
 func Run() {
 	e := runServer()
 	if e != nil {
-		logging.Error("Error starting SFTP", e)
+		logging.Error("Error starting SFTP server: %s", e.Error())
 	}
 }
 
@@ -121,7 +121,7 @@ func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
 	e := handleConn(conn, config)
 	if e != nil {
 		if e.Error() != "EOF" {
-			logging.Error("sftpd connection error:", e)
+			logging.Error("sftpd connection error: %s", e.Error())
 		}
 	}
 }

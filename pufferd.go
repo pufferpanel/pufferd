@@ -26,6 +26,6 @@ func main() {
 	err := cli.Run()
 
 	if err != nil {
-		logging.Error("Error running command", err)
+		logging.Error("Error running command: %s", err.Error())
 	}
 }
