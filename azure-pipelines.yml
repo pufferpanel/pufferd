@@ -6,6 +6,8 @@
 trigger: 
 - master
 
+name: $(version)
+
 pool:
   vmImage: 'Ubuntu-16.04'
 
