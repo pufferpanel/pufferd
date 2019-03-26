@@ -88,7 +88,7 @@ steps:
     mkdir $(GOPATH)/build/xenial
     mv *.deb $(GOPATH)/build/xenial
   displayName: 'Create packages'
-  workingDirectory: systemd/xenial
+  workingDirectory: systemd/pufferd/xenial
 
 - script: |
     fpm -s deb -t rpm \
@@ -103,7 +103,7 @@ steps:
     mkdir $(GOPATH)/build/rpm
     mv *.rpm $(GOPATH)/build/rpm
   displayName: 'Create packages'
-  workingDirectory: systemd/rpm7
+  workingDirectory: systemd/pufferd/rpm7
 
 - script: |
     fpm -s dir -t deb \
@@ -120,7 +120,7 @@ steps:
     mkdir $(GOPATH)/build/trusty
     mv *.deb $(GOPATH)/build/trusty
   displayName: 'Create packages'
-  workingDirectory: systemd/trusty
+  workingDirectory: systemd/pufferd/trusty
 
 - task: PublishPipelineArtifact@0
   inputs:
