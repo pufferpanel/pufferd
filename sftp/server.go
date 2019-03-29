@@ -39,7 +39,7 @@ var sftpServer net.Listener
 func Run() {
 	e := runServer()
 	if e != nil {
-		logging.Error("Error starting SFTP server: %s", e.Error())
+		logging.Build(logging.ERROR).WithMessage("Error starting SFTP server").WithError(e).Log()
 	}
 }
 

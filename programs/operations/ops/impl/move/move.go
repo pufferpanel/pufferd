@@ -26,8 +26,8 @@ import (
 )
 
 type Move struct {
-	SourceFile  string
-	TargetFile  string
+	SourceFile string
+	TargetFile string
 }
 
 func (m Move) Run(env envs.Environment) error {
@@ -42,7 +42,7 @@ func (m Move) Run(env envs.Environment) error {
 		env.DisplayToConsole("Moving file from %s to %s\n", m.SourceFile, m.TargetFile)
 		err := os.Rename(k, v)
 		if err != nil {
-			logging.Error("Error moving file: %s", err.Error())
+			logging.Build(logging.ERROR).WithMessage("Error moving file").WithError(err).Log()
 		}
 	}
 	return nil
@@ -55,12 +55,12 @@ func validateMove(source string, target string) (result map[string]string, valid
 
 	if err != nil {
 		if os.IsNotExist(err) && len(sourceFiles) > 1 {
-			logging.Error("Target folder does not exist: %s", err.Error())
+			logging.Error("Target folder does not exist")
 			valid = false
 			return
 		} else if !os.IsNotExist(err) {
 			valid = false
-			logging.Error("Error reading target file on move: %s", err.Error())
+			logging.Build(logging.ERROR).WithMessage("Error reading target file on move").WithError(err).Log()
 			return
 		}
 	} else if info.IsDir() && len(sourceFiles) > 1 {

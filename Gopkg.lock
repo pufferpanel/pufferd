@@ -70,7 +70,7 @@
     "errdefs",
   ]
   pruneopts = "UT"
-  revision = "5635c248cd3bead105b4b6d336a8502b1d25a6ee"
+  revision = "da823cf3a5a3437763ba12b2fa369c826d4a2bf4"
 
 [[projects]]
   digest = "1:811c86996b1ca46729bad2724d4499014c4b9effd05ef8c71b852aad90deb0ce"
@@ -255,7 +255,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1f1bc545d13d8809512b1bac9ffe8787a9015054b43e2376b364302ed389761c"
+  digest = "1:d1288824b4821f2c454bed6101c2f5ce7539f5f5b29b8d17ae590fdec47802fd"
   name = "github.com/pufferpanel/apufferi"
   packages = [
     "cache",
@@ -266,7 +266,7 @@
     "logging",
   ]
   pruneopts = "UT"
-  revision = "00296eda0c0d3b18b6b3b086bbbf6d3f14353293"
+  revision = "8db70bd97fefc7d6e621edf77b5ca37e50c6c5ce"
 
 [[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
@@ -341,7 +341,7 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "e3b2ff56ed879efa686c9d09ed74f9bfe42f1a1d"
+  revision = "63eda1eb0650888965ead1296efd04d0b2b61128"
 
 [[projects]]
   branch = "master"
@@ -361,7 +361,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "e79c0c59cdb5e117ef82a6f885294df3d74065d5"
+  revision = "d831d65fe17df2e52bcc4316d4a9f7a418701f43"
 
 [[projects]]
   digest = "1:4a251721b698c0e6285aec21d4ba3f79ddeccd903690144461b360ea7f948106"

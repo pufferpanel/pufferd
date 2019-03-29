@@ -157,7 +157,7 @@ func (r *Run) runServices() {
 		err = manners.ListenAndServe(web, router)
 	}
 	if err != nil {
-		logging.Error("Error starting web service: %s", err.Error())
+		logging.Build(logging.ERROR).WithMessage("Error starting web service").WithError(err).Log()
 	}
 }
 

@@ -60,7 +60,7 @@ func RefreshToken() bool {
 	response, err := client.Do(request)
 	defer commons.CloseResponse(response)
 	if err != nil {
-		logging.Error("Error talking to auth server: %s", err.Error())
+		logging.Build(logging.ERROR).WithMessage("Error talking to auth server").WithError(err).Log()
 		return false
 	}
 

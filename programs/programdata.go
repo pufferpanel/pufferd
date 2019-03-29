@@ -130,7 +130,7 @@ func (p *ProgramData) Start() (err error) {
 
 	err = p.Environment.ExecuteAsync(p.RunData.Program, common.ReplaceTokensInArr(p.RunData.Arguments, data), common.ReplaceTokensInMap(p.RunData.EnvironmentVariables, data), p.afterExit)
 	if err != nil {
-		logging.Error("Error starting server", err)
+		logging.Build(logging.ERROR).WithMessage("Error starting server").WithError(err).Log()
 		p.Environment.DisplayToConsole("Failed to start server\n")
 	}
 

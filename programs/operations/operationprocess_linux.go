@@ -35,20 +35,20 @@ func loadOpModules() {
 	if err != nil && os.IsNotExist(err) {
 		return
 	} else if err != nil {
-		logging.Error("Error reading directory: %s", err.Error())
+		logging.Build(logging.ERROR).WithMessage("Error reading directory").WithError(err).Log()
 	}
 
 	for _, file := range files {
 		logging.Info("Loading operation module: %s", file.Name())
 		p, e := plugin.Open(path.Join(directory, file.Name()))
-		if err != nil {
-			logging.Error("Unable to load module: %s", e.Error())
+		if e != nil {
+			logging.Build(logging.ERROR).WithMessage("Unable to open module").WithError(err).Log()
 			continue
 		}
 
 		factory, e := p.Lookup("Factory")
-		if err != nil {
-			logging.Error("Unable to load module: %s", e.Error())
+		if e != nil {
+			logging.Build(logging.ERROR).WithMessage("Unable to locate factory").WithError(err).Log()
 			continue
 		}
 

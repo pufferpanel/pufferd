@@ -54,7 +54,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 	response, err := client.Do(request)
 	defer commons.CloseResponse(response)
 	if err != nil {
-		logging.Error("Error talking to auth server: %s", err.Error())
+		logging.Build(logging.ERROR).WithMessage("Error talking to auth server").WithError(err).Log()
 		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false
@@ -80,7 +80,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 	err = json.NewDecoder(response.Body).Decode(&respArr)
 
 	if err != nil {
-		logging.Error("Error parsing response from auth server: %s", err.Error())
+		logging.Build(logging.ERROR).WithMessage("Error parsing response from auth server").WithError(err).Log()
 		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false
@@ -88,7 +88,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 		errStr, ok := respArr["error"].(string)
 		if !ok {
 			err = errors.New(fmt.Sprintf("error is %s instead of string", reflect.TypeOf(respArr["error"])))
-			logging.Error("Error parsing response from auth server: %s", err.Error())
+			logging.Build(logging.ERROR).WithMessage("Error parsing response from auth server").WithError(err).Log()
 		} else {
 			err = errors.New(errStr)
 		}
@@ -107,7 +107,7 @@ func validateToken(accessToken string, gin *gin.Context, recurse bool) bool {
 	serverMapping, ok := respArr["servers"].(map[string]interface{})
 	if !ok {
 		err = errors.New(fmt.Sprintf("auth server did not respond in the format expected, got %s instead of map[string]interface{} for servers", reflect.TypeOf(respArr["servers"])))
-		logging.Error("Error parsing response from auth server: %s", err.Error())
+		logging.Build(logging.ERROR).WithMessage("Error parsing response from auth server").WithError(err).Log()
 		pufferdHttp.Respond(gin).Message(err.Error()).Fail().Status(500).Send()
 		gin.Abort()
 		return false
