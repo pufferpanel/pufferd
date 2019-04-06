@@ -3,8 +3,10 @@
 # Add steps that test, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/go
 
-trigger: 
-- v1-dev
+trigger:
+  - v1-dev
+
+name: 1.2.7$(Rev:.r)
 
 pool:
   vmImage: 'Ubuntu-16.04'
@@ -14,114 +16,115 @@ variables:
   GOROOT: '/usr/local/go1.11' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/pufferpanel/pufferd' # Path to the module's code
-  version: 1.2.7
+  version: $(Build.BuildNumber)
 
 steps:
-- script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    mv !(gopath) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-    mkdir $(GOPATH)/build
-    go version
-  displayName: 'Set up the Go workspace'
+  - script: |
+      mkdir -p '$(GOBIN)'
+      mkdir -p '$(GOPATH)/pkg'
+      mkdir -p '$(modulePath)'
+      shopt -s extglob
+      mv !(gopath) '$(modulePath)'
+      echo '##vso[task.prependpath]$(GOBIN)'
+      echo '##vso[task.prependpath]$(GOROOT)/bin'
+      mkdir $(GOPATH)/build
+      go version
+    displayName: 'Set up the Go workspace'
 
-- script: |
-    curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-    dep version
-  workingDirectory: '$(modulePath)'
-  displayName: 'Download dep and run `dep ensure`'
+  - script: |
+      curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      dep version
+    workingDirectory: '$(modulePath)'
+    displayName: 'Download dep and run `dep ensure`'
 
-- script: |
-    export GOOS=linux
-    dep ensure -v
-    go build -o $(GOPATH)/build/pufferd -ldflags "-X main.GITHASH=$(Build.SourceVersion) -X main.VERSION=$(version)" -v github.com/pufferpanel/pufferd
-  workingDirectory: '$(modulePath)'
-  displayName: 'Linux Build'
+  - script: |
+      export GOOS=windows
+      dep ensure -v
+      go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
+    workingDirectory: '$(modulePath)'
+    displayName: 'Windows Build'
 
-- script: |
-    export GOOS=windows
-    dep ensure -v
-    go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X main.GITHASH=$(Build.SourceVersion) -X main.VERSION=$(version)" -v github.com/pufferpanel/pufferd
-  workingDirectory: '$(modulePath)'
-  displayName: 'Windows Build'
+  - script: |
+      export GOOS=linux
+      rm -f *.syso
+      dep ensure -v
+      go build -o $(GOPATH)/build/pufferd -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
+    workingDirectory: '$(modulePath)'
+    displayName: 'Linux Build'
 
-- task: UseRubyVersion@0
-  inputs:
-    versionSpec: '>= 2.4'
-    addToPath: true
+  - task: UseRubyVersion@0
+    inputs:
+      versionSpec: '>= 2.4'
+      addToPath: true
 
-- script: |
-    gem install --no-ri --no-rdoc rake
-    gem install --no-ri --no-rdoc fpm && fpm -v
-    gem install --no-ri --no-rdoc package_cloud && package_cloud version
-  displayName: 'Install gem deps'
+  - script: |
+      gem install --no-ri --no-rdoc rake
+      gem install --no-ri --no-rdoc fpm && fpm -v
+      gem install --no-ri --no-rdoc package_cloud && package_cloud version
+    displayName: 'Install gem deps'
 
-- script: |
-    git clone https://github.com/PufferPanel/systemd
-    git clone https://github.com/PufferPanel/templates
-  displayName: 'Get supporting files'
+  - script: |
+      git clone https://github.com/PufferPanel/systemd
+      git clone https://github.com/PufferPanel/templates
+    displayName: 'Get supporting files'
 
-- script: |
-    mkdir $(GOPATH)/build/templates
-    cd templates
-    cp */*.json $(GOPATH)/build/templates
-  displayName: 'Build templates'
+  - script: |
+      mkdir $(GOPATH)/build/templates
+      cd templates
+      cp */*.json $(GOPATH)/build/templates
+    displayName: 'Build templates'
 
-- script: |
-    fpm -s dir -t deb \
-      --name pufferd -v $(version).$(Build.BuildNumber) \
-      --maintainer dev@pufferpanel.com \
-      --deb-user pufferd --deb-group pufferd \
-      --deb-systemd servicefiles/systemd/pufferd \
-      --before-install scripts/preinst.sh \
-      --after-upgrade scripts/postupgrade.sh \
-      --before-remove scripts/prerm.sh \
-      --deb-after-purge scripts/purge.sh \
-      $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
-      $(GOPATH)/build/templates=/var/lib/pufferd/
+  - script: |
+      fpm -s dir -t deb \
+        --name pufferd -v $(version) \
+        --maintainer dev@pufferpanel.com \
+        --deb-user pufferd --deb-group pufferd \
+        --deb-systemd servicefiles/systemd/pufferd \
+        --before-install scripts/preinst.sh \
+        --after-upgrade scripts/postupgrade.sh \
+        --before-remove scripts/prerm.sh \
+        --deb-after-purge scripts/purge.sh \
+        $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
+        $(GOPATH)/build/templates=/var/lib/pufferd/
 
-    mkdir $(GOPATH)/build/xenial
-    mv *.deb $(GOPATH)/build/xenial
-  displayName: 'Create packages'
-  workingDirectory: systemd/xenial
+      mkdir $(GOPATH)/build/xenial
+      mv *.deb $(GOPATH)/build/xenial
+    displayName: 'Create packages'
+    workingDirectory: systemd/pufferd/xenial
 
-- script: |
-    fpm -s deb -t rpm \
-      --name pufferd \
-      --maintainer dev@pufferpanel.com \
-      --rpm-user pufferd --rpm-group pufferd \
-      --before-install scripts/preinst.sh \
-      --after-upgrade scripts/postupgrade.sh \
-      --before-remove scripts/prerm.sh \
-      $(GOPATH)/build/xenial/pufferd_*_amd64.deb
+  - script: |
+      fpm -s deb -t rpm \
+        --name pufferd \
+        --maintainer dev@pufferpanel.com \
+        --rpm-user pufferd --rpm-group pufferd \
+        --before-install scripts/preinst.sh \
+        --after-upgrade scripts/postupgrade.sh \
+        --before-remove scripts/prerm.sh \
+        $(GOPATH)/build/xenial/pufferd_*_amd64.deb
 
-    mkdir $(GOPATH)/build/rpm
-    mv *.rpm $(GOPATH)/build/rpm
-  displayName: 'Create packages'
-  workingDirectory: systemd/rpm7
+      mkdir $(GOPATH)/build/rpm
+      mv *.rpm $(GOPATH)/build/rpm
+    displayName: 'Create packages'
+    workingDirectory: systemd/pufferd/rpm7
 
-- script: |
-    fpm -s dir -t deb \
-      --name pufferd -v $(version).$(Build.BuildNumber) \
-      --maintainer dev@pufferpanel.com \
-      --deb-user pufferd --deb-group pufferd \
-      --deb-init servicefiles/initd/pufferd \
-      --before-install scripts/preinst.sh \
-      --before-remove scripts/prerm.sh \
-      --deb-after-purge scripts/purge.sh \
-      $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
-      $(GOPATH)/build/templates=/var/lib/pufferd/
-    
-    mkdir $(GOPATH)/build/trusty
-    mv *.deb $(GOPATH)/build/trusty
-  displayName: 'Create packages'
-  workingDirectory: systemd/trusty
+  - script: |
+      fpm -s dir -t deb \
+        --name pufferd -v $(version) \
+        --maintainer dev@pufferpanel.com \
+        --deb-user pufferd --deb-group pufferd \
+        --deb-init servicefiles/initd/pufferd \
+        --before-install scripts/preinst.sh \
+        --before-remove scripts/prerm.sh \
+        --deb-after-purge scripts/purge.sh \
+        $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
+        $(GOPATH)/build/templates=/var/lib/pufferd/
 
-- task: PublishPipelineArtifact@0
-  inputs:
-    artifactName: 'pufferd'
-    targetPath: '$(GOPATH)/build/.'
+      mkdir $(GOPATH)/build/trusty
+      mv *.deb $(GOPATH)/build/trusty
+    displayName: 'Create packages'
+    workingDirectory: systemd/pufferd/trusty
+
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'pufferd'
+      targetPath: '$(GOPATH)/build/.'
