@@ -239,8 +239,8 @@
   version = "v1.8.3"
 
 [[projects]]
-  branch = "master"
-  digest = "1:8fc8a4a16bb310c7047ad730509d89d94d3802fa6ea23761a81a4dce6a93686e"
+  branch = "v1-dev"
+  digest = "1:e4d14f9d305d9eb72108b3a981d0e1fd9c5e0a278b3bffd09e7d567644b2a64a"
   name = "github.com/pufferpanel/apufferi"
   packages = [
     "cache",
@@ -251,7 +251,7 @@
     "logging",
   ]
   pruneopts = "UT"
-  revision = "aae974a8c585a8d8f7571b1b623770c45b34109a"
+  revision = "a2232c25e99b2244af2b20d6f657092daa31760a"
 
 [[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
