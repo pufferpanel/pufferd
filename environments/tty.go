@@ -58,7 +58,7 @@ func (s *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	process.Dir = s.RootDirectory
 	process.Env = append(os.Environ(), "HOME="+s.RootDirectory)
 	for k, v := range env {
-		s.mainProcess.Env = append(s.mainProcess.Env, fmt.Sprintf("%s=%s", k, v))
+		process.Env = append(process.Env, fmt.Sprintf("%s=%s", k, v))
 	}
 
 	wrapper := s.createWrapper()
@@ -69,7 +69,7 @@ func (s *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	tty, err := pty.Start(process)
 	s.stdInWriter = tty
 	go func() {
-		io.Copy(wrapper, tty)
+		_, _ = io.Copy(wrapper, tty)
 		err = process.Wait()
 		s.wait.Done()
 		if callback != nil {
@@ -109,7 +109,7 @@ func (s *tty) Kill() (err error) {
 		return
 	}
 	err = s.mainProcess.Process.Kill()
-	s.mainProcess.Process.Release()
+	_ = s.mainProcess.Process.Release()
 	s.mainProcess = nil
 	return
 }
