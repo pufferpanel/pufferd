@@ -58,7 +58,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	pr.Dir = t.RootDirectory
 	pr.Env = append(os.Environ(), "HOME="+t.RootDirectory)
 	for k, v := range env {
-		t.mainProcess.Env = append(t.mainProcess.Env, fmt.Sprintf("%s=%s", k, v))
+		pr.Env = append(pr.Env, fmt.Sprintf("%s=%s", k, v))
 	}
 
 	wrapper := t.CreateWrapper()
