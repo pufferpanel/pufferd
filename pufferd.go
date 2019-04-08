@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pufferpanel/pufferd/environments"
+	"github.com/pufferpanel/pufferd/install"
 	"os"
 
 	"github.com/braintree/manners"
@@ -28,7 +29,6 @@ import (
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commands"
 	"github.com/pufferpanel/pufferd/data"
-	"github.com/pufferpanel/pufferd/install"
 	"github.com/pufferpanel/pufferd/programs"
 	"github.com/pufferpanel/pufferd/routing"
 	"github.com/pufferpanel/pufferd/sftp"
@@ -110,6 +110,14 @@ func main() {
 		}
 	}
 
+	if runInstaller {
+		install.Install(configPath, authRoot, authToken)
+	}
+
+	if runInstaller || !runDaemon {
+		return
+	}
+
 	config.Load(configPath)
 
 	logging.SetLevelByString(loggingLevel)
@@ -124,14 +132,6 @@ func main() {
 
 	logging.Info(versionString)
 	logging.Info("Logging set to " + loggingLevel)
-
-	if runInstaller {
-		install.Install(configPath, authRoot, authToken)
-	}
-
-	if runInstaller || !runDaemon {
-		return
-	}
 
 	environments.LoadModules()
 	programs.Initialize()
