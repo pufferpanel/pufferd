@@ -74,6 +74,15 @@ func GenerateProcess(directions []map[string]interface{}, environment envs.Envir
 			case map[string]string: {
 				mapCopy[k] = common.ReplaceTokensInMap(v.(map[string]string), dataMap)
 			}
+			case []interface{}: {
+				//if we can convert this to a string list, we can work with it
+				temp := common.ToStringArray(v)
+				if len(temp) == len(v.([]interface{})) {
+					mapCopy[k] = common.ReplaceTokensInArr(temp, dataMap)
+				} else {
+					mapCopy[k] = v
+				}
+			}
 			default:
 				mapCopy[k] = v
 			}

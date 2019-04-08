@@ -19,7 +19,6 @@ package commands
 import (
 	"flag"
 	"github.com/braintree/manners"
-	"github.com/gin-gonic/gin"
 	"github.com/pufferpanel/apufferi/cli"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/config"
@@ -69,14 +68,15 @@ func (r *Run) Run() error {
 		level = logging.INFO
 	}
 
+	logging.SetLevel(os.Stdout, level)
+
 	var logPath = config.Get().Data.LogFolder
 
-	err = logging.WithLogDirectory(logPath, level, nil)
+	err = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
 	if err != nil {
 		logging.Error("Error creating log directory: %s", err.Error())
 	}
 
-	gin.SetMode(gin.ReleaseMode)
 	logging.Info(version.Display)
 
 	environments.LoadModules()

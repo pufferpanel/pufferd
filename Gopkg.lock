@@ -47,7 +47,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6681f7e1321b9730027eb98958b11e3a498333047a8b0c38da07eac0c950f426"
+  digest = "1:22be51526da52c0d457283193b70270b9b8f51dd4188209377dd47832396917c"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -70,7 +70,7 @@
     "errdefs",
   ]
   pruneopts = "UT"
-  revision = "da823cf3a5a3437763ba12b2fa369c826d4a2bf4"
+  revision = "0ac8cbf74765ca32e1b82df343bdf52ebb0fb6e2"
 
 [[projects]]
   digest = "1:811c86996b1ca46729bad2724d4499014c4b9effd05ef8c71b852aad90deb0ce"
@@ -255,7 +255,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d1288824b4821f2c454bed6101c2f5ce7539f5f5b29b8d17ae590fdec47802fd"
+  digest = "1:a513afbb60766e7644f421b60484af4702485b9f6270761bc2daf4d24063e333"
   name = "github.com/pufferpanel/apufferi"
   packages = [
     "cache",
@@ -266,7 +266,7 @@
     "logging",
   ]
   pruneopts = "UT"
-  revision = "8db70bd97fefc7d6e621edf77b5ca37e50c6c5ce"
+  revision = "940ce4e61a1347ec2d382cdb0065ea844a13bfa3"
 
 [[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
@@ -277,7 +277,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:c7ed651e351cce6b7cd2a503919208961686b9c676395b2f8ba19614cf7d6e07"
+  digest = "1:2ac9271e469441ccbb11ad54775f6e627ff61028888f51fcb4687a5c4999cda8"
   name = "github.com/shirou/gopsutil"
   packages = [
     "cpu",
@@ -288,8 +288,8 @@
     "process",
   ]
   pruneopts = "UT"
-  revision = "6c6abd6d1666d6b27f1c261e0f850441ba22aa3a"
-  version = "v2.19.02"
+  revision = "2cbc9195c892b304060269ef280375236d2fcac9"
+  version = "v2.19.03"
 
 [[projects]]
   branch = "master"
@@ -300,12 +300,12 @@
   revision = "bb4de0191aa41b5507caa14b0650cdbddcd9280b"
 
 [[projects]]
-  digest = "1:e4c72127d910a96daf869a44f3dd563b86dbe6931a172863a0e99c5ff04b59e4"
+  digest = "1:fd61cf4ae1953d55df708acb6b91492d538f49c305b364a014049914495db426"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "dae0fa8d5b0c810a8ab733fbd5510c7cae84eca4"
-  version = "v1.4.0"
+  revision = "8bdbc7bcc01dcbb8ec23dc8a28e332258d25251f"
+  version = "v1.4.1"
 
 [[projects]]
   digest = "1:4887e9e89c80299aa520d718239809fdd2a47a9aa394909b169959bfbc424ddf"
@@ -317,7 +317,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2f853a86c2a5f407020543d2db12d00b6408e0726ce6d55231d9a4b5b2f2a189"
+  digest = "1:09d4ba0a111bd85dffabc19b9b6d89e89bef285790103ced8824d823813dcdab"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -327,10 +327,9 @@
     "internal/subtle",
     "poly1305",
     "ssh",
-    "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
+  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
 
 [[projects]]
   branch = "master"
@@ -341,11 +340,11 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "63eda1eb0650888965ead1296efd04d0b2b61128"
+  revision = "eb5bcb51f2a31c7d5141d810b70815c05d9c9146"
 
 [[projects]]
   branch = "master"
-  digest = "1:78ed3d0c6d5b4996ef2867e280f39ea7b44438558c6331721740ab9061db532c"
+  digest = "1:580bd6f5fcc95d5d3dfa5f6916ccfaac7abb1722b1bfc7f042603e167428a802"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -353,7 +352,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb"
+  revision = "4b34438f7a67ee5f45cc6132e2bad873a20324e9"
 
 [[projects]]
   branch = "master"
@@ -361,7 +360,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "d831d65fe17df2e52bcc4316d4a9f7a418701f43"
+  revision = "64821d5d210748c883cd2b809589555ae4654203"
 
 [[projects]]
   digest = "1:4a251721b698c0e6285aec21d4ba3f79ddeccd903690144461b360ea7f948106"

@@ -72,7 +72,7 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 	if err != nil && err.Error() != "exit status 1" {
 		logging.Build(logging.ERROR).WithMessage("Error starting process").WithError(err).Log()
 	} else {
-		logging.Debug("Process started (%d)", strconv.Itoa(s.mainProcess.Process.Pid))
+		logging.Debug("Process started (%d)", s.mainProcess.Process.Pid)
 	}
 
 	go s.handleClose(callback)
