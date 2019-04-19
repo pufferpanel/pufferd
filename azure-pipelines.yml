@@ -6,7 +6,7 @@
 trigger:
   - v1-dev
 
-name: 1.2.7$(Rev:.r)
+name: $(majorVersion)$(Rev:.r)
 
 pool:
   vmImage: 'Ubuntu-16.04'
@@ -17,6 +17,7 @@ variables:
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/pufferpanel/pufferd' # Path to the module's code
   version: $(Build.BuildNumber)
+  majorVersion: 1.2.7
 
 steps:
   - script: |
