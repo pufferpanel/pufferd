@@ -94,6 +94,14 @@ func main() {
 		return
 	}
 
+	if runInstaller {
+		install.Install(configPath, authRoot, authToken)
+	}
+
+	if runInstaller || !runDaemon {
+		return
+	}
+
 	if !runInstaller {
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			defaultPath := "config.json"
@@ -108,14 +116,6 @@ func main() {
 				return
 			}
 		}
-	}
-
-	if runInstaller {
-		install.Install(configPath, authRoot, authToken)
-	}
-
-	if runInstaller || !runDaemon {
-		return
 	}
 
 	config.Load(configPath)
