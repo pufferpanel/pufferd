@@ -59,9 +59,14 @@ func RegisterRoutes(e *gin.Engine) {
 		})
 		l.PUT("/:id", httphandlers.OAuth2Handler("server.create", false), CreateServer)
 		l.DELETE("/:id", httphandlers.OAuth2Handler("server.delete", true), DeleteServer)
-		l.GET("/:id", httphandlers.OAuth2Handler("server.edit", true), GetServer)
-		l.POST("/:id", httphandlers.OAuth2Handler("server.edit", true), EditServer)
-		l.POST("/:id/reload", httphandlers.OAuth2Handler("server.edit", true), ReloadServer)
+
+		l.GET("/:id", httphandlers.OAuth2Handler("server.edit.admin", true), GetServerAdmin)
+		l.POST("/:id", httphandlers.OAuth2Handler("server.edit.admin", true), EditServerAdmin)
+
+		l.GET("/:id/data", httphandlers.OAuth2Handler("server.edit", true), GetServer)
+		l.POST("/:id/data", httphandlers.OAuth2Handler("server.edit", true), EditServer)
+
+		l.POST("/:id/reload", httphandlers.OAuth2Handler("server.edit.admin", true), ReloadServer)
 
 		l.GET("/:id/start", httphandlers.OAuth2Handler("server.start", true), StartServer)
 		l.GET("/:id/stop", httphandlers.OAuth2Handler("server.stop", true), StopServer)
@@ -202,7 +207,29 @@ func EditServer(c *gin.Context) {
 		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
 	}
 
-	err = prg.Edit(data)
+	err = prg.Edit(data, false)
+
+	if err != nil {
+		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+	}
+	http.Respond(c).Send()
+}
+
+func EditServerAdmin(c *gin.Context) {
+	item, _ := c.Get("server")
+	prg := item.(programs.Program)
+
+	type admin struct {
+		data  map[string]interface{} `json:"data"`
+	}
+
+	data := &admin{}
+	err := json.NewDecoder(c.Request.Body).Decode(&data)
+	if err != nil {
+		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+	}
+
+	err = prg.Edit(data.data, true)
 
 	if err != nil {
 		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
@@ -231,6 +258,12 @@ func GetServer(c *gin.Context) {
 	result["data"] = data
 
 	http.Respond(c).Data(data).Send()
+}
+
+func GetServerAdmin(c *gin.Context) {
+	item, _ := c.Get("server")
+
+	http.Respond(c).Data(item).Send()
 }
 
 func GetFile(c *gin.Context) {

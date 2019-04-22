@@ -320,12 +320,8 @@ func (p *ProgramData) Save(file string) (err error) {
 	return
 }
 
-func (p *ProgramData) Edit(data map[string]interface{}) (err error) {
+func (p *ProgramData) Edit(data map[string]interface{}, overrideUser bool) (err error) {
 	for k, v := range data {
-		if v == nil || v == "" {
-			delete(p.Data, k)
-		}
-
 		var elem DataObject
 
 		if _, ok := p.Data[k]; ok {
@@ -333,6 +329,10 @@ func (p *ProgramData) Edit(data map[string]interface{}) (err error) {
 		} else {
 			elem = DataObject{}
 		}
+		if !elem.UserEditable && !overrideUser {
+			continue
+		}
+
 		elem.Value = v
 
 		p.Data[k] = elem

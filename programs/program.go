@@ -69,7 +69,7 @@ type Program interface {
 
 	Save(file string) (err error)
 
-	Edit(data map[string]interface{}) (err error)
+	Edit(data map[string]interface{}, overrideUser bool) (err error)
 
 	GetData() map[string]DataObject
 
