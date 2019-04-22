@@ -23,9 +23,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pufferpanel/apufferi/cli"
-	"github.com/pufferpanel/apufferi/common"
 	"github.com/pufferpanel/pufferd/config"
-	"github.com/pufferpanel/pufferd/data"
 	"io/ioutil"
 	"strings"
 )
@@ -66,17 +64,21 @@ func (i *Install) Run() error {
 		return errors.New("clientSecret must be provided")
 	}
 
-	cfgData := data.CONFIG
+	cfgData := config.Get()
 
-	replacements := make(map[string]interface{})
-	replacements["authUrl"] = strings.TrimSuffix(i.authUrl, "/")
-	replacements["clientId"] = i.clientId
-	replacements["clientSecret"] = i.clientSecret
+	authUrl := strings.TrimSuffix(i.authUrl, "/")
+	cfgData.Auth.AuthURL = authUrl + "/oauth2/token"
+	cfgData.Auth.InfoURL = authUrl + "/oauth2/info"
+	cfgData.Auth.ClientID = i.clientId
+	cfgData.Auth.ClientSecret = i.clientSecret
 
-	configData := []byte(common.ReplaceTokens(cfgData, replacements))
+	configData, err := json.Marshal(cfgData)
+	if err != nil {
+		return err
+	}
 
 	var prettyJson bytes.Buffer
-	err := json.Indent(&prettyJson, configData, "", "  ")
+	err = json.Indent(&prettyJson, configData, "", "  ")
 	if err != nil {
 		return err
 	}

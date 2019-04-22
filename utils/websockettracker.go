@@ -18,6 +18,7 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/messages"
 	"sync"
 
@@ -58,6 +59,7 @@ func (ws *wsManager) Write(source []byte) (n int, e error) {
 			socket := ws.sockets[i]
 			err := socket.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
+				logging.Debug("websocket encountered error, dropping (%s)", err.Error())
 				if i+1 == len(ws.sockets) {
 					ws.sockets = ws.sockets[:i]
 				} else {

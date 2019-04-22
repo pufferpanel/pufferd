@@ -64,13 +64,13 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 	s.mainProcess.Stderr = wrapper
 	pipe, err := s.mainProcess.StdinPipe()
 	if err != nil {
-		logging.Build(logging.ERROR).WithMessage("Error creating process").WithError(err).Log()
+		return
 	}
 	s.stdInWriter = pipe
 	logging.Debug("Starting process: %s %s", s.mainProcess.Path, strings.Join(s.mainProcess.Args[1:], " "))
 	err = s.mainProcess.Start()
 	if err != nil && err.Error() != "exit status 1" {
-		logging.Build(logging.ERROR).WithMessage("Error starting process").WithError(err).Log()
+		return
 	} else {
 		logging.Debug("Process started (%d)", s.mainProcess.Process.Pid)
 	}

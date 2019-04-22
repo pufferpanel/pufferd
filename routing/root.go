@@ -32,7 +32,7 @@ func ConfigureWeb() *gin.Engine {
 	r := gin.New()
 	{
 		r.Use(gin.Recovery())
-		r.Use(gin.LoggerWithWriter(logging.Writer))
+		r.Use(gin.LoggerWithWriter(logging.AsWriter(logging.INFO)))
 		r.Use(func(c *gin.Context) {
 			handler.ExecuteAndRecover(c)
 		})

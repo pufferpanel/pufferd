@@ -22,10 +22,9 @@ import (
 )
 
 func main() {
-
 	err := cli.Run()
 
 	if err != nil {
-		logging.Error("Error running command: %s", err.Error())
+		logging.Exception("error running command", err)
 	}
 }

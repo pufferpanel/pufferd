@@ -117,7 +117,8 @@ func (op SpongeForgeDl) Run(env envs.Environment) error {
 		return err
 	}
 
-	err = common.CopyFile(file, path.Join("mods", "spongeforge.jar"))
+	//going to stick the spongeforge rename in, to assist with those modpacks
+	err = common.CopyFile(file, path.Join("mods", "_aspongeforge.jar"))
 	if err != nil {
 		return err
 	}

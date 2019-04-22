@@ -67,6 +67,10 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	t.mainProcess = pr
 	logging.Debug("Starting process: %s %s", t.mainProcess.Path, strings.Join(t.mainProcess.Args[1:], " "))
 	tty, err := pty.Start(pr)
+	if err != nil {
+		return
+	}
+
 	t.stdInWriter = tty
 
 	go func(proxy io.Writer) {
@@ -74,9 +78,6 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	}(wrapper)
 
 	go t.handleClose(callback)
-	if err != nil {
-		logging.Build(logging.ERROR).WithMessage("Error starting process").WithError(err).Log()
-	}
 	return
 }
 

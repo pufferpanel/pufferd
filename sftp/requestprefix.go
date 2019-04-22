@@ -48,7 +48,7 @@ func (rp requestPrefix) Fileread(request *sftp.Request) (io.ReaderAt, error) {
 	logging.Devel("-----------------")
 	file, err := rp.getFile(request.Filepath, os.O_RDONLY, 0644)
 	if err != nil {
-		logging.Devel("pp-sftp internal error: %s", err.Error())
+		logging.Devel("pp-sftp internal error: %s", err)
 	}
 	return file, err
 }
@@ -73,14 +73,14 @@ func (rp requestPrefix) Filecmd(request *sftp.Request) error {
 	logging.Devel("-----------------")
 	sourceName, err := rp.validate(request.Filepath)
 	if err != nil {
-		logging.Devel("pp-sftp internal error: %s", err.Error())
+		logging.Devel("pp-sftp internal error: %s", err)
 		return rp.maskError(err)
 	}
 	var targetName string
 	if request.Target != "" {
 		targetName, err = rp.validate(request.Target)
 		if err != nil {
-			logging.Devel("pp-sftp internal error: %s", err.Error())
+			logging.Devel("pp-sftp internal error: %s", err)
 			return rp.maskError(err)
 		}
 	}
@@ -123,7 +123,7 @@ func (rp requestPrefix) Filelist(request *sftp.Request) (sftp.ListerAt, error) {
 	logging.Devel("-----------------")
 	sourceName, err := rp.validate(request.Filepath)
 	if err != nil {
-		logging.Devel("pp-sftp internal error: %s", err.Error())
+		logging.Devel("pp-sftp internal error: %s", err)
 		return nil, rp.maskError(err)
 	}
 	switch request.Method {
@@ -203,7 +203,7 @@ func (rp requestPrefix) getFile(path string, flags int, mode os.FileMode) (*os.F
 	logging.Devel("Requesting path: %s", path)
 	filePath, err := rp.validate(path)
 	if err != nil {
-		logging.Devel("pp-sftp internal error: %s", err.Error())
+		logging.Devel("pp-sftp internal error: %s", err)
 		return nil, rp.maskError(err)
 	}
 
@@ -217,7 +217,7 @@ func (rp requestPrefix) getFile(path string, flags int, mode os.FileMode) (*os.F
 			err = nil
 			err = os.MkdirAll(folderPath, 0755)
 			if err != nil {
-				logging.Devel("pp-sftp internal error: %s", err.Error())
+				logging.Devel("pp-sftp internal error: %s", err)
 				return nil, rp.maskError(err)
 			}
 			file, err = os.Create(filePath)
@@ -228,7 +228,7 @@ func (rp requestPrefix) getFile(path string, flags int, mode os.FileMode) (*os.F
 		file, err = os.OpenFile(filePath, flags, mode)
 	}
 	if err != nil {
-		logging.Devel("pp-sftp internal error: %s", err.Error())
+		logging.Devel("pp-sftp internal error: %s", err)
 		return nil, rp.maskError(err)
 	}
 

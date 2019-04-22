@@ -74,7 +74,7 @@ func (r *Run) Run() error {
 
 	err = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
 	if err != nil {
-		logging.Error("Error creating log directory: %s", err.Error())
+		return err
 	}
 
 	logging.Info(version.Display)
@@ -85,18 +85,16 @@ func (r *Run) Run() error {
 	if _, err = os.Stat(programs.TemplateFolder); os.IsNotExist(err) {
 		logging.Info("No template directory found, creating")
 		err = os.MkdirAll(programs.TemplateFolder, 0755)
-		if err != nil {
-			logging.Error("Error creating template folder: %s", err.Error())
+		if err != nil && !os.IsExist(err) {
+			return err
 		}
-
 	}
 
 	if _, err = os.Stat(programs.ServerFolder); os.IsNotExist(err) {
 		logging.Info("No server directory found, creating")
 		err = os.MkdirAll(programs.ServerFolder, 0755)
-		if err != nil {
-			logging.Error("Error creating server folder directory: %s", err.Error())
-			return nil
+		if err != nil && !os.IsExist(err) {
+			return err
 		}
 	}
 
@@ -119,16 +117,16 @@ func (r *Run) Run() error {
 
 	r.createHook()
 
-	for r.runService {
-		r.runServices()
+	for r.runService && err == nil {
+		err = r.runServices()
 	}
 
 	shutdown.Shutdown()
 
-	return nil
+	return err
 }
 
-func (r *Run) runServices() {
+func (r *Run) runServices() error {
 	router := routing.ConfigureWeb()
 
 	useHttps := false
@@ -156,9 +154,8 @@ func (r *Run) runServices() {
 	} else {
 		err = manners.ListenAndServe(web, router)
 	}
-	if err != nil {
-		logging.Build(logging.ERROR).WithMessage("Error starting web service").WithError(err).Log()
-	}
+
+	return err
 }
 
 func (r *Run) createHook() {

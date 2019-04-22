@@ -17,6 +17,7 @@
 package shutdown
 
 import (
+	"fmt"
 	"github.com/braintree/manners"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/programs"
@@ -55,7 +56,7 @@ func Shutdown() *sync.WaitGroup {
 			logging.Warn("Stopping program %s", e.Id())
 			running, err := e.IsRunning()
 			if err != nil {
-				logging.Error("Error stopping server %s: %s", e.Id(), err.Error())
+				logging.Exception(fmt.Sprintf("Error stopping server %s", e.Id()), err)
 				return
 			}
 			if !running {
@@ -63,12 +64,12 @@ func Shutdown() *sync.WaitGroup {
 			}
 			err = e.Stop()
 			if err != nil {
-				logging.Error("Error stopping server %: %s", e.Id(), err.Error())
+				logging.Exception(fmt.Sprintf("Error stopping server %s", e.Id()), err)
 				return
 			}
 			err = e.GetEnvironment().WaitForMainProcess()
 			if err != nil {
-				logging.Error("Error stopping server %s: %s", e.Id(), err.Error())
+				logging.Exception(fmt.Sprintf("Error stopping server %s", e.Id()), err)
 				return
 			}
 			logging.Warn("Stopped program %s", e.Id())

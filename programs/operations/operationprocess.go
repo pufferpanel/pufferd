@@ -111,7 +111,7 @@ func (p *OperationProcess) Run(env envs.Environment) (err error) {
 	for p.HasNext() {
 		err = p.RunNext(env)
 		if err != nil {
-			logging.Build(logging.ERROR).WithMessage("Error running process").WithError(err).Log()
+			logging.Exception("error running process", err)
 			break
 		}
 	}

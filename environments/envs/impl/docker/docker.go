@@ -170,7 +170,6 @@ func (d *docker) Create() error {
 func (d *docker) IsRunning() (bool, error) {
 	dockerClient, err := d.getClient()
 	if err != nil {
-		logging.Build(logging.ERROR).WithMessage("Error checking run status").WithError(err)
 		return false, err
 	}
 
@@ -183,7 +182,6 @@ func (d *docker) IsRunning() (bool, error) {
 
 	stats, err := dockerClient.ContainerInspect(ctx, d.ContainerId)
 	if err != nil {
-		logging.Build(logging.ERROR).WithMessage("Error checking run status").WithError(err).Log()
 		return false, err
 	}
 	return stats.State.Running, nil
