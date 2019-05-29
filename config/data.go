@@ -9,7 +9,7 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
- */
+*/
 
 package config
 
@@ -36,10 +36,10 @@ type Console struct {
 }
 
 type Auth struct {
-	AuthURL      string
-	InfoURL      string
-	ClientID     string
-	ClientSecret string
+	AuthURL      string `json:"authUrl"`
+	InfoURL      string `json:"infoUrl"`
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
 }
 
 type Listener struct {
