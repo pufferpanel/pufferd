@@ -19,7 +19,7 @@ package environments
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/pufferd/cache"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/environments/envs/impl/docker"
@@ -45,8 +45,8 @@ func Create(environmentType, folder, id string, environmentSection map[string]in
 		return nil, errors.New(fmt.Sprintf("undefined environment: %s", environmentType))
 	}
 
-	serverRoot := common.JoinPath(folder, id)
-	rootDirectory := common.GetStringOrDefault(environmentSection, "root", serverRoot)
+	serverRoot := apufferi.JoinPath(folder, id)
+	rootDirectory := apufferi.GetStringOrDefault(environmentSection, "root", serverRoot)
 	envCache := cache.CreateCache()
 	wsManager := utils.CreateWSManager()
 

@@ -17,9 +17,7 @@
 package commands
 
 import (
-	"flag"
 	"github.com/braintree/manners"
-	"github.com/pufferpanel/apufferi/cli"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/environments"
@@ -28,6 +26,7 @@ import (
 	"github.com/pufferpanel/pufferd/sftp"
 	"github.com/pufferpanel/pufferd/shutdown"
 	"github.com/pufferpanel/pufferd/version"
+	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -35,52 +34,26 @@ import (
 	"syscall"
 )
 
-type Run struct {
-	cli.Command
-	run        bool
-	runService bool
-	logLevel   string
+var RunCmd = &cobra.Command{
+	Use:   "run",
+	Short: "Runs the daemon",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := runRun()
+		if err != nil {
+			logging.Exception("error running", err)
+		}
+	},
 }
 
-func (r *Run) Load() {
-	r.runService = true
-	flag.BoolVar(&r.run, "run", false, "Runs the daemon")
-	flag.StringVar(&r.logLevel, "logging", "INFO", "Lowest logging level to display")
-}
+var runService = true
 
-func (r *Run) ShouldRun() bool {
-	return r.run
-}
-
-func (*Run) ShouldRunNext() bool {
-	return false
-}
-
-func (r *Run) Run() error {
-	err := config.LoadConfig()
-
-	if err != nil {
-		return err
-	}
-
-	level := logging.GetLevel(r.logLevel)
-	if level == nil {
-		level = logging.INFO
-	}
-
-	logging.SetLevel(os.Stdout, level)
-
-	var logPath = config.Get().Data.LogFolder
-
-	err = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
-	if err != nil {
-		return err
-	}
-
+func runRun() error {
 	logging.Info(version.Display)
 
 	environments.LoadModules()
 	programs.Initialize()
+
+	var err error
 
 	if _, err = os.Stat(programs.TemplateFolder); os.IsNotExist(err) {
 		logging.Info("No template directory found, creating")
@@ -115,10 +88,10 @@ func (r *Run) Run() error {
 
 	defer recoverPanic()
 
-	r.createHook()
+	createHook()
 
-	for r.runService && err == nil {
-		err = r.runServices()
+	for runService && err == nil {
+		err = runServices()
 	}
 
 	shutdown.Shutdown()
@@ -126,7 +99,7 @@ func (r *Run) Run() error {
 	return err
 }
 
-func (r *Run) runServices() error {
+func runServices() error {
 	router := routing.ConfigureWeb()
 
 	useHttps := false
@@ -158,7 +131,7 @@ func (r *Run) runServices() error {
 	return err
 }
 
-func (r *Run) createHook() {
+func createHook() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGPIPE)
 	go func() {
@@ -182,7 +155,7 @@ func (r *Run) createHook() {
 			}
 		}
 
-		r.runService = false
+		runService = false
 		shutdown.CompleteShutdown()
 	}()
 }

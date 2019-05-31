@@ -19,7 +19,7 @@ package environments
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/config"
@@ -35,7 +35,7 @@ import (
 
 func DownloadFile(url, fileName string, env envs.Environment) error {
 	target, err := os.Create(path.Join(env.GetRootDirectory(), fileName))
-	defer common.Close(target)
+	defer apufferi.Close(target)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func DownloadFileToCache(url, fileName string) error {
 	}
 
 	target, err := os.Create(fileName)
-	defer common.Close(target)
+	defer apufferi.Close(target)
 	if err != nil {
 		return err
 	}
@@ -93,14 +93,14 @@ func DownloadViaMaven(downloadUrl string, env envs.Environment) (string, error) 
 
 	useCache := true
 	f, err := os.Open(localPath)
-	defer common.Close(f)
+	defer apufferi.Close(f)
 	//cache was readable, so validate
 	if err == nil {
 		h := sha1.New()
 		if _, err := io.Copy(h, f); err != nil {
 			log.Fatal(err)
 		}
-		common.Close(f)
+		apufferi.Close(f)
 
 		actualHash := fmt.Sprintf("%x", h.Sum(nil))
 

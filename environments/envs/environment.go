@@ -19,7 +19,7 @@ package envs
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/pufferpanel/apufferi/cache"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/utils"
 	"io"
@@ -71,7 +71,7 @@ type Environment interface {
 type BaseEnvironment struct {
 	Environment
 	RootDirectory     string                 `json:"-"`
-	ConsoleBuffer     cache.Cache            `json:"-"`
+	ConsoleBuffer     apufferi.Cache         `json:"-"`
 	WSManager         utils.WebSocketManager `json:"-"`
 	Type              string                 `json:"type"`
 	ExecutionFunction func(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error)

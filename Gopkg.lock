@@ -47,7 +47,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e5a6578fa5c5000a807a1fdd445a7529f0fb2422213b187b17d66662a2e3f3a1"
+  digest = "1:fbc30f0a3271fbad88a2cdb7ebb077dadb470b226ab44f84d0b375457e0e62f4"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -70,7 +70,7 @@
     "errdefs",
   ]
   pruneopts = "UT"
-  revision = "aac801ac751a9562698d2eb1de262f74476b93f9"
+  revision = "8d760280a232f98d92440539e1e8a8f66c213bdb"
 
 [[projects]]
   digest = "1:811c86996b1ca46729bad2724d4499014c4b9effd05ef8c71b852aad90deb0ce"
@@ -85,12 +85,12 @@
   version = "v0.4.0"
 
 [[projects]]
-  digest = "1:6f82cacd0af5921e99bf3f46748705239b36489464f4529a1589bc895764fb18"
+  digest = "1:e95ef557dc3120984bb66b385ae01b4bb8ff56bcde28e7b0d1beed0cccc4d69f"
   name = "github.com/docker/go-units"
   packages = ["."]
   pruneopts = "UT"
-  revision = "47565b4f722fb6ceae66b95f853feed578a4a51c"
-  version = "v0.3.3"
+  revision = "519db1ee28dcc9fd2474ae59fca29a810482bfb1"
+  version = "v0.4.0"
 
 [[projects]]
   branch = "master"
@@ -101,17 +101,17 @@
   revision = "5545eab6dad3bbbd6c5ae9186383c2a9d23c0dae"
 
 [[projects]]
-  digest = "1:d5083934eb25e45d17f72ffa86cae3814f4a9d6c073c4f16b64147169b245606"
+  digest = "1:d8bd2a337f6ff2188e08f72c614f2f3f0fd48e6a7b37a071b197e427d77d3a47"
   name = "github.com/gin-gonic/gin"
   packages = [
     ".",
     "binding",
-    "json",
+    "internal/json",
     "render",
   ]
   pruneopts = "UT"
-  revision = "b869fe1415e4b9eb52f247441830d502aece2d4d"
-  version = "v1.3.0"
+  revision = "b75d67cd51eb53c3c3a2fc406524c940021ffbda"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:440028f55cb322d8cb5b9d5ebec298a00b7d74690a658fe6b1c0c0b44341bfae"
@@ -155,6 +155,14 @@
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
+
+[[projects]]
   digest = "1:a3986520f4fa5d398a1407186b1d53e3d56825033dc70c681bd05ca6f47e7c4b"
   name = "github.com/itsjamie/gin-cors"
   packages = ["."]
@@ -195,12 +203,12 @@
   version = "v1.1.4"
 
 [[projects]]
-  digest = "1:e150b5fafbd7607e2d638e4e5cf43aa4100124e5593385147b0a74e2733d8b0d"
+  digest = "1:9b90c7639a41697f3d4ad12d7d67dfacc9a7a4a6e0bbfae4fc72d0da57c28871"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c2a7a6ca930a4cd0bc33a3f298eb71960732a3a7"
-  version = "v0.0.7"
+  revision = "1311e847b0cb909da63b5fecfb5370aa66236465"
+  version = "v0.0.8"
 
 [[projects]]
   digest = "1:33422d238f147d247752996a26574ac48dcf472976eda7f5134015f06bf16563"
@@ -255,18 +263,16 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f9e8da157a17c0055dec96e3247d9f54704f43c516b5c3a93fc55c1b553041b8"
+  digest = "1:5e72a0ab49767cfea25441e6c7d32f8edea610df74ea7599d8d0b6dc61eb91ab"
   name = "github.com/pufferpanel/apufferi"
   packages = [
-    "cache",
-    "cli",
-    "common",
-    "http",
-    "http/handler",
+    ".",
     "logging",
+    "middleware",
+    "response",
   ]
   pruneopts = "UT"
-  revision = "d083bef65c742bd637f884beac10cd9c72662c62"
+  revision = "2b7486e620335f48029d5dbffb5edd2548570406"
 
 [[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
@@ -277,7 +283,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:2ac9271e469441ccbb11ad54775f6e627ff61028888f51fcb4687a5c4999cda8"
+  digest = "1:7af7d0dfa9ca93c2eca3481dd4eed16bf130f459ccdc8d007282eecc769bfed1"
   name = "github.com/shirou/gopsutil"
   packages = [
     "cpu",
@@ -288,8 +294,8 @@
     "process",
   ]
   pruneopts = "UT"
-  revision = "2cbc9195c892b304060269ef280375236d2fcac9"
-  version = "v2.19.03"
+  revision = "fa9845945e5b5c6ffb19b436586ff702a30417c5"
+  version = "v2.19.04"
 
 [[projects]]
   branch = "master"
@@ -300,12 +306,28 @@
   revision = "bb4de0191aa41b5507caa14b0650cdbddcd9280b"
 
 [[projects]]
-  digest = "1:fd61cf4ae1953d55df708acb6b91492d538f49c305b364a014049914495db426"
+  digest = "1:04457f9f6f3ffc5fea48e71d62f2ca256637dee0a04d710288e27e05c8b41976"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "8bdbc7bcc01dcbb8ec23dc8a28e332258d25251f"
-  version = "v1.4.1"
+  revision = "839c75faf7f98a33d445d181f3018b5c3409a45e"
+  version = "v1.4.2"
+
+[[projects]]
+  digest = "1:22799aea8fe96dd5693abdd1eaa14b1b29e3eafbdc7733fa155b3cb556c8a7ae"
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "67fc4837d267bc9bfd6e47f77783fcc3dffc68de"
+  version = "v0.0.4"
+
+[[projects]]
+  digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
+  name = "github.com/spf13/pflag"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
+  version = "v1.0.3"
 
 [[projects]]
   digest = "1:d0072748c62defde1ad99dde77f6ffce492a0e5aea9204077e497c7edfb86653"
@@ -317,7 +339,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4b4fbe3cfa58f1f95eb0ab4fefc95efda7af333722f7f272c9828ecabb25a0ac"
+  digest = "1:ef3ffa0905f706132b35e4995ff4031b02e24be795892620553d57b06883ff68"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -329,22 +351,22 @@
     "ssh",
   ]
   pruneopts = "UT"
-  revision = "d864b10871cd4370fe574816b489c819c675ccc7"
+  revision = "20be4c3c3ed52bfccdb2d59a412ee1a936d175a7"
 
 [[projects]]
   branch = "master"
-  digest = "1:0a004b4ff5794b399b3556e68f0c436a57d5f7e437e740bb16c0b521ceb23fd7"
+  digest = "1:3e0062766e6b0bcfe1ba1ed1d3f08a8e1e99cd5831426e2596dc9537d28f2adb"
   name = "golang.org/x/net"
   packages = [
     "internal/socks",
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "afa5a82059c6356159f699d81beff22a81842231"
+  revision = "f3200d17e092c607f615320ecaad13d87ad9a2b3"
 
 [[projects]]
   branch = "master"
-  digest = "1:45c0985630ebeafc0dba3e5fad8ae79ac344250a0d3517da4abcf7bc25a162b6"
+  digest = "1:29a53bf17490ea607f9dfc4e50618a417197bd3457e98dd0df7623eff7aa9ab5"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -352,26 +374,26 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "953cdadca894cdc07be76fc99f95b40c28f06623"
+  revision = "4c3a928424d249a1013e789cf5e458d480bcba16"
 
 [[projects]]
   branch = "master"
-  digest = "1:c3076e7defee87de1236f1814beb588f40a75544c60121e6eb38b3b3721783e2"
+  digest = "1:583a0c80f5e3a9343d33aea4aead1e1afcc0043db66fdf961ddd1fe8cd3a4faf"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "e7d98fc518a78c9f8b5ee77be7b0b317475d89e1"
+  revision = "fb225487d10142b5bcc35abfc6cb9a0609614976"
 
 [[projects]]
-  digest = "1:4a251721b698c0e6285aec21d4ba3f79ddeccd903690144461b360ea7f948106"
+  digest = "1:0ab52610f1ba280ff13841ea86e19468c182be408682fdb0b83b649b226a74bc"
   name = "google.golang.org/grpc"
   packages = [
     "codes",
     "status",
   ]
   pruneopts = "UT"
-  revision = "25c4f928eaa6d96443009bd842389fb4fa48664e"
-  version = "v1.20.1"
+  revision = "869adfc8d5a43efc0d05780ad109106f457f51e4"
+  version = "v1.21.0"
 
 [[projects]]
   digest = "1:cbc72c4c4886a918d6ab4b95e347ffe259846260f99ebdd8a198c2331cf2b2e9"
@@ -407,14 +429,13 @@
     "github.com/kr/pty",
     "github.com/pkg/errors",
     "github.com/pkg/sftp",
-    "github.com/pufferpanel/apufferi/cache",
-    "github.com/pufferpanel/apufferi/cli",
-    "github.com/pufferpanel/apufferi/common",
-    "github.com/pufferpanel/apufferi/http",
-    "github.com/pufferpanel/apufferi/http/handler",
+    "github.com/pufferpanel/apufferi",
     "github.com/pufferpanel/apufferi/logging",
+    "github.com/pufferpanel/apufferi/middleware",
+    "github.com/pufferpanel/apufferi/response",
     "github.com/satori/go.uuid",
     "github.com/shirou/gopsutil/process",
+    "github.com/spf13/cobra",
     "golang.org/x/crypto/ssh",
   ]
   solver-name = "gps-cdcl"

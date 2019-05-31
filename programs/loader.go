@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments"
 	"github.com/pufferpanel/pufferd/programs/operations"
@@ -84,7 +84,7 @@ func GetAll() []Program {
 
 func Load(id string) (program Program, err error) {
 	var data []byte
-	data, err = ioutil.ReadFile(common.JoinPath(ServerFolder, id+".json"))
+	data, err = ioutil.ReadFile(apufferi.JoinPath(ServerFolder, id+".json"))
 	if len(data) == 0 || err != nil {
 		return
 	}
@@ -102,7 +102,7 @@ func LoadFromData(id string, source []byte) (program Program, err error) {
 
 	data.ProgramData.Identifier = id
 
-	environmentType := common.GetStringOrDefault(data.ProgramData.EnvironmentData, "type", "standard")
+	environmentType := apufferi.GetStringOrDefault(data.ProgramData.EnvironmentData, "type", "standard")
 
 	data.ProgramData.Environment, err = environments.Create(environmentType, ServerFolder, id, data.ProgramData.EnvironmentData)
 	if err != nil {
@@ -117,7 +117,7 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 		return false
 	}
 
-	templateData, err := ioutil.ReadFile(common.JoinPath(TemplateFolder, serverType+".json"))
+	templateData, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, serverType+".json"))
 	if err != nil {
 		logging.Exception(fmt.Sprintf("Error reading template file for type %s", serverType), err)
 		return false
@@ -160,8 +160,8 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 
 	program := templateJson.Create(env)
 
-	f, err := os.Create(common.JoinPath(ServerFolder, id+".json"))
-	defer common.Close(f)
+	f, err := os.Create(apufferi.JoinPath(ServerFolder, id+".json"))
+	defer apufferi.Close(f)
 	if err != nil {
 		logging.Exception("error writing server", err)
 		return false
@@ -220,7 +220,7 @@ func Delete(id string) (err error) {
 	if err != nil {
 		return
 	}
-	err = os.Remove(common.JoinPath(ServerFolder, program.Id()+".json"))
+	err = os.Remove(apufferi.JoinPath(ServerFolder, program.Id()+".json"))
 	if err != nil {
 		logging.Exception("error removing server", err)
 	}
@@ -243,7 +243,7 @@ func Save(id string) (err error) {
 		err = errors.New("no server with given id")
 		return
 	}
-	err = program.Save(common.JoinPath(ServerFolder, id+".json"))
+	err = program.Save(apufferi.JoinPath(ServerFolder, id+".json"))
 	return
 }
 
@@ -289,7 +289,7 @@ func GetPlugins() map[string]interface{} {
 }
 
 func GetPlugin(name string) (ProgramTemplateData, error) {
-	templateData, err := ioutil.ReadFile(common.JoinPath(TemplateFolder, name+".json"))
+	templateData, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, name+".json"))
 	if err != nil {
 		return ProgramTemplateData{}, err
 	}
@@ -304,7 +304,7 @@ func GetPlugin(name string) (ProgramTemplateData, error) {
 }
 
 func GetPluginReadme(name string) (string, error) {
-	data, err := ioutil.ReadFile(common.JoinPath(TemplateFolder, name+".md"))
+	data, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, name+".md"))
 	if err != nil {
 		return "", err
 	}

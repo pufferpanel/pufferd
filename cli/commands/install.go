@@ -19,58 +19,46 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"flag"
 	"fmt"
-	"github.com/pufferpanel/apufferi/cli"
+	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/config"
+	"github.com/spf13/cobra"
 	"io/ioutil"
 	"strings"
 )
 
-type Install struct {
-	cli.Command
-	install      bool
-	authUrl      string
-	clientId     string
-	clientSecret string
+var authUrl string
+var clientId string
+var clientSecret string
+
+var InstallCmd = &cobra.Command{
+	Use:   "install",
+	Short: "Installs the daemon",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := runInstall()
+		if err != nil {
+			logging.Exception("error running", err)
+		}
+	},
 }
 
-func (i *Install) Load() {
-	flag.BoolVar(&i.install, "install", false, "Install the daemon")
-	flag.StringVar(&i.authUrl, "authUrl", "", "Base URL to authorization server")
-	flag.StringVar(&i.clientId, "clientId", "", "Client ID for authorization server")
-	flag.StringVar(&i.clientSecret, "clientSecret", "", "Client secret for authorization server")
+func init() {
+	InstallCmd.Flags().StringVar(&authUrl, "authUrl", "", "Base URL to authorization server")
+	InstallCmd.Flags().StringVar(&clientId, "clientId", "", "Client ID for authorization server")
+	InstallCmd.Flags().StringVar(&clientSecret, "clientSecret", "", "Client secret for authorization server")
+	InstallCmd.MarkFlagRequired("authUrl")
+	InstallCmd.MarkFlagRequired("clientId")
+	InstallCmd.MarkFlagRequired("clientSecret")
 }
 
-func (i *Install) ShouldRun() bool {
-	return i.install
-}
-
-func (*Install) ShouldRunNext() bool {
-	return false
-}
-
-func (i *Install) Run() error {
-	if i.authUrl == "" {
-		return errors.New("authUrl must be provided")
-	}
-
-	if i.clientId == "" {
-		return errors.New("clientId must be provided")
-	}
-
-	if i.clientSecret == "" {
-		return errors.New("clientSecret must be provided")
-	}
-
+func runInstall() error {
 	cfgData := config.Get()
 
-	authUrl := strings.TrimSuffix(i.authUrl, "/")
-	cfgData.Auth.AuthURL = authUrl + "/oauth2/token"
-	cfgData.Auth.InfoURL = authUrl + "/oauth2/info"
-	cfgData.Auth.ClientID = i.clientId
-	cfgData.Auth.ClientSecret = i.clientSecret
+	url := strings.TrimSuffix(authUrl, "/")
+	cfgData.Auth.AuthURL = url + "/oauth2/token"
+	cfgData.Auth.InfoURL = url + "/oauth2/info"
+	cfgData.Auth.ClientID = clientId
+	cfgData.Auth.ClientSecret = clientSecret
 
 	configData, err := json.Marshal(cfgData)
 	if err != nil {

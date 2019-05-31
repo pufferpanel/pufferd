@@ -18,31 +18,32 @@ package commands
 
 import (
 	"errors"
-	"flag"
-	"github.com/pufferpanel/apufferi/cli"
+	"github.com/pufferpanel/apufferi/logging"
+	"github.com/spf13/cobra"
 	"os"
 	"syscall"
 )
 
-type Reload struct {
-	cli.Command
-	pid int
+var ReloadCmd = &cobra.Command{
+	Use:   "reload",
+	Short: "Reloads pufferd",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := runReload()
+		if err != nil {
+			logging.Exception("error running reload", err)
+		}
+	},
 }
 
-func (r *Reload) Load() {
-	flag.IntVar(&r.pid, "reload", 0, "PID to reload")
+var reloadPid int
+
+func init() {
+	ReloadCmd.Flags().IntVar(&reloadPid, "pid", 0, "process id of daemon")
+	ReloadCmd.MarkPersistentFlagRequired("pid")
 }
 
-func (r *Reload) ShouldRun() bool {
-	return r.pid != 0
-}
-
-func (*Reload) ShouldRunNext() bool {
-	return false
-}
-
-func (r *Reload) Run() error {
-	proc, err := os.FindProcess(r.pid)
+func runReload() error {
+	proc, err := os.FindProcess(reloadPid)
 	if err != nil || proc == nil {
 		if err == nil && proc == nil {
 			err = errors.New("no process found")

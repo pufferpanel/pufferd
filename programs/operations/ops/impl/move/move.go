@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 )
 
@@ -31,8 +31,8 @@ type Move struct {
 }
 
 func (m Move) Run(env envs.Environment) error {
-	source := common.JoinPath(env.GetRootDirectory(), m.SourceFile)
-	target := common.JoinPath(env.GetRootDirectory(), m.TargetFile)
+	source := apufferi.JoinPath(env.GetRootDirectory(), m.SourceFile)
+	target := apufferi.JoinPath(env.GetRootDirectory(), m.TargetFile)
 	result, valid := validateMove(source, target)
 	if !valid {
 		return nil

@@ -17,30 +17,15 @@
 package commands
 
 import (
-	"flag"
 	"fmt"
-	"github.com/pufferpanel/apufferi/cli"
 	"github.com/pufferpanel/pufferd/data"
+	"github.com/spf13/cobra"
 )
 
-type License struct {
-	cli.Command
-	license bool
-}
-
-func (l *License) Load() {
-	flag.BoolVar(&l.license, "license", false, "View license")
-}
-
-func (l *License) ShouldRun() bool {
-	return l.license
-}
-
-func (*License) ShouldRunNext() bool {
-	return false
-}
-
-func (l *License) Run() error {
-	fmt.Println(data.LICENSE)
-	return nil
+var LicenseCmd = &cobra.Command{
+	Use:   "license",
+	Short: "Prints the license",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(data.LICENSE)
+	},
 }

@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	err := cli.Run()
+	err := cli.Execute()
 
 	if err != nil {
 		logging.Exception("error running command", err)

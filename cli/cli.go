@@ -9,35 +9,62 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
- */
+*/
 
 package cli
 
 import (
-	"github.com/pufferpanel/apufferi/cli"
+	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/cli/commands"
+	"github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/pufferd/version"
+	"github.com/spf13/cobra"
+	"os"
+	"runtime"
 )
 
-func Run() error {
-	//define command order here
-	cmds := []cli.Command{
-		//informational
-		&commands.License{},
-		&commands.Version{},
+var rootCmd = &cobra.Command{
+	Use:   "pufferd",
+	Short: "pufferpanel daemon",
+}
 
-		//management
-		&commands.Reload{},
-		&commands.Shutdown{},
+var configPath string
+var loggingLevel string
 
-		//configuration
-		&commands.Config{},
+func init() {
+	cobra.OnInitialize(load)
 
-		//install
-		&commands.Install{},
+	rootCmd.AddCommand(
+		commands.LicenseCmd,
+		commands.ShutdownCmd,
+		commands.RunCmd,
+		commands.ReloadCmd)
 
-		//running
-		&commands.Run{},
+	path := "config.json"
+	if runtime.GOOS == "linux" {
+		path = "/etc/pufferd/config.json"
 	}
 
-	return cli.Run(cmds)
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", path, "Path to the config to use")
+	rootCmd.PersistentFlags().StringVar(&loggingLevel, "logging", "INFO", "Logging level to print to stdout")
+	rootCmd.SetVersionTemplate(version.Display)
+}
+
+func Execute() error {
+	return rootCmd.Execute()
+}
+
+func load() {
+	config.SetPath(configPath)
+	_ = config.LoadConfig()
+
+	level := logging.GetLevel(loggingLevel)
+	if level == nil {
+		level = logging.INFO
+	}
+
+	logging.SetLevel(os.Stdout, level)
+
+	var logPath = config.Get().Data.LogFolder
+	_ = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
 }

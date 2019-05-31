@@ -19,7 +19,7 @@
 package tty
 
 import (
-	"github.com/pufferpanel/apufferi/cache"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/utils"
 	"sync"

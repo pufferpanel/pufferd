@@ -27,7 +27,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	ppError "github.com/pufferpanel/pufferd/errors"
@@ -204,7 +204,7 @@ func (d *docker) GetStats() (map[string]interface{}, error) {
 	}
 
 	res, err := dockerClient.ContainerStats(context.Background(), d.ContainerId, false)
-	defer common.Close(res.Body)
+	defer apufferi.Close(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (d *docker) pullImage(client *client.Client, ctx context.Context, force boo
 	d.downloadingImage = true
 
 	r, err := client.ImagePull(ctx, d.ImageName, op)
-	defer common.Close(r)
+	defer apufferi.Close(r)
 	if err != nil {
 		return err
 	}

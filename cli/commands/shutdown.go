@@ -18,32 +18,33 @@ package commands
 
 import (
 	"errors"
-	"flag"
-	"github.com/pufferpanel/apufferi/cli"
+	"github.com/pufferpanel/apufferi/logging"
+	"github.com/spf13/cobra"
 	"os"
 	"syscall"
 	"time"
 )
 
-type Shutdown struct {
-	cli.Command
-	pid int
+var ShutdownCmd = &cobra.Command{
+	Use:   "shutdown",
+	Short: "Print the version number of PufferPanel",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := runShutdown()
+		if err != nil {
+			logging.Exception("error running shutdown", err)
+		}
+	},
 }
 
-func (s *Shutdown) Load() {
-	flag.IntVar(&s.pid, "shutdown", 0, "PID to shut down")
+var shutdownPid int
+
+func init() {
+	ShutdownCmd.Flags().IntVar(&shutdownPid, "pid", 0, "process id of daemon")
+	ShutdownCmd.MarkFlagRequired("pid")
 }
 
-func (s *Shutdown) ShouldRun() bool {
-	return s.pid != 0
-}
-
-func (s *Shutdown) ShouldRunNext() bool {
-	return false
-}
-
-func (s *Shutdown) Run() error {
-	proc, err := os.FindProcess(s.pid)
+func runShutdown() error {
+	proc, err := os.FindProcess(shutdownPid)
 	if err != nil || proc == nil {
 		if err == nil && proc == nil {
 			err = errors.New("no process found")

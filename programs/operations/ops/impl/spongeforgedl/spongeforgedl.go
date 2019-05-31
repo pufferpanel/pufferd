@@ -19,7 +19,7 @@ package spongeforgedl
 import (
 	"encoding/json"
 	"errors"
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/pufferd/commons"
 	"github.com/pufferpanel/pufferd/environments"
 	"github.com/pufferpanel/pufferd/environments/envs"
@@ -118,7 +118,7 @@ func (op SpongeForgeDl) Run(env envs.Environment) error {
 	}
 
 	//going to stick the spongeforge rename in, to assist with those modpacks
-	err = common.CopyFile(file, path.Join("mods", "_aspongeforge.jar"))
+	err = apufferi.CopyFile(file, path.Join("mods", "_aspongeforge.jar"))
 	if err != nil {
 		return err
 	}

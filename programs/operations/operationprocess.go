@@ -17,7 +17,7 @@
 package operations
 
 import (
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/programs/operations/ops"
@@ -66,19 +66,19 @@ func GenerateProcess(directions []map[string]interface{}, environment envs.Envir
 
 			switch v.(type) {
 			case string: {
-				mapCopy[k] = common.ReplaceTokens(v.(string), dataMap)
+				mapCopy[k] = apufferi.ReplaceTokens(v.(string), dataMap)
 			}
 			case []string: {
-				mapCopy[k] = common.ReplaceTokensInArr(v.([]string), dataMap)
+				mapCopy[k] = apufferi.ReplaceTokensInArr(v.([]string), dataMap)
 			}
 			case map[string]string: {
-				mapCopy[k] = common.ReplaceTokensInMap(v.(map[string]string), dataMap)
+				mapCopy[k] = apufferi.ReplaceTokensInMap(v.(map[string]string), dataMap)
 			}
 			case []interface{}: {
 				//if we can convert this to a string list, we can work with it
-				temp := common.ToStringArray(v)
+				temp := apufferi.ToStringArray(v)
 				if len(temp) == len(v.([]interface{})) {
-					mapCopy[k] = common.ReplaceTokensInArr(temp, dataMap)
+					mapCopy[k] = apufferi.ReplaceTokensInArr(temp, dataMap)
 				} else {
 					mapCopy[k] = v
 				}
@@ -88,7 +88,7 @@ func GenerateProcess(directions []map[string]interface{}, environment envs.Envir
 			}
 		}
 
-		envMap := common.ReplaceTokensInMap(env, dataMap)
+		envMap := apufferi.ReplaceTokensInMap(env, dataMap)
 
 		opCreate := ops.CreateOperation{
 			OperationArgs:        mapCopy,

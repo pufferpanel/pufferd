@@ -19,7 +19,7 @@ package programs
 import (
 	"encoding/json"
 	"errors"
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/environments/envs"
@@ -128,7 +128,7 @@ func (p *ProgramData) Start() (err error) {
 	//HACK: add rootDir stuff
 	data["rootDir"] = p.Environment.GetRootDirectory()
 
-	err = p.Environment.ExecuteAsync(p.RunData.Program, common.ReplaceTokensInArr(p.RunData.Arguments, data), common.ReplaceTokensInMap(p.RunData.EnvironmentVariables, data), p.afterExit)
+	err = p.Environment.ExecuteAsync(p.RunData.Program, apufferi.ReplaceTokensInArr(p.RunData.Arguments, data), apufferi.ReplaceTokensInMap(p.RunData.EnvironmentVariables, data), p.afterExit)
 	if err != nil {
 		logging.Exception("error starting server", err)
 		p.Environment.DisplayToConsole("Failed to start server\n")
@@ -228,7 +228,7 @@ func (p *ProgramData) Install() (err error) {
 
 	if len(p.InstallData.Operations) == 0 && p.Template != "" {
 		logging.Debug("Server %s has no defined install data, using template", p.Id())
-		templateData, err := ioutil.ReadFile(common.JoinPath(TemplateFolder, p.Template+".json"))
+		templateData, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, p.Template+".json"))
 		if err != nil {
 			logging.Exception("error reading template", err)
 			p.Environment.DisplayToConsole("Error running installer, check daemon logs\n")

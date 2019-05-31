@@ -18,6 +18,8 @@ package server
 
 import (
 	"encoding/json"
+	"github.com/pufferpanel/apufferi"
+	"github.com/pufferpanel/apufferi/response"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -31,8 +33,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/itsjamie/gin-cors"
-	"github.com/pufferpanel/apufferi/common"
-	"github.com/pufferpanel/apufferi/http"
 	"github.com/pufferpanel/apufferi/logging"
 	ppErrors "github.com/pufferpanel/pufferd/errors"
 	"github.com/pufferpanel/pufferd/httphandlers"
@@ -107,9 +107,9 @@ func StartServer(c *gin.Context) {
 
 	err := server.Start()
 	if err != nil {
-		http.Respond(c).Status(500).Data(err).Message("error starting server").Send()
+		response.Respond(c).Status(500).Data(err).Message("error starting server").Send()
 	} else {
-		http.Respond(c).Send()
+		response.Respond(c).Send()
 	}
 }
 
@@ -132,7 +132,7 @@ func StopServer(c *gin.Context) {
 			return
 		}
 	}
-	http.Respond(c).Send()
+	response.Respond(c).Send()
 }
 
 func KillServer(c *gin.Context) {
@@ -145,7 +145,7 @@ func KillServer(c *gin.Context) {
 		return
 	}
 
-	http.Respond(c).Send()
+	response.Respond(c).Send()
 }
 
 func CreateServer(c *gin.Context) {
@@ -157,7 +157,7 @@ func CreateServer(c *gin.Context) {
 	prg, _ := programs.Get(serverId)
 
 	if prg != nil {
-		http.Respond(c).Status(409).Message("server already exists").Send()
+		response.Respond(c).Status(409).Message("server already exists").Send()
 		return
 	}
 
@@ -166,7 +166,7 @@ func CreateServer(c *gin.Context) {
 
 	if err != nil {
 		logging.Exception("error decoding JSON body", err)
-		http.Respond(c).Status(400).Message("error parsing json").Data(err).Code(http.MALFORMEDJSON).Send()
+		response.Respond(c).Status(400).Message("error parsing json").Data(err).Send()
 		return
 	}
 
@@ -179,7 +179,7 @@ func CreateServer(c *gin.Context) {
 	} else {
 		data := make(map[string]interface{})
 		data["id"] = serverId
-		http.Respond(c).Send()
+		response.Respond(c).Send()
 	}
 }
 
@@ -188,9 +188,9 @@ func DeleteServer(c *gin.Context) {
 	prg := item.(programs.Program)
 	err := programs.Delete(prg.Id())
 	if err != nil {
-		http.Respond(c).Status(500).Data(err).Message("error deleting server").Send()
+		response.Respond(c).Status(500).Data(err).Message("error deleting server").Send()
 	} else {
-		http.Respond(c).Send()
+		response.Respond(c).Send()
 	}
 }
 
@@ -199,7 +199,7 @@ func InstallServer(c *gin.Context) {
 	prg := item.(programs.Program)
 
 	go prg.Install()
-	http.Respond(c).Send()
+	response.Respond(c).Send()
 }
 
 func EditServer(c *gin.Context) {
@@ -209,15 +209,15 @@ func EditServer(c *gin.Context) {
 	data := make(map[string]interface{}, 0)
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
 	}
 
 	err = prg.Edit(data, false)
 
 	if err != nil {
-		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
 	}
-	http.Respond(c).Send()
+	response.Respond(c).Send()
 }
 
 func EditServerAdmin(c *gin.Context) {
@@ -231,15 +231,15 @@ func EditServerAdmin(c *gin.Context) {
 	data := &admin{}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
 	}
 
 	err = prg.Edit(data.data, true)
 
 	if err != nil {
-		http.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
 	}
-	http.Respond(c).Send()
+	response.Respond(c).Send()
 }
 
 func ReloadServer(c *gin.Context) {
@@ -248,9 +248,9 @@ func ReloadServer(c *gin.Context) {
 
 	err := programs.Reload(prg.Id())
 	if err != nil {
-		http.Respond(c).Status(500).Data(err).Message("error reloading server").Send()
+		response.Respond(c).Status(500).Data(err).Message("error reloading server").Send()
 	} else {
-		http.Respond(c).Send()
+		response.Respond(c).Send()
 	}
 }
 
@@ -262,13 +262,13 @@ func GetServer(c *gin.Context) {
 	result := make(map[string]interface{}, 0)
 	result["data"] = data
 
-	http.Respond(c).Data(data).Send()
+	response.Respond(c).Data(data).Send()
 }
 
 func GetServerAdmin(c *gin.Context) {
 	item, _ := c.Get("server")
 
-	http.Respond(c).Data(item).Send()
+	response.Respond(c).Data(item).Send()
 }
 
 func GetFile(c *gin.Context) {
@@ -278,10 +278,10 @@ func GetFile(c *gin.Context) {
 	targetPath := c.Param("filename")
 	logging.Debug("Getting following file: %s", targetPath)
 
-	targetFile := common.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
+	targetFile := apufferi.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
 
-	if !common.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		http.Respond(c).Status(403).Message("invalid file path").Status(http.NOTAUTHORIZED).Send()
+	if !apufferi.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
+		response.Respond(c).Status(403).Message("invalid file path").Send()
 		return
 	}
 
@@ -289,7 +289,7 @@ func GetFile(c *gin.Context) {
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			http.Respond(c).Status(404).Code(http.NOFILE).Send()
+			response.Respond(c).Status(404).Send()
 			return
 		} else {
 			errorConnection(c, err)
@@ -317,7 +317,7 @@ func GetFile(c *gin.Context) {
 		}
 
 		//validate any symlinks are valid
-		files = common.RemoveInvalidSymlinks(files, targetFile, server.GetEnvironment().GetRootDirectory())
+		files = apufferi.RemoveInvalidSymlinks(files, targetFile, server.GetEnvironment().GetRootDirectory())
 
 		for _, file := range files {
 			newFile := &FileDesc{
@@ -333,12 +333,12 @@ func GetFile(c *gin.Context) {
 
 			fileNames = append(fileNames, newFile)
 		}
-		http.Respond(c).Data(fileNames).Send()
+		response.Respond(c).Data(fileNames).Send()
 	} else {
 		_, err := os.Open(targetFile)
 		if err != nil {
 			if err == os.ErrNotExist {
-				http.Respond(c).Status(404).Code(http.NOFILE).Send()
+				response.Respond(c).Status(404).Send()
 			} else {
 				errorConnection(c, err)
 			}
@@ -358,10 +358,10 @@ func PutFile(c *gin.Context) {
 		return
 	}
 
-	targetFile := common.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
+	targetFile := apufferi.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
 
-	if !common.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		http.Respond(c).Status(403).Message("invalid file path").Status(http.NOTAUTHORIZED).Send()
+	if !apufferi.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
+		response.Respond(c).Status(403).Message("invalid file path").Send()
 		return
 	}
 
@@ -371,12 +371,12 @@ func PutFile(c *gin.Context) {
 		if err != nil {
 			errorConnection(c, err)
 		} else {
-			http.Respond(c).Send()
+			response.Respond(c).Send()
 		}
 		return
 	}
 	file, err := os.Create(targetFile)
-	defer common.Close(file)
+	defer apufferi.Close(file)
 
 	if err != nil {
 		errorConnection(c, err)
@@ -398,7 +398,7 @@ func PutFile(c *gin.Context) {
 		logging.Exception("error writing file", err)
 	} else {
 		_, err = io.Copy(file, sourceFile)
-		http.Respond(c).Send()
+		response.Respond(c).Send()
 	}
 }
 
@@ -408,10 +408,10 @@ func DeleteFile(c *gin.Context) {
 
 	targetPath := c.Param("filename")
 
-	targetFile := common.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
+	targetFile := apufferi.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
 
-	if !common.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		http.Respond(c).Status(403).Message("invalid file path").Status(http.NOTAUTHORIZED).Send()
+	if !apufferi.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
+		response.Respond(c).Status(403).Message("invalid file path").Send()
 		return
 	}
 
@@ -420,7 +420,7 @@ func DeleteFile(c *gin.Context) {
 		errorConnection(c, err)
 		logging.Exception("error deleting file", err)
 	} else {
-		http.Respond(c).Send()
+		response.Respond(c).Send()
 	}
 }
 
@@ -434,7 +434,7 @@ func PostConsole(c *gin.Context) {
 	if err != nil {
 		errorConnection(c, err)
 	} else {
-		http.Respond(c).Send()
+		response.Respond(c).Send()
 	}
 }
 
@@ -468,20 +468,20 @@ func GetStats(c *gin.Context) {
 		if isOffline {
 			result["memory"] = 0
 			result["cpu"] = 0
-			http.Respond(c).Data(result).Status(200).Send()
+			response.Respond(c).Data(result).Status(200).Send()
 		} else {
 			result["error"] = err.Error()
-			http.Respond(c).Data(result).Status(500).Send()
+			response.Respond(c).Data(result).Status(500).Send()
 		}
 	} else {
-		http.Respond(c).Data(results).Send()
+		response.Respond(c).Data(results).Send()
 	}
 }
 
 func NetworkServer(c *gin.Context) {
 	s := c.DefaultQuery("ids", "")
 	if s == "" {
-		http.Respond(c).Status(400).Code(http.NOSERVERID).Message("no server ids provided").Send()
+		response.Respond(c).Status(400).Message("no server ids provided").Send()
 		return
 	}
 	ids := strings.Split(s, ",")
@@ -493,7 +493,7 @@ func NetworkServer(c *gin.Context) {
 		}
 		result[program.Id()] = program.GetNetwork()
 	}
-	http.Respond(c).Data(result).Send()
+	response.Respond(c).Data(result).Send()
 }
 
 func GetLogs(c *gin.Context) {
@@ -506,7 +506,7 @@ func GetLogs(c *gin.Context) {
 
 	if ok != nil {
 		//c.AbortWithError(400, errors.New("Time provided is not a valid UNIX time"))
-		http.Respond(c).Code(400).Message("time provided is not a valid UNIX time").Send()
+		response.Respond(c).Message("time provided is not a valid UNIX time").Send()
 		return
 	}
 
@@ -518,7 +518,7 @@ func GetLogs(c *gin.Context) {
 	result := make(map[string]interface{})
 	result["epoch"] = epoch
 	result["logs"] = msg
-	http.Respond(c).Data(result).Send()
+	response.Respond(c).Data(result).Send()
 }
 
 func GetStatus(c *gin.Context) {
@@ -530,10 +530,10 @@ func GetStatus(c *gin.Context) {
 
 	if err != nil {
 		result["error"] = err.Error()
-		http.Respond(c).Data(result).Status(500).Send()
+		response.Respond(c).Data(result).Status(500).Send()
 	} else {
 		result["running"] = running
-		http.Respond(c).Data(result).Send()
+		response.Respond(c).Data(result).Send()
 	}
 }
 
@@ -562,7 +562,7 @@ func OpenSocket(c *gin.Context) {
 
 func errorConnection(c *gin.Context, err error) {
 	logging.Exception("error on API call", err)
-	http.Respond(c).Status(500).Code(http.UNKNOWN).Data(err).Message("error handling request").Send()
+	response.Respond(c).Status(500).Data(err).Message("error handling request").Send()
 }
 
 func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []string) {
@@ -588,23 +588,21 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 			switch messageType.(string) {
 			case "statRequest":
 				{
-					for _, v := range scopes {
-						if v == "server.stats" {
-							results, err := server.GetEnvironment().GetStats()
-							msg := messages.StatMessage{}
-							if err != nil {
-								_, isOffline := err.(ppErrors.ServerOffline)
-								if isOffline {
-									msg.Cpu = 0
-									msg.Memory = 0
-								}
-							} else {
-								msg.Cpu, _ = results["cpu"].(float64)
-								msg.Memory, _ = results["memory"].(float64)
+					if apufferi.ContainsValue(scopes, "server.stats") {
+						results, err := server.GetEnvironment().GetStats()
+						msg := messages.StatMessage{}
+						if err != nil {
+							_, isOffline := err.(ppErrors.ServerOffline)
+							if isOffline {
+								msg.Cpu = 0
+								msg.Memory = 0
 							}
-							conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
-							break
+						} else {
+							msg.Cpu, _ = results["cpu"].(float64)
+							msg.Memory, _ = results["memory"].(float64)
 						}
+						conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
+						break
 					}
 				}
 			case "ping":

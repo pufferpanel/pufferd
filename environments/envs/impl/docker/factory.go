@@ -17,8 +17,7 @@
 package docker
 
 import (
-	"github.com/pufferpanel/apufferi/cache"
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/utils"
 	"sync"
@@ -28,9 +27,9 @@ type EnvironmentFactory struct {
 	envs.EnvironmentFactory
 }
 
-func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache cache.Cache, wsManager utils.WebSocketManager) envs.Environment {
-	imageName := common.GetStringOrDefault(environmentSection, "image", "")
-	enforceNetwork := common.GetBooleanOrDefault(environmentSection, "enforceNetwork", false)
+func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) envs.Environment {
+	imageName := apufferi.GetStringOrDefault(environmentSection, "image", "")
+	enforceNetwork := apufferi.GetBooleanOrDefault(environmentSection, "enforceNetwork", false)
 
 	if imageName == "" {
 		imageName = "pufferpanel/generic"

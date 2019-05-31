@@ -22,7 +22,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/pkg/sftp"
-	"github.com/pufferpanel/apufferi/common"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	pufferdConfig "github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/oauth2"
@@ -44,7 +44,7 @@ func Run() {
 }
 
 func Stop() {
-	sftpServer.Close()
+	_ = sftpServer.Close()
 }
 
 func runServer() error {
@@ -116,7 +116,7 @@ func runServer() error {
 }
 
 func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
-	defer common.Close(conn)
+	defer apufferi.Close(conn)
 	logging.Debug("SFTP connection from %s", conn.RemoteAddr().String())
 	e := handleConn(conn, config)
 	if e != nil {
@@ -127,7 +127,7 @@ func HandleConn(conn net.Conn, config *ssh.ServerConfig) {
 }
 func handleConn(conn net.Conn, config *ssh.ServerConfig) error {
 	sc, chans, reqs, e := ssh.NewServerConn(conn, config)
-	defer common.Close(sc)
+	defer apufferi.Close(sc)
 	if e != nil {
 		return e
 	}
@@ -164,7 +164,7 @@ func handleConn(conn net.Conn, config *ssh.ServerConfig) error {
 						ok = true
 					}
 				}
-				req.Reply(ok, nil)
+				_ = req.Reply(ok, nil)
 			}
 		}(requests)
 
@@ -182,7 +182,7 @@ func handleConn(conn net.Conn, config *ssh.ServerConfig) error {
 func PrintDiscardRequests(in <-chan *ssh.Request) {
 	for req := range in {
 		if req.WantReply {
-			req.Reply(false, nil)
+			_ = req.Reply(false, nil)
 		}
 	}
 }

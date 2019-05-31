@@ -18,8 +18,8 @@ package httphandlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/common"
-	pufferdHttp "github.com/pufferpanel/apufferi/http"
+	"github.com/pufferpanel/apufferi"
+	"github.com/pufferpanel/apufferi/response"
 	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/programs"
 	"strings"
@@ -44,14 +44,14 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 		if authHeader == "" {
 			authToken = gin.Query("accessToken")
 			if authToken == "" {
-				pufferdHttp.Respond(gin).Fail().Code(pufferdHttp.NOTAUTHORIZED).Status(400).Message("no access token provided").Send()
+				response.Respond(gin).Fail().Status(400).Message("no access token provided").Send()
 				gin.Abort()
 				return
 			}
 		} else {
 			authArr := strings.SplitN(authHeader, " ", 2)
 			if len(authArr) < 2 || authArr[0] != "Bearer" {
-				pufferdHttp.Respond(gin).Code(pufferdHttp.NOTAUTHORIZED).Fail().Status(400).Message("invalid access token format").Send()
+				response.Respond(gin).Fail().Status(400).Message("invalid access token format").Send()
 				gin.Abort()
 				return
 			}
@@ -72,14 +72,14 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 		if requireServer {
 			scopeSet = scopes[serverId]
 			if scopeSet == nil || len(scopeSet) == 0 {
-				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("invalid access").Send()
+				response.Respond(gin).Fail().Status(403).Message("invalid access").Send()
 				return
 			}
 
 			var program programs.Program
 			program, _ = programs.Get(serverId)
 			if program == nil {
-				pufferdHttp.Respond(gin).Fail().Status(404).Code(pufferdHttp.NOSERVER).Message("no server with id " + serverId).Send()
+				response.Respond(gin).Fail().Status(404).Message("no server with id " + serverId).Send()
 				return
 			}
 
@@ -87,13 +87,13 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 		} else {
 			scopeSet = scopes[""]
 			if scopeSet == nil || len(scopeSet) == 0 {
-				pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("invalid access").Send()
+				response.Respond(gin).Fail().Status(403).Message("invalid access").Send()
 				return
 			}
 		}
 
-		if !common.ContainsValue(scopeSet, scope) {
-			pufferdHttp.Respond(gin).Fail().Status(403).Code(pufferdHttp.NOTAUTHORIZED).Message("missing scope " + scope).Send()
+		if !apufferi.ContainsValue(scopeSet, scope) {
+			response.Respond(gin).Fail().Status(403).Message("missing scope " + scope).Send()
 			return
 		}
 

@@ -18,9 +18,9 @@ package routing
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/http"
-	"github.com/pufferpanel/apufferi/http/handler"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/apufferi/middleware"
+	"github.com/pufferpanel/apufferi/response"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/routing/server"
@@ -34,7 +34,7 @@ func ConfigureWeb() *gin.Engine {
 		r.Use(gin.Recovery())
 		r.Use(gin.LoggerWithWriter(logging.AsWriter(logging.INFO)))
 		r.Use(func(c *gin.Context) {
-			handler.ExecuteAndRecover(c)
+			middleware.ExecuteAndRecover(c)
 		})
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
@@ -48,7 +48,7 @@ func ConfigureWeb() *gin.Engine {
 
 func RegisterRoutes(e *gin.Engine) {
 	e.GET("", func(c *gin.Context) {
-		http.Respond(c).Message("pufferd is running").Send()
+		response.Respond(c).Message("pufferd is running").Send()
 	})
 	e.HEAD("", func(c *gin.Context) {
 		c.Status(200)
@@ -57,6 +57,6 @@ func RegisterRoutes(e *gin.Engine) {
 }
 
 func Shutdown(c *gin.Context) {
-	http.Respond(c).Message("shutting down").Send()
+	response.Respond(c).Message("shutting down").Send()
 	go shutdown.CompleteShutdown()
 }

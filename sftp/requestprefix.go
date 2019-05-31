@@ -25,7 +25,7 @@ import (
 	"strings"
 
 	"github.com/pkg/sftp"
-	utils "github.com/pufferpanel/apufferi/common"
+	utils "github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 )
 

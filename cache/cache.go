@@ -17,17 +17,17 @@
 package cache
 
 import (
-	"github.com/pufferpanel/apufferi/cache"
+	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/pufferd/config"
 )
 
-func CreateCache() *cache.MemoryCache {
+func CreateCache() *apufferi.MemoryCache {
 	capacity := config.Get().Console.Buffer
 	if capacity <= 0 {
 		capacity = 50
 	}
-	return &cache.MemoryCache{
-		Buffer:   make([]cache.Message, 0),
+	return &apufferi.MemoryCache{
+		Buffer:   make([]apufferi.Message, 0),
 		Capacity: capacity,
 	}
 }

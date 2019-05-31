@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/http"
+	"github.com/pufferpanel/apufferi/response"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/programs"
 )
@@ -36,59 +36,59 @@ func RegisterRoutes(e *gin.Engine) {
 }
 
 func GetTemplates(c *gin.Context) {
-	http.Respond(c).Data(programs.GetPlugins()).Send()
+	response.Respond(c).Data(programs.GetPlugins()).Send()
 }
 
 func GetTemplate(c *gin.Context) {
 	name, exists := c.GetQuery("id")
 	if !exists || name == "" {
-		http.Respond(c).Fail().Status(400).Code(http.INVALIDREQUEST).Message("no template name provided").Send()
+		response.Respond(c).Fail().Status(400).Message("no template name provided").Send()
 		return
 	}
 	data, err := programs.GetPlugin(name)
 	if err != nil {
 		if os.IsNotExist(err) {
-			http.Respond(c).Fail().Status(404).Code(http.NOFILE).Message("no template with provided name").Send()
+			response.Respond(c).Fail().Status(404).Message("no template with provided name").Send()
 		} else {
-			http.Respond(c).Fail().Status(500).Code(http.UNKNOWN).Message("error reading template").Send()
+			response.Respond(c).Fail().Status(500).Message("error reading template").Send()
 		}
 	} else {
-		http.Respond(c).Status(200).Data(data).Send()
+		response.Respond(c).Status(200).Data(data).Send()
 	}
 }
 
 func GetTemplateReadme(c *gin.Context) {
 	name, exists := c.GetQuery("id")
 	if !exists || name == "" {
-		http.Respond(c).Fail().Status(400).Code(http.INVALIDREQUEST).Message("no template name provided").Send()
+		response.Respond(c).Fail().Status(400).Message("no template name provided").Send()
 		return
 	}
 	data, err := programs.GetPluginReadme(name)
 	if err != nil {
 		if os.IsNotExist(err) {
-			http.Respond(c).Fail().Status(404).Code(http.NOFILE).Message("no template readme with provided name").Send()
+			response.Respond(c).Fail().Status(404).Message("no template readme with provided name").Send()
 		} else {
-			http.Respond(c).Fail().Status(500).Code(http.UNKNOWN).Message("error reading template readme").Send()
+			response.Respond(c).Fail().Status(500).Message("error reading template readme").Send()
 		}
 	} else {
-		http.Respond(c).Status(200).Data(data).Send()
+		response.Respond(c).Status(200).Data(data).Send()
 	}
 }
 
 func EditTemplate(c *gin.Context) {
 	name, exists := c.GetQuery("id")
 	if !exists || name == "" {
-		http.Respond(c).Fail().Status(400).Code(http.INVALIDREQUEST).Message("no template name provided").Send()
+		response.Respond(c).Fail().Status(400).Message("no template name provided").Send()
 		return
 	}
 	data, err := programs.GetPlugin(name)
 	if err != nil {
 		if os.IsNotExist(err) {
-			http.Respond(c).Fail().Status(404).Code(http.NOFILE).Message("no template with provided name").Send()
+			response.Respond(c).Fail().Status(404).Message("no template with provided name").Send()
 		} else {
-			http.Respond(c).Fail().Status(500).Code(http.UNKNOWN).Message("error reading template").Send()
+			response.Respond(c).Fail().Status(500).Message("error reading template").Send()
 		}
 	} else {
-		http.Respond(c).Status(200).Data(data).Send()
+		response.Respond(c).Status(200).Data(data).Send()
 	}
 }
