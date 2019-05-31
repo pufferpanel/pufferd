@@ -111,6 +111,10 @@ func (p *ProgramData) Start() (err error) {
 		logging.Error("Server %s is not enabled, cannot start", p.Id())
 		return errors.New("server not enabled")
 	}
+	if running, err := p.IsRunning(); running || err != nil {
+		return err
+	}
+
 	logging.Debug("Starting server %s", p.Id())
 	p.Environment.DisplayToConsole("Starting server\n")
 	data := make(map[string]interface{})
@@ -140,6 +144,10 @@ func (p *ProgramData) Start() (err error) {
 //Stops the program.
 //This will also stop the environment it is ran in.
 func (p *ProgramData) Stop() (err error) {
+	if running, err := p.IsRunning(); !running || err != nil {
+		return err
+	}
+
 	logging.Debug("Stopping server %s", p.Id())
 	if p.RunData.StopCode != 0 {
 		err = p.Environment.SendCode(p.RunData.StopCode)

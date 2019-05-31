@@ -586,7 +586,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 		messageType := mapping["type"]
 		if _, ok := messageType.(string); ok {
 			switch messageType.(string) {
-			case "statRequest":
+			case "stat":
 				{
 					if apufferi.ContainsValue(scopes, "server.stats") {
 						results, err := server.GetEnvironment().GetStats()
@@ -605,11 +605,43 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 						break
 					}
 				}
+			case "start":
+				{
+					if apufferi.ContainsValue(scopes, "server.start") {
+						server.Start()
+					}
+					break
+				}
+			case "stop":
+				{
+					if apufferi.ContainsValue(scopes, "server.stop") {
+						server.Stop()
+					}
+				}
+			case "install":
+				{
+					if apufferi.ContainsValue(scopes, "server.install") {
+						server.Install()
+					}
+				}
+			case "kill":
+				{
+					if apufferi.ContainsValue(scopes, "server.kill") {
+						server.Kill()
+					}
+				}
+			case "reload":
+				{
+					if apufferi.ContainsValue(scopes, "server.reload") {
+						programs.Reload(server.Id())
+					}
+				}
 			case "ping":
 				{
 					result := make(map[string]string)
 					result["ping"] = "pong"
 					conn.WriteJSON(result)
+					break
 				}
 			}
 		} else {
