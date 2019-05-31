@@ -29,7 +29,7 @@ type EnvironmentFactory struct {
 	envs.EnvironmentFactory
 }
 
-func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache cache.Cache, wsManager utils.WebSocketManager) envs.Environment {
+func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) envs.Environment {
 	t := &tty{BaseEnvironment: &envs.BaseEnvironment{Type: "tty"}}
 	t.BaseEnvironment.ExecutionFunction = t.ttyExecuteAsync
 	t.BaseEnvironment.WaitFunction = t.WaitForMainProcess
