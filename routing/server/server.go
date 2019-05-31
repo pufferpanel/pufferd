@@ -91,6 +91,11 @@ func RegisterRoutes(e *gin.Engine) {
 
 		l.GET("/:id/stats", httphandlers.OAuth2Handler("server.stats", true), GetStats)
 		l.GET("/:id/status", httphandlers.OAuth2Handler("server.stats", true), GetStatus)
+
+		l.GET("/:id/socket", httphandlers.OAuth2Handler("server.console", true), cors.Middleware(cors.Config{
+			Origins:     "*",
+			Credentials: true,
+		}), OpenSocket)
 	}
 	l.POST("", httphandlers.OAuth2Handler("server.create", false), CreateServer)
 	e.GET("/network", httphandlers.OAuth2Handler("server.network", false), NetworkServer)
@@ -220,7 +225,7 @@ func EditServerAdmin(c *gin.Context) {
 	prg := item.(programs.Program)
 
 	type admin struct {
-		data  map[string]interface{} `json:"data"`
+		data map[string]interface{} `json:"data"`
 	}
 
 	data := &admin{}
@@ -448,8 +453,6 @@ func GetConsole(c *gin.Context) {
 	msg := messages.ConsoleMessage{Logs: console}
 	conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
 
-	go listenOnSocket(conn, program)
-
 	program.GetEnvironment().AddListener(conn)
 }
 
@@ -534,12 +537,35 @@ func GetStatus(c *gin.Context) {
 	}
 }
 
+func OpenSocket(c *gin.Context) {
+	item, _ := c.Get("server")
+	program := item.(programs.Program)
+
+	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		logging.Exception("error creating websocket", err)
+		errorConnection(c, err)
+		return
+	}
+
+	console, _ := program.GetEnvironment().GetConsole()
+	msg := messages.ConsoleMessage{Logs: console}
+	conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
+
+	internalMap, _ := c.Get("serverScopes")
+	scopes := internalMap.(map[string][]string)
+
+	go listenOnSocket(conn, program, scopes[program.Id()])
+
+	program.GetEnvironment().AddListener(conn)
+}
+
 func errorConnection(c *gin.Context, err error) {
 	logging.Exception("error on API call", err)
 	http.Respond(c).Status(500).Code(http.UNKNOWN).Data(err).Message("error handling request").Send()
 }
 
-func listenOnSocket(conn *websocket.Conn, server programs.Program) {
+func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []string) {
 	for {
 		msgType, data, err := conn.ReadMessage()
 		if err != nil {
@@ -562,19 +588,24 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program) {
 			switch messageType.(string) {
 			case "statRequest":
 				{
-					results, err := server.GetEnvironment().GetStats()
-					msg := messages.StatMessage{}
-					if err != nil {
-						_, isOffline := err.(ppErrors.ServerOffline)
-						if isOffline {
-							msg.Cpu = 0
-							msg.Memory = 0
+					for _, v := range scopes {
+						if v == "server.stats" {
+							results, err := server.GetEnvironment().GetStats()
+							msg := messages.StatMessage{}
+							if err != nil {
+								_, isOffline := err.(ppErrors.ServerOffline)
+								if isOffline {
+									msg.Cpu = 0
+									msg.Memory = 0
+								}
+							} else {
+								msg.Cpu, _ = results["cpu"].(float64)
+								msg.Memory, _ = results["memory"].(float64)
+							}
+							conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
+							break
 						}
-					} else {
-						msg.Cpu, _ = results["cpu"].(float64)
-						msg.Memory, _ = results["memory"].(float64)
 					}
-					conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
 				}
 			case "ping":
 				{
