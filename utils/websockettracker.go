@@ -45,32 +45,27 @@ func (ws *wsManager) Register(conn *websocket.Conn) {
 }
 
 func (ws *wsManager) Write(source []byte) (n int, e error) {
-	var msg = make([]byte, len(source))
-	copy(msg, source)
+	ws.locker.Lock()
+	logs := make([]string, 1)
+	logs[0] = string(source)
+	packet := messages.ConsoleMessage{Logs: logs}
+	data, _ := json.Marshal(&messages.Transmission{Message: packet, Type: packet.Key()})
 
-	go func() {
-		ws.locker.Lock()
-		logs := make([]string, 1)
-		logs[0] = string(msg)
-		packet := messages.ConsoleMessage{Logs: logs}
-		data, _ := json.Marshal(&messages.Transmission{Message: packet, Type: packet.Key()})
-
-		for i := 0; i < len(ws.sockets); i++ {
-			socket := ws.sockets[i]
-			err := socket.WriteMessage(websocket.TextMessage, data)
-			if err != nil {
-				logging.Debug("websocket encountered error, dropping (%s)", err.Error())
-				if i+1 == len(ws.sockets) {
-					ws.sockets = ws.sockets[:i]
-				} else {
-					ws.sockets = append(ws.sockets[:i], ws.sockets[i+1:]...)
-				}
-				i--
+	for i := 0; i < len(ws.sockets); i++ {
+		socket := ws.sockets[i]
+		err := socket.WriteMessage(websocket.TextMessage, data)
+		if err != nil {
+			logging.Debug("websocket encountered error, dropping (%s)", err.Error())
+			if i+1 == len(ws.sockets) {
+				ws.sockets = ws.sockets[:i]
+			} else {
+				ws.sockets = append(ws.sockets[:i], ws.sockets[i+1:]...)
 			}
+			i--
 		}
-		ws.locker.Unlock()
-	}()
+	}
+	ws.locker.Unlock()
 
-	n = len(msg)
+	n = len(source)
 	return
 }
