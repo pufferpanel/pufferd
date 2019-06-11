@@ -47,7 +47,6 @@ steps:
 
 - script: |
     export GOOS=linux
-    rm -f *.syso
     dep ensure -v
     go build -o $(GOPATH)/build/pufferd -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
