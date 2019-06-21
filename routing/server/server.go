@@ -643,6 +643,15 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 					conn.WriteJSON(result)
 					break
 				}
+			case "console":
+				{
+					cmd, ok := mapping["command"].(string)
+					if ok {
+						if run, _ := server.IsRunning(); run {
+							server.GetEnvironment().ExecuteInMainProcess(cmd)
+						}
+					}
+				}
 			}
 		} else {
 			logging.Error("message type is not a string, but was %s", reflect.TypeOf(messageType))
