@@ -16,6 +16,11 @@
 
 package messages
 
+import (
+	"github.com/gorilla/websocket"
+	"github.com/pufferpanel/pufferd/programs"
+)
+
 type Message interface {
 	Key() string
 }
@@ -23,6 +28,10 @@ type Message interface {
 type Transmission struct {
 	Message Message `json:"data"`
 	Type    string  `json:"type"`
+}
+
+func Write(c *websocket.Conn, msg Message) error {
+	return c.WriteJSON(Transmission{Type: msg.Key(), Message: msg})
 }
 
 type StatMessage struct {
@@ -37,6 +46,15 @@ type ConsoleMessage struct {
 type PingMessage struct {
 }
 
+type PongMessage struct {
+}
+
+type FileListMessage struct {
+	Error string `json:"error"`
+	Url   string `json:"url,omitempty"`
+	FileList []programs.FileDesc
+}
+
 func (m StatMessage) Key() string {
 	return "stat"
 }
@@ -49,3 +67,6 @@ func (m PingMessage) Key() string {
 	return "ping"
 }
 
+func (m PongMessage) Key() string {
+	return "pong"
+}

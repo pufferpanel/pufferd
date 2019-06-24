@@ -44,7 +44,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 							msg.Cpu, _ = results["cpu"].(float64)
 							msg.Memory, _ = results["memory"].(float64)
 						}
-						_ = conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
+						_ = messages.Write(conn, msg)
 					}
 				}
 			case "start":
@@ -80,7 +80,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 				}
 			case "ping":
 				{
-					_ = conn.WriteJSON(map[string]string{"ping": "pong"})
+					_ = messages.Write(conn, messages.PongMessage{})
 				}
 			case "console":
 				{
@@ -93,6 +93,10 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 				}
 			case "file":
 				{
+					if !apufferi.ContainsValue(scopes, "server.files") {
+						break
+					}
+
 					action, ok := mapping["action"].(string)
 					if !ok {
 						break
@@ -105,19 +109,49 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 					switch strings.ToLower(action) {
 					case "get":
 						{
-							file, list, err := server.GetFile(path)
+							//can we get a file here?
+							file, list, err := server.GetItem(path)
 							if err != nil {
 								_ = conn.WriteJSON(map[string]string{"error": err.Error()})
+								break
 							}
+
+							//we are not going to send it via websocket since it's a mess at this stage
+							_ = file.Close()
 
 							if list != nil {
 								_ = conn.WriteJSON(list)
 							} else if file != nil {
+								_ = conn.WriteJSON(map[string]string{"path": path})
+							}
+						}
+					case "delete":
+						{
+							if !apufferi.ContainsValue(scopes, "server.files.delete") {
+								break
+							}
 
+							err := server.DeleteItem(path)
+							if err != nil {
+								_ = conn.WriteJSON(map[string]string{"error": err.Error()})
+							}
+						}
+					case "create":
+						{
+							if !apufferi.ContainsValue(scopes, "server.files.put") {
+								break
+							}
+
+							err := server.CreateFolder(path)
+
+							if err != nil {
+								_ = conn.WriteJSON(map[string]string{"error": err.Error()})
 							}
 						}
 					}
 				}
+			default:
+				_ = conn.WriteJSON(map[string]string{"error": "unknown command"})
 			}
 		} else {
 			logging.Error("message type is not a string, but was %s", reflect.TypeOf(messageType))

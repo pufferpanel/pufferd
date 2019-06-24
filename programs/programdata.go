@@ -413,7 +413,7 @@ func (p *ProgramData) afterExit(graceful bool) {
 	}
 }
 
-func (p *ProgramData) GetFile(name string) (io.ReadCloser, []FileDesc, error) {
+func (p *ProgramData) GetItem(name string) (io.ReadCloser, []FileDesc, error) {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
 		return nil, nil, errors.ErrIllegalFileAccess
@@ -477,25 +477,18 @@ func (p *ProgramData) CreateFolder(name string) error {
 	return os.Mkdir(folder, 0755)
 }
 
-func (p *ProgramData) PutFile(name string, reader io.Reader) error {
+func (p *ProgramData) OpenFile(name string) (io.WriteCloser, error) {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
-		return errors.ErrIllegalFileAccess
+		return nil, errors.ErrIllegalFileAccess
 	}
 
 	file, err := os.Create(targetFile)
-	defer apufferi.Close(file)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = io.Copy(file, reader)
-	return err
+	return file, err
 }
 
-func (p *ProgramData) DeleteFile(name string) error {
+func (p *ProgramData) DeleteItem(name string) error {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {

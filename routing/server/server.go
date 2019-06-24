@@ -214,17 +214,14 @@ func EditServer(c *gin.Context) {
 
 	if err != nil {
 		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+	} else {
+		response.Respond(c).Send()
 	}
-	response.Respond(c).Send()
 }
 
 func EditServerAdmin(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(programs.Program)
-
-	type admin struct {
-		data map[string]interface{} `json:"data"`
-	}
 
 	data := &admin{}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
@@ -232,12 +229,13 @@ func EditServerAdmin(c *gin.Context) {
 		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
 	}
 
-	err = prg.Edit(data.data, true)
+	err = prg.Edit(data.Data, true)
 
 	if err != nil {
 		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+	} else {
+		response.Respond(c).Send()
 	}
-	response.Respond(c).Send()
 }
 
 func ReloadServer(c *gin.Context) {
@@ -296,18 +294,10 @@ func GetFile(c *gin.Context) {
 	}
 
 	if info.IsDir() {
-		type FileDesc struct {
-			Name      string `json:"name"`
-			Modified  int64  `json:"modifyTime"`
-			Size      int64  `json:"size,omitempty"`
-			File      bool   `json:"isFile"`
-			Extension string `json:"extension,omitempty"`
-		}
-
 		files, _ := ioutil.ReadDir(targetFile)
-		fileNames := make([]interface{}, 0)
+		fileNames := make([]programs.FileDesc, 0)
 		if targetPath != "" && targetPath != "." && targetPath != "/" {
-			newFile := &FileDesc{
+			newFile := programs.FileDesc{
 				Name: "..",
 				File: false,
 			}
@@ -318,7 +308,7 @@ func GetFile(c *gin.Context) {
 		files = apufferi.RemoveInvalidSymlinks(files, targetFile, server.GetEnvironment().GetRootDirectory())
 
 		for _, file := range files {
-			newFile := &FileDesc{
+			newFile := programs.FileDesc{
 				Name: file.Name(),
 				File: !file.IsDir(),
 			}
@@ -382,11 +372,17 @@ func PutFile(c *gin.Context) {
 		sourceFile = c.Request.Body
 	}
 
-	err = server.PutFile(targetPath, sourceFile)
+	file, err := server.OpenFile(targetPath)
+	defer apufferi.Close(file)
 	if err != nil {
 		errorConnection(c, err)
 	} else {
-		response.Respond(c).Send()
+		_, err = io.Copy(file, sourceFile)
+		if err != nil {
+			errorConnection(c, err)
+		} else {
+			response.Respond(c).Send()
+		}
 	}
 }
 
@@ -396,7 +392,7 @@ func DeleteFile(c *gin.Context) {
 
 	targetPath := c.Param("filename")
 
-	err := server.DeleteFile(targetPath)
+	err := server.DeleteItem(targetPath)
 	if err != nil {
 		errorConnection(c, err)
 	} else {
@@ -536,4 +532,8 @@ func OpenSocket(c *gin.Context) {
 func errorConnection(c *gin.Context, err error) {
 	logging.Exception("error on API call", err)
 	response.Respond(c).Status(500).Data(err).Message("error handling request").Send()
+}
+
+type admin struct {
+	Data map[string]interface{} `json:"data"`
 }

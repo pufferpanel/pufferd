@@ -76,13 +76,13 @@ type Program interface {
 
 	GetNetwork() string
 
-	GetFile(name string) (io.ReadCloser, []FileDesc, error)
+	GetItem(name string) (io.ReadCloser, []FileDesc, error)
 
-	PutFile(name string, reader io.Reader) error
+	OpenFile(name string) (io.WriteCloser, error)
 
 	CreateFolder(name string) error
 
-	DeleteFile(name string) error
+	DeleteItem(name string) error
 }
 
 var queue *list.List
