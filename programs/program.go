@@ -19,6 +19,7 @@ package programs
 import (
 	"container/list"
 	"github.com/pufferpanel/pufferd/environments/envs"
+	"io"
 	"sync"
 	"time"
 )
@@ -74,6 +75,14 @@ type Program interface {
 	GetData() map[string]DataObject
 
 	GetNetwork() string
+
+	GetFile(name string) (io.ReadCloser, []FileDesc, error)
+
+	PutFile(name string, reader io.Reader) error
+
+	CreateFolder(name string) error
+
+	DeleteFile(name string) error
 }
 
 var queue *list.List

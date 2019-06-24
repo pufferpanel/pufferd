@@ -22,5 +22,30 @@ type Message interface {
 
 type Transmission struct {
 	Message Message `json:"data"`
-	Type string `json:"type"`
+	Type    string  `json:"type"`
 }
+
+type StatMessage struct {
+	Memory float64 `json:"memory"`
+	Cpu    float64 `json:"cpu"`
+}
+
+type ConsoleMessage struct {
+	Logs []string `json:"logs"`
+}
+
+type PingMessage struct {
+}
+
+func (m StatMessage) Key() string {
+	return "stat"
+}
+
+func (m ConsoleMessage) Key() string {
+	return "console"
+}
+
+func (m PingMessage) Key() string {
+	return "ping"
+}
+

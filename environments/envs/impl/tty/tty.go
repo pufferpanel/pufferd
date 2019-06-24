@@ -19,17 +19,15 @@
 package tty
 
 import (
-	"errors"
 	"fmt"
 	"github.com/kr/pty"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments/envs"
-	ppError "github.com/pufferpanel/pufferd/errors"
+	"github.com/pufferpanel/pufferd/errors"
 	"github.com/shirou/gopsutil/process"
 	"io"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -49,7 +47,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 		return
 	}
 	if running {
-		err = errors.New("process is already running (" + strconv.Itoa(t.mainProcess.Process.Pid) + ")")
+		err = errors.ErrProcessRunning
 		return
 	}
 	t.wait.Wait()
@@ -87,7 +85,7 @@ func (t *tty) ExecuteInMainProcess(cmd string) (err error) {
 		return err
 	}
 	if !running {
-		err = errors.New("main process has not been started")
+		err = errors.ErrServerOffline
 		return
 	}
 	stdIn := t.stdInWriter
@@ -125,7 +123,7 @@ func (t *tty) GetStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	if !running {
-		return nil, ppError.NewServerOffline()
+		return nil, errors.ErrServerOffline
 	}
 	pr, err := process.NewProcess(int32(t.mainProcess.Process.Pid))
 	if err != nil {

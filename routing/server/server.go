@@ -26,7 +26,6 @@ import (
 	gohttp "net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -34,7 +33,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/itsjamie/gin-cors"
 	"github.com/pufferpanel/apufferi/logging"
-	ppErrors "github.com/pufferpanel/pufferd/errors"
 	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/programs"
 
@@ -358,29 +356,16 @@ func PutFile(c *gin.Context) {
 		return
 	}
 
-	targetFile := apufferi.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
-
-	if !apufferi.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		response.Respond(c).Status(403).Message("invalid file path").Send()
-		return
-	}
+	var err error
 
 	_, mkFolder := c.GetQuery("folder")
 	if mkFolder {
-		err := os.Mkdir(targetFile, 0755)
+		err = server.CreateFolder(targetPath)
 		if err != nil {
 			errorConnection(c, err)
 		} else {
 			response.Respond(c).Send()
 		}
-		return
-	}
-	file, err := os.Create(targetFile)
-	defer apufferi.Close(file)
-
-	if err != nil {
-		errorConnection(c, err)
-		logging.Exception("error writing file", err)
 		return
 	}
 
@@ -389,15 +374,18 @@ func PutFile(c *gin.Context) {
 	v := c.Request.Header.Get("Content-Type")
 	if t, _, _ := mime.ParseMediaType(v); t == "multipart/form-data" {
 		sourceFile, _, err = c.Request.FormFile("file")
+		if err != nil {
+			errorConnection(c, err)
+			return
+		}
 	} else {
 		sourceFile = c.Request.Body
 	}
 
+	err = server.PutFile(targetPath, sourceFile)
 	if err != nil {
 		errorConnection(c, err)
-		logging.Exception("error writing file", err)
 	} else {
-		_, err = io.Copy(file, sourceFile)
 		response.Respond(c).Send()
 	}
 }
@@ -408,17 +396,9 @@ func DeleteFile(c *gin.Context) {
 
 	targetPath := c.Param("filename")
 
-	targetFile := apufferi.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
-
-	if !apufferi.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		response.Respond(c).Status(403).Message("invalid file path").Send()
-		return
-	}
-
-	err := os.RemoveAll(targetFile)
+	err := server.DeleteFile(targetPath)
 	if err != nil {
 		errorConnection(c, err)
-		logging.Exception("error deleting file", err)
 	} else {
 		response.Respond(c).Send()
 	}
@@ -463,16 +443,9 @@ func GetStats(c *gin.Context) {
 	results, err := svr.GetEnvironment().GetStats()
 	if err != nil {
 		result := make(map[string]interface{})
-
-		_, isOffline := err.(ppErrors.ServerOffline)
-		if isOffline {
-			result["memory"] = 0
-			result["cpu"] = 0
-			response.Respond(c).Data(result).Status(200).Send()
-		} else {
-			result["error"] = err.Error()
-			response.Respond(c).Data(result).Status(500).Send()
-		}
+		result["memory"] = 0
+		result["cpu"] = 0
+		response.Respond(c).Data(result).Status(200).Send()
 	} else {
 		response.Respond(c).Data(results).Send()
 	}
@@ -563,98 +536,4 @@ func OpenSocket(c *gin.Context) {
 func errorConnection(c *gin.Context, err error) {
 	logging.Exception("error on API call", err)
 	response.Respond(c).Status(500).Data(err).Message("error handling request").Send()
-}
-
-func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []string) {
-	for {
-		msgType, data, err := conn.ReadMessage()
-		if err != nil {
-			logging.Exception("error on reading from websocket", err)
-			return
-		}
-		if msgType != websocket.TextMessage {
-			continue
-		}
-		mapping := make(map[string]interface{})
-
-		err = json.Unmarshal(data, &mapping)
-		if err != nil {
-			logging.Exception("error on decoding websocket message", err)
-			continue
-		}
-
-		messageType := mapping["type"]
-		if _, ok := messageType.(string); ok {
-			switch messageType.(string) {
-			case "stat":
-				{
-					if apufferi.ContainsValue(scopes, "server.stats") {
-						results, err := server.GetEnvironment().GetStats()
-						msg := messages.StatMessage{}
-						if err != nil {
-							_, isOffline := err.(ppErrors.ServerOffline)
-							if isOffline {
-								msg.Cpu = 0
-								msg.Memory = 0
-							}
-						} else {
-							msg.Cpu, _ = results["cpu"].(float64)
-							msg.Memory, _ = results["memory"].(float64)
-						}
-						conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
-						break
-					}
-				}
-			case "start":
-				{
-					if apufferi.ContainsValue(scopes, "server.start") {
-						server.Start()
-					}
-					break
-				}
-			case "stop":
-				{
-					if apufferi.ContainsValue(scopes, "server.stop") {
-						server.Stop()
-					}
-				}
-			case "install":
-				{
-					if apufferi.ContainsValue(scopes, "server.install") {
-						server.Install()
-					}
-				}
-			case "kill":
-				{
-					if apufferi.ContainsValue(scopes, "server.kill") {
-						server.Kill()
-					}
-				}
-			case "reload":
-				{
-					if apufferi.ContainsValue(scopes, "server.reload") {
-						programs.Reload(server.Id())
-					}
-				}
-			case "ping":
-				{
-					result := make(map[string]string)
-					result["ping"] = "pong"
-					conn.WriteJSON(result)
-					break
-				}
-			case "console":
-				{
-					cmd, ok := mapping["command"].(string)
-					if ok {
-						if run, _ := server.IsRunning(); run {
-							server.GetEnvironment().ExecuteInMainProcess(cmd)
-						}
-					}
-				}
-			}
-		} else {
-			logging.Error("message type is not a string, but was %s", reflect.TypeOf(messageType))
-		}
-	}
 }

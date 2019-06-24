@@ -18,14 +18,16 @@ package programs
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/errors"
 	"github.com/pufferpanel/pufferd/programs/operations"
+	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 type ServerJson struct {
@@ -109,7 +111,7 @@ func CreateProgram() ProgramData {
 func (p *ProgramData) Start() (err error) {
 	if !p.IsEnabled() {
 		logging.Error("Server %s is not enabled, cannot start", p.Id())
-		return errors.New("server not enabled")
+		return errors.ErrServerDisabled
 	}
 	if running, err := p.IsRunning(); running || err != nil {
 		return err
@@ -203,7 +205,7 @@ func (p *ProgramData) Destroy() (err error) {
 func (p *ProgramData) Install() (err error) {
 	if !p.IsEnabled() {
 		logging.Error("Server %s is not enabled, cannot install", p.Id())
-		return errors.New("server not enabled")
+		return errors.ErrServerDisabled
 	}
 
 	logging.Debug("Installing server %s", p.Id())
@@ -409,4 +411,104 @@ func (p *ProgramData) afterExit(graceful bool) {
 		p.CrashCounter++
 		StartViaService(p)
 	}
+}
+
+func (p *ProgramData) GetFile(name string) (io.ReadCloser, []FileDesc, error) {
+	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
+	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
+		return nil, nil, errors.ErrIllegalFileAccess
+	}
+
+	info, err := os.Stat(targetFile)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if info.IsDir() {
+		files, _ := ioutil.ReadDir(targetFile)
+		var fileNames []FileDesc
+		offset := 0
+		if name == "" || name == "." || name == "/" {
+			fileNames = make([]FileDesc, len(files))
+		} else {
+			fileNames = make([]FileDesc, len(files)+1)
+			fileNames[0] = FileDesc{
+				Name: "..",
+				File: false,
+			}
+			offset = 1
+		}
+
+		//validate any symlinks are valid
+		files = apufferi.RemoveInvalidSymlinks(files, targetFile, p.GetEnvironment().GetRootDirectory())
+
+		for i, file := range files {
+			newFile := FileDesc{
+				Name: file.Name(),
+				File: !file.IsDir(),
+			}
+
+			if newFile.File {
+				newFile.Size = file.Size()
+				newFile.Modified = file.ModTime().Unix()
+				newFile.Extension = filepath.Ext(file.Name())
+			}
+
+			fileNames[i+offset] = newFile
+		}
+
+		return nil, fileNames, nil
+	} else {
+		file, err := os.Open(targetFile)
+		if err != nil {
+			return nil, nil, err
+		}
+		return file, nil, nil
+	}
+}
+
+func (p *ProgramData) CreateFolder(name string) error {
+	folder := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
+
+	if !apufferi.EnsureAccess(folder, p.GetEnvironment().GetRootDirectory()) {
+		return errors.ErrIllegalFileAccess
+	}
+	return os.Mkdir(folder, 0755)
+}
+
+func (p *ProgramData) PutFile(name string, reader io.Reader) error {
+	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
+
+	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
+		return errors.ErrIllegalFileAccess
+	}
+
+	file, err := os.Create(targetFile)
+	defer apufferi.Close(file)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(file, reader)
+	return err
+}
+
+func (p *ProgramData) DeleteFile(name string) error {
+	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
+
+	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
+		return errors.ErrIllegalFileAccess
+	}
+
+	return os.RemoveAll(targetFile)
+}
+
+type FileDesc struct {
+	Name      string `json:"name"`
+	Modified  int64  `json:"modifyTime"`
+	Size      int64  `json:"size,omitempty"`
+	File      bool   `json:"isFile"`
+	Extension string `json:"extension,omitempty"`
 }

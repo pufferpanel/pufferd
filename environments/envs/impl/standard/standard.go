@@ -17,20 +17,18 @@
 package standard
 
 import (
-	"errors"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"io"
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
 	"fmt"
 	"github.com/pufferpanel/apufferi/logging"
-	ppError "github.com/pufferpanel/pufferd/errors"
+	"github.com/pufferpanel/pufferd/errors"
 	"github.com/shirou/gopsutil/process"
 	"strings"
 )
@@ -48,7 +46,7 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 		return
 	}
 	if running {
-		err = errors.New("process is already running (" + strconv.Itoa(s.mainProcess.Process.Pid) + ")")
+		err = errors.ErrProcessRunning
 		return
 	}
 	s.wait.Wait()
@@ -85,7 +83,7 @@ func (s *standard) ExecuteInMainProcess(cmd string) (err error) {
 		return err
 	}
 	if !running {
-		err = errors.New("main process has not been started")
+		err = errors.ErrServerOffline
 		return
 	}
 	stdIn := s.stdInWriter
@@ -123,7 +121,7 @@ func (s *standard) GetStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	if !running {
-		return nil, ppError.NewServerOffline()
+		return nil, errors.ErrServerOffline
 	}
 	pr, err := process.NewProcess(int32(s.mainProcess.Process.Pid))
 	if err != nil {

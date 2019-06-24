@@ -19,7 +19,6 @@ package docker
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -30,7 +29,7 @@ import (
 	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments/envs"
-	ppError "github.com/pufferpanel/pufferd/errors"
+	"github.com/pufferpanel/pufferd/errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -58,13 +57,13 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 
 	}
 	if running {
-		return errors.New("container is already running")
+		return errors.ErrContainerRunning
 	}
 
 	d.wait.Wait()
 
 	if d.downloadingImage {
-		return errors.New("container image is downloading, cannot execute")
+		return errors.ErrImageDownloading
 	}
 
 	dockerClient, err := d.getClient()
@@ -126,7 +125,7 @@ func (d *docker) ExecuteInMainProcess(cmd string) (err error) {
 		return
 	}
 	if !running {
-		err = errors.New("main process has not been started")
+		err = errors.ErrServerOffline
 		return
 	}
 
@@ -194,7 +193,7 @@ func (d *docker) GetStats() (map[string]interface{}, error) {
 	}
 
 	if !running {
-		return nil, ppError.NewServerOffline()
+		return nil, errors.ErrServerOffline
 	}
 
 	dockerClient, err := d.getClient()
