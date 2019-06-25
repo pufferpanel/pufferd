@@ -117,7 +117,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 							}
 
 							//we are not going to send it via websocket since it's a mess at this stage
-							_ = file.Close()
+							apufferi.Close(file)
 
 							if list != nil {
 								_ = messages.Write(conn, messages.FileListMessage{FileList: list})

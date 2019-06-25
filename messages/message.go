@@ -49,9 +49,9 @@ type PongMessage struct {
 }
 
 type FileListMessage struct {
-	Error string `json:"error"`
-	Url   string `json:"url,omitempty"`
-	FileList []FileDesc
+	Error    string     `json:"error,omitempty"`
+	Url      string     `json:"url,omitempty"`
+	FileList []FileDesc `json:"files,omitempty"`
 }
 
 func (m StatMessage) Key() string {

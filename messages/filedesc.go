@@ -15,7 +15,7 @@ package messages
 
 type FileDesc struct {
 	Name      string `json:"name"`
-	Modified  int64  `json:"modifyTime"`
+	Modified  int64  `json:"modifyTime,omitempty"`
 	Size      int64  `json:"size,omitempty"`
 	File      bool   `json:"isFile"`
 	Extension string `json:"extension,omitempty"`
