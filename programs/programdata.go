@@ -23,6 +23,7 @@ import (
 	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/environments/envs"
 	"github.com/pufferpanel/pufferd/errors"
+	"github.com/pufferpanel/pufferd/messages"
 	"github.com/pufferpanel/pufferd/programs/operations"
 	"io"
 	"io/ioutil"
@@ -413,7 +414,7 @@ func (p *ProgramData) afterExit(graceful bool) {
 	}
 }
 
-func (p *ProgramData) GetItem(name string) (io.ReadCloser, []FileDesc, error) {
+func (p *ProgramData) GetItem(name string) (io.ReadCloser, []messages.FileDesc, error) {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
 		return nil, nil, errors.ErrIllegalFileAccess
@@ -427,13 +428,13 @@ func (p *ProgramData) GetItem(name string) (io.ReadCloser, []FileDesc, error) {
 
 	if info.IsDir() {
 		files, _ := ioutil.ReadDir(targetFile)
-		var fileNames []FileDesc
+		var fileNames []messages.FileDesc
 		offset := 0
 		if name == "" || name == "." || name == "/" {
-			fileNames = make([]FileDesc, len(files))
+			fileNames = make([]messages.FileDesc, len(files))
 		} else {
-			fileNames = make([]FileDesc, len(files)+1)
-			fileNames[0] = FileDesc{
+			fileNames = make([]messages.FileDesc, len(files)+1)
+			fileNames[0] = messages.FileDesc{
 				Name: "..",
 				File: false,
 			}
@@ -444,7 +445,7 @@ func (p *ProgramData) GetItem(name string) (io.ReadCloser, []FileDesc, error) {
 		files = apufferi.RemoveInvalidSymlinks(files, targetFile, p.GetEnvironment().GetRootDirectory())
 
 		for i, file := range files {
-			newFile := FileDesc{
+			newFile := messages.FileDesc{
 				Name: file.Name(),
 				File: !file.IsDir(),
 			}
@@ -496,12 +497,4 @@ func (p *ProgramData) DeleteItem(name string) error {
 	}
 
 	return os.RemoveAll(targetFile)
-}
-
-type FileDesc struct {
-	Name      string `json:"name"`
-	Modified  int64  `json:"modifyTime"`
-	Size      int64  `json:"size,omitempty"`
-	File      bool   `json:"isFile"`
-	Extension string `json:"extension,omitempty"`
 }

@@ -112,7 +112,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 							//can we get a file here?
 							file, list, err := server.GetItem(path)
 							if err != nil {
-								_ = conn.WriteJSON(map[string]string{"error": err.Error()})
+								_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
 								break
 							}
 
@@ -120,9 +120,9 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 							_ = file.Close()
 
 							if list != nil {
-								_ = conn.WriteJSON(list)
+								_ = messages.Write(conn, messages.FileListMessage{FileList: list})
 							} else if file != nil {
-								_ = conn.WriteJSON(map[string]string{"path": path})
+								_ = messages.Write(conn, messages.FileListMessage{Url: path})
 							}
 						}
 					case "delete":
@@ -133,7 +133,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 
 							err := server.DeleteItem(path)
 							if err != nil {
-								_ = conn.WriteJSON(map[string]string{"error": err.Error()})
+								_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
 							}
 						}
 					case "create":
@@ -145,7 +145,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 							err := server.CreateFolder(path)
 
 							if err != nil {
-								_ = conn.WriteJSON(map[string]string{"error": err.Error()})
+								_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
 							}
 						}
 					}

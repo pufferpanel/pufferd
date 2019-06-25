@@ -18,7 +18,6 @@ package messages
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/pufferpanel/pufferd/programs"
 )
 
 type Message interface {
@@ -52,7 +51,7 @@ type PongMessage struct {
 type FileListMessage struct {
 	Error string `json:"error"`
 	Url   string `json:"url,omitempty"`
-	FileList []programs.FileDesc
+	FileList []FileDesc
 }
 
 func (m StatMessage) Key() string {
@@ -69,4 +68,8 @@ func (m PingMessage) Key() string {
 
 func (m PongMessage) Key() string {
 	return "pong"
+}
+
+func (m FileListMessage) Key() string {
+	return "file"
 }

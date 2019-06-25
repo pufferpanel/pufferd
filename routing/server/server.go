@@ -295,9 +295,9 @@ func GetFile(c *gin.Context) {
 
 	if info.IsDir() {
 		files, _ := ioutil.ReadDir(targetFile)
-		fileNames := make([]programs.FileDesc, 0)
+		fileNames := make([]messages.FileDesc, 0)
 		if targetPath != "" && targetPath != "." && targetPath != "/" {
-			newFile := programs.FileDesc{
+			newFile := messages.FileDesc{
 				Name: "..",
 				File: false,
 			}
@@ -308,7 +308,7 @@ func GetFile(c *gin.Context) {
 		files = apufferi.RemoveInvalidSymlinks(files, targetFile, server.GetEnvironment().GetRootDirectory())
 
 		for _, file := range files {
-			newFile := programs.FileDesc{
+			newFile := messages.FileDesc{
 				Name: file.Name(),
 				File: !file.IsDir(),
 			}
@@ -426,8 +426,7 @@ func GetConsole(c *gin.Context) {
 	}
 
 	console, _ := program.GetEnvironment().GetConsole()
-	msg := messages.ConsoleMessage{Logs: console}
-	conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
+	_ = messages.Write(conn, messages.ConsoleMessage{Logs: console})
 
 	program.GetEnvironment().AddListener(conn)
 }
@@ -518,8 +517,7 @@ func OpenSocket(c *gin.Context) {
 	}
 
 	console, _ := program.GetEnvironment().GetConsole()
-	msg := messages.ConsoleMessage{Logs: console}
-	conn.WriteJSON(&messages.Transmission{Message: msg, Type: msg.Key()})
+	_ = messages.Write(conn, messages.ConsoleMessage{Logs: console})
 
 	internalMap, _ := c.Get("serverScopes")
 	scopes := internalMap.(map[string][]string)

@@ -19,6 +19,7 @@ package programs
 import (
 	"container/list"
 	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/messages"
 	"io"
 	"sync"
 	"time"
@@ -76,7 +77,7 @@ type Program interface {
 
 	GetNetwork() string
 
-	GetItem(name string) (io.ReadCloser, []FileDesc, error)
+	GetItem(name string) (io.ReadCloser, []messages.FileDesc, error)
 
 	OpenFile(name string) (io.WriteCloser, error)
 
