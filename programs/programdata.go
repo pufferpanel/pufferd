@@ -414,16 +414,16 @@ func (p *ProgramData) afterExit(graceful bool) {
 	}
 }
 
-func (p *ProgramData) GetItem(name string) (io.ReadCloser, []messages.FileDesc, error) {
+func (p *ProgramData) GetItem(name string) (*FileData, error) {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
-		return nil, nil, errors.ErrIllegalFileAccess
+		return nil, errors.ErrIllegalFileAccess
 	}
 
 	info, err := os.Stat(targetFile)
 
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if info.IsDir() {
@@ -459,13 +459,13 @@ func (p *ProgramData) GetItem(name string) (io.ReadCloser, []messages.FileDesc, 
 			fileNames[i+offset] = newFile
 		}
 
-		return nil, fileNames, nil
+		return &FileData{FileList: fileNames}, nil
 	} else {
 		file, err := os.Open(targetFile)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		return file, nil, nil
+		return &FileData{Contents: file, ContentLength: info.Size(), Name: info.Name()}, nil
 	}
 }
 

@@ -77,7 +77,7 @@ type Program interface {
 
 	GetNetwork() string
 
-	GetItem(name string) (io.ReadCloser, []messages.FileDesc, error)
+	GetItem(name string) (*FileData, error)
 
 	OpenFile(name string) (io.WriteCloser, error)
 
@@ -132,7 +132,14 @@ func processQueue() {
 		}
 		program := next.Value.(Program)
 		if run, _ := program.IsRunning(); !run {
-			program.Start()
+			_ = program.Start()
 		}
 	}
+}
+
+type FileData struct {
+	Contents      io.ReadCloser
+	ContentLength int64
+	FileList      []messages.FileDesc
+	Name          string
 }

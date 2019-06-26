@@ -1,12 +1,15 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/messages"
 	"github.com/pufferpanel/pufferd/programs"
+	"io"
 	"reflect"
 	"strings"
 )
@@ -109,21 +112,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 					switch strings.ToLower(action) {
 					case "get":
 						{
-							//can we get a file here?
-							file, list, err := server.GetItem(path)
-							if err != nil {
-								_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
-								break
-							}
-
-							//we are not going to send it via websocket since it's a mess at this stage
-							apufferi.Close(file)
-
-							if list != nil {
-								_ = messages.Write(conn, messages.FileListMessage{FileList: list})
-							} else if file != nil {
-								_ = messages.Write(conn, messages.FileListMessage{Url: path})
-							}
+							handleGetFile(conn, server, path)
 						}
 					case "delete":
 						{
@@ -155,6 +144,29 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 			}
 		} else {
 			logging.Error("message type is not a string, but was %s", reflect.TypeOf(messageType))
+		}
+	}
+}
+
+func handleGetFile(conn *websocket.Conn, server programs.Program, path string) {
+	data, err := server.GetItem(path)
+	if err != nil {
+		_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
+		return
+	}
+
+	defer apufferi.Close(data.Contents)
+
+	if data.FileList != nil {
+		_ = messages.Write(conn, messages.FileListMessage{FileList: data.FileList})
+	} else if data.Contents != nil {
+		//if the file is small enough, we'll send it over the websocket
+		if data.ContentLength < config.Get().Data.MaxWebsocketDownloadSize {
+			var buf bytes.Buffer
+			_, _ = io.Copy(&buf, data.Contents)
+			_ = messages.Write(conn, messages.FileListMessage{Contents: buf.Bytes(), Filename: data.Name})
+		} else {
+			_ = messages.Write(conn, messages.FileListMessage{Url: path})
 		}
 	}
 }

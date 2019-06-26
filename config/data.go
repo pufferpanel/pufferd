@@ -21,13 +21,14 @@ type Base struct {
 }
 
 type Data struct {
-	ServerFolder   string `json:"servers"`
-	TemplateFolder string `json:"templates"`
-	CacheFolder    string `json:"cache"`
-	ModuleFolder   string `json:"modules"`
-	CrashLimit     int    `json:"crashLimit"`
-	BasePath       string `json:"base"`
-	LogFolder      string `json:"logs"`
+	ServerFolder             string `json:"servers"`
+	TemplateFolder           string `json:"templates"`
+	CacheFolder              string `json:"cache"`
+	ModuleFolder             string `json:"modules"`
+	CrashLimit               int    `json:"crashLimit"`
+	BasePath                 string `json:"base"`
+	LogFolder                string `json:"logs"`
+	MaxWebsocketDownloadSize int64  `json:"maxWSDownloadSize"`
 }
 
 type Console struct {
