@@ -10,6 +10,7 @@ import (
 	"github.com/pufferpanel/pufferd/messages"
 	"github.com/pufferpanel/pufferd/programs"
 	"io"
+	path2 "path"
 	"reflect"
 	"strings"
 )
@@ -115,6 +116,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 							editMode, ok := mapping["edit"].(bool)
 							handleGetFile(conn, server, path, ok && editMode)
 						}
+						break
 					case "delete":
 						{
 							if !apufferi.ContainsValue(scopes, "server.files.delete") {
@@ -124,8 +126,12 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 							err := server.DeleteItem(path)
 							if err != nil {
 								_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
+							} else {
+								//now get the root
+								handleGetFile(conn, server, path2.Dir(path), false)
 							}
 						}
+						break
 					case "create":
 						{
 							if !apufferi.ContainsValue(scopes, "server.files.put") {
@@ -138,6 +144,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 								_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
 							}
 						}
+						break
 					}
 				}
 			default:
