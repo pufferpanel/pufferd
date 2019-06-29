@@ -112,7 +112,8 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 					switch strings.ToLower(action) {
 					case "get":
 						{
-							handleGetFile(conn, server, path)
+							editMode, ok := mapping["edit"].(bool)
+							handleGetFile(conn, server, path, ok && editMode)
 						}
 					case "delete":
 						{
@@ -148,7 +149,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 	}
 }
 
-func handleGetFile(conn *websocket.Conn, server programs.Program, path string) {
+func handleGetFile(conn *websocket.Conn, server programs.Program, path string, editMode bool) {
 	data, err := server.GetItem(path)
 	if err != nil {
 		_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
@@ -161,7 +162,7 @@ func handleGetFile(conn *websocket.Conn, server programs.Program, path string) {
 		_ = messages.Write(conn, messages.FileListMessage{FileList: data.FileList})
 	} else if data.Contents != nil {
 		//if the file is small enough, we'll send it over the websocket
-		if data.ContentLength < config.Get().Data.MaxWebsocketDownloadSize {
+		if editMode && data.ContentLength < config.Get().Data.MaxWebsocketDownloadSize {
 			var buf bytes.Buffer
 			_, _ = io.Copy(&buf, data.Contents)
 			_ = messages.Write(conn, messages.FileListMessage{Contents: buf.Bytes(), Filename: data.Name})
