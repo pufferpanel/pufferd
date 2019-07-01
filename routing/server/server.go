@@ -76,9 +76,9 @@ func RegisterRoutes(e *gin.Engine) {
 
 		l.POST("/:id/install", httphandlers.OAuth2Handler("server.install", true), InstallServer)
 
-		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler("server.file.get", true), GetFile)
-		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler("server.file.put", true), PutFile)
-		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler("server.file.put", true), DeleteFile)
+		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler("server.files", true), GetFile)
+		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler("server.files.put", true), PutFile)
+		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler("server.files.delete", true), DeleteFile)
 
 		l.POST("/:id/console", httphandlers.OAuth2Handler("server.console.send", true), PostConsole)
 		l.GET("/:id/console", httphandlers.OAuth2Handler("server.console", true), cors.Middleware(cors.Config{

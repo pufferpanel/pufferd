@@ -174,7 +174,7 @@ func handleGetFile(conn *websocket.Conn, server programs.Program, path string, e
 			_, _ = io.Copy(&buf, data.Contents)
 			_ = messages.Write(conn, messages.FileListMessage{Contents: buf.Bytes(), Filename: data.Name})
 		} else {
-			_ = messages.Write(conn, messages.FileListMessage{Url: path})
+			_ = messages.Write(conn, messages.FileListMessage{Url: path, Filename: data.Name})
 		}
 	}
 }
