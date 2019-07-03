@@ -49,11 +49,12 @@ type PongMessage struct {
 }
 
 type FileListMessage struct {
-	Error    string     `json:"error,omitempty"`
-	Url      string     `json:"url,omitempty"`
-	FileList []FileDesc `json:"files,omitempty"`
-	Contents []byte     `json:"contents,omitempty"`
-	Filename string     `json:"name,omitempty"`
+	CurrentPath string     `json:"path"`
+	Error       string     `json:"error,omitempty"`
+	Url         string     `json:"url,omitempty"`
+	FileList    []FileDesc `json:"files,omitempty"`
+	Contents    []byte     `json:"contents,omitempty"`
+	Filename    string     `json:"name,omitempty"`
 }
 
 func (m StatMessage) Key() string {

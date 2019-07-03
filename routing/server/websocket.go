@@ -119,7 +119,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 						break
 					case "delete":
 						{
-							if !apufferi.ContainsValue(scopes, "server.files.delete") {
+							if !apufferi.ContainsValue(scopes, "server.files.put") {
 								break
 							}
 
@@ -142,6 +142,8 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 
 							if err != nil {
 								_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
+							} else {
+								handleGetFile(conn, server, path, false)
 							}
 						}
 						break
@@ -166,7 +168,7 @@ func handleGetFile(conn *websocket.Conn, server programs.Program, path string, e
 	defer apufferi.Close(data.Contents)
 
 	if data.FileList != nil {
-		_ = messages.Write(conn, messages.FileListMessage{FileList: data.FileList})
+		_ = messages.Write(conn, messages.FileListMessage{FileList: data.FileList, CurrentPath: path})
 	} else if data.Contents != nil {
 		//if the file is small enough, we'll send it over the websocket
 		if editMode && data.ContentLength < config.Get().Data.MaxWebsocketDownloadSize {
