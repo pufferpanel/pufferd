@@ -26,11 +26,12 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 )
 
 const DOWNLOAD_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads?type=stable&limit=1"
 const RECOMMENDED_API_URL = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads/recommended"
-const FORGE_URL = "http://files.minecraftforge.net/maven/net/minecraftforge/forge/${minecraft}-${forge}/forge-${minecraft}-${forge}-installer.jar"
+const FORGE_URL = "http://files.minecraftforge.net/maven/net/minecraftforge/forge/${forge}/forge-${forge}-installer.jar"
 
 type SpongeForgeDl struct {
 	ReleaseType string
@@ -104,8 +105,11 @@ func (op SpongeForgeDl) Run(env environments.Environment) error {
 	}
 
 	var versionMapping = make(map[string]interface{})
-	versionMapping["forge"] = versionData.Dependencies.Forge
-	versionMapping["minecraft"] = versionData.Dependencies.Minecraft
+	var version = versionData.Dependencies.Forge
+	if !strings.HasPrefix(version, versionData.Dependencies.Minecraft) {
+		version += versionData.Dependencies.Minecraft + "-" + version
+	}
+	versionMapping["forge"] = version
 
 	err := commons.DownloadFile(common.ReplaceTokens(FORGE_URL, versionMapping), "forge-installer.jar", env)
 	if err != nil {
