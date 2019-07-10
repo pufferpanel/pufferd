@@ -17,7 +17,7 @@ variables:
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/pufferpanel/pufferd' # Path to the module's code
   version: $(Build.BuildNumber)
-  majorVersion: 1.2.8
+  majorVersion: 1.2.9
 
 steps:
   - script: |
