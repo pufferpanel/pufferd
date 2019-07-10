@@ -28,13 +28,13 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 )
 
 const DownloadApiUrl = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads?type=stable&limit=1"
 const RecommendedApiUrl = "https://dl-api.spongepowered.org/v1/org.spongepowered/spongeforge/downloads/recommended"
 
 var client = &http.Client{}
-
 type SpongeForgeDl struct {
 	ReleaseType string
 }
@@ -98,7 +98,12 @@ func (op SpongeForgeDl) Run(env envs.Environment) error {
 
 	//convert to a forge operation and have built-in process run this
 	mapping := make(map[string]interface{})
-	mapping["version"] = versionData.Dependencies.Minecraft + "-" + versionData.Dependencies.Forge
+	var version = versionData.Dependencies.Forge
+	if !strings.HasPrefix(version, versionData.Dependencies.Minecraft) {
+		version += versionData.Dependencies.Minecraft + "-" + version
+	}
+
+	mapping["version"] = version
 	mapping["target"] = "forge-installer.jar"
 	forgeDlOp := forgedl.Factory.Create(ops.CreateOperation{OperationArgs: mapping})
 
