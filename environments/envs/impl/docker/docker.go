@@ -100,13 +100,15 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 	go func() {
 		defer d.connection.Close()
 		wrapper := d.CreateWrapper()
-		io.Copy(wrapper, d.connection.Reader)
+		_, _ = io.Copy(wrapper, d.connection.Reader)
 		c, _ := d.getClient()
-		c.ContainerStop(context.Background(), d.ContainerId, nil)
-		time.Sleep(1 * time.Second)
+		err = c.ContainerStop(context.Background(), d.ContainerId, nil)
 		d.wait.Done()
+		if err != nil {
+			logging.Exception("Error stopping container "+d.ContainerId, err)
+		}
 		if callback != nil {
-			callback(true)
+			callback(err == nil)
 		}
 	}()
 
@@ -129,7 +131,7 @@ func (d *docker) ExecuteInMainProcess(cmd string) (err error) {
 		return
 	}
 
-	d.connection.Conn.Write([]byte(cmd + "\n"))
+	_, _ = d.connection.Conn.Write([]byte(cmd + "\n"))
 	return
 }
 
@@ -144,8 +146,10 @@ func (d *docker) Kill() (err error) {
 	}
 
 	dockerClient, err := d.getClient()
-	ctx := context.Background()
-	err = dockerClient.ContainerKill(ctx, d.ContainerId, "SIGKILL")
+	if err != nil {
+		return err
+	}
+	err = dockerClient.ContainerKill(context.Background(), d.ContainerId, "SIGKILL")
 	return
 }
 
@@ -155,13 +159,13 @@ func (d *docker) Create() error {
 		return err
 	}
 
-	go func() {
+	/*go func() {
 		cli, err := d.getClient()
 		if err != nil {
 			return
 		}
 		err = d.pullImage(cli, context.Background(), false)
-	}()
+	}()*/
 
 	return err
 }
@@ -202,21 +206,26 @@ func (d *docker) GetStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	res, err := dockerClient.ContainerStats(context.Background(), d.ContainerId, false)
-	defer apufferi.Close(res.Body)
+	ctx := context.Background()
+	res, err := dockerClient.ContainerStats(ctx, d.ContainerId, false)
+	defer func() {
+		if res.Body != nil {
+			apufferi.Close(res.Body)
+		}
+	}()
 	if err != nil {
 		return nil, err
 	}
 
-	data := make(map[string]interface{})
+	data := &types.StatsJSON{}
 	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
 		return nil, err
 	}
-
 	resultMap := make(map[string]interface{})
-	resultMap["memory"] = 0
-	resultMap["cpu"] = 0
+	resultMap["memory"] = calculateMemoryPercent(data)
+	resultMap["cpu"] = calculateCPUPercent(data)
+
 	return resultMap, nil
 }
 
@@ -317,6 +326,8 @@ func (d *docker) pullImage(client *client.Client, ctx context.Context, force boo
 }
 
 func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd string, args []string, env map[string]string, root string) error {
+	logging.Debug("Creating container")
+	containerRoot := "/var/lib/pufferd/server/"
 	err := d.pullImage(client, ctx, false)
 
 	if err != nil {
@@ -331,9 +342,10 @@ func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd
 		cmdSlice = append(cmdSlice, v)
 	}
 
-	newEnv := os.Environ()
+	//newEnv := os.Environ()
+	newEnv := make([]string, 0)
 	//newEnv["home"] = root
-	newEnv = append(newEnv, "HOME="+root)
+	newEnv = append(newEnv, "HOME="+containerRoot)
 	for k, v := range env {
 		newEnv = append(newEnv, fmt.Sprintf("%s=%s", k, v))
 	}
@@ -361,7 +373,10 @@ func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd
 		Resources:   container.Resources{},
 		Binds:       make([]string, 0),
 	}
-	hostConfig.Binds = append(hostConfig.Binds, root+":"+root)
+
+	config.WorkingDir = containerRoot
+
+	hostConfig.Binds = append(hostConfig.Binds, root+":"+containerRoot)
 
 	networkConfig := &network.NetworkingConfig{}
 
@@ -384,4 +399,25 @@ func (d *docker) SendCode(code int) error {
 
 	ctx := context.Background()
 	return dockerClient.ContainerKill(ctx, d.ContainerId, syscall.Signal(code).String())
+}
+
+func calculateCPUPercent(v *types.StatsJSON) float64 {
+	// Max number of 100ns intervals between the previous time read and now
+	possIntervals := uint64(v.Read.Sub(v.PreRead).Nanoseconds()) // Start with number of ns intervals
+	possIntervals /= 100                                         // Convert to number of 100ns intervals
+	//possIntervals *= uint64(v.NumProcs)                          // Multiple by the number of processors
+
+	// Intervals used
+	intervalsUsed := v.CPUStats.CPUUsage.TotalUsage - v.PreCPUStats.CPUUsage.TotalUsage
+
+	// Percentage avoiding divide-by-zero
+	if possIntervals > 0 {
+		return float64(intervalsUsed) / float64(possIntervals)
+	}
+	return 0.00
+}
+
+
+func calculateMemoryPercent(v *types.StatsJSON) float64 {
+	return float64(v.MemoryStats.Usage) / (1024 * 1024) //convert from bytes to MB
 }

@@ -196,7 +196,9 @@ func InstallServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(programs.Program)
 
-	go prg.Install()
+	go func(p programs.Program) {
+		_ = p.Install()
+	}(prg)
 	response.Respond(c).Send()
 }
 
