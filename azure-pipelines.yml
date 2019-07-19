@@ -40,6 +40,7 @@ steps:
 
 - script: |
     export GOOS=windows
+    export GOARCH=amd64
     dep ensure -v
     go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
@@ -47,8 +48,17 @@ steps:
 
 - script: |
     export GOOS=linux
+    export GOARCH=amd64
     dep ensure -v
     go build -o $(GOPATH)/build/pufferd -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
+  workingDirectory: '$(modulePath)'
+  displayName: 'Linux Build'
+
+- script: |
+    export GOOS=linux
+    export GOARCH=arm
+    dep ensure -v
+    go build -o $(GOPATH)/build/pufferd-arm -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
   workingDirectory: '$(modulePath)'
   displayName: 'Linux Build'
 
@@ -89,6 +99,24 @@ steps:
 
     mkdir $(GOPATH)/build/xenial
     mv *.deb $(GOPATH)/build/xenial
+  displayName: 'Create packages'
+  workingDirectory: systemd/pufferd/xenial
+
+- script: |
+    fpm -s dir -t deb \
+      --name pufferd -v $(version) \
+      --maintainer dev@pufferpanel.com \
+      --deb-user pufferd --deb-group pufferd \
+      --deb-systemd servicefiles/systemd/pufferd \
+      --before-install scripts/preinst.sh \
+      --after-upgrade scripts/postupgrade.sh \
+      --before-remove scripts/prerm.sh \
+      --deb-after-purge scripts/purge.sh \
+      $(GOPATH)/build/pufferd-arm=/usr/sbin/pufferd \
+      $(GOPATH)/build/templates=/var/lib/pufferd/
+
+    mkdir $(GOPATH)/build/buster-arm
+    mv *.deb $(GOPATH)/build/buster-arm
   displayName: 'Create packages'
   workingDirectory: systemd/pufferd/xenial
 
