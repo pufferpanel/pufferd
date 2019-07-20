@@ -112,6 +112,7 @@ steps:
       --after-upgrade scripts/postupgrade.sh \
       --before-remove scripts/prerm.sh \
       --deb-after-purge scripts/purge.sh \
+      -a armhf \
       $(GOPATH)/build/pufferd-arm=/usr/sbin/pufferd \
       $(GOPATH)/build/templates=/var/lib/pufferd/
 
@@ -144,7 +145,6 @@ steps:
       --before-install scripts/preinst.sh \
       --before-remove scripts/prerm.sh \
       --deb-after-purge scripts/purge.sh \
-      -a armhf \
       $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
       $(GOPATH)/build/templates=/var/lib/pufferd/
     
