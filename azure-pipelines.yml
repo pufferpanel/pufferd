@@ -179,7 +179,7 @@ steps:
     mkdir $(GOPATH)/build/buster-arm
     mv *.deb $(GOPATH)/build/buster-arm
   displayName: 'Create packages - buster'
-  workingDirectory: '$(modulePath)/systemd/pufferpanel/xenial'
+  workingDirectory: systemd/pufferd/xenial
 
 - task: PublishPipelineArtifact@0
   inputs:
