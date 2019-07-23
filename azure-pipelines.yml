@@ -112,25 +112,6 @@ steps:
   workingDirectory: systemd/pufferd/xenial
 
 - script: |
-    fpm -s dir -t deb \
-      --name pufferd -v $(version) \
-      --maintainer dev@pufferpanel.com \
-      --deb-user pufferd --deb-group pufferd \
-      --deb-systemd servicefiles/systemd/pufferd \
-      --before-install scripts/preinst.sh \
-      --after-upgrade scripts/postupgrade.sh \
-      --before-remove scripts/prerm.sh \
-      --deb-after-purge scripts/purge.sh \
-      -a armhf \
-      $(GOPATH)/build/pufferd-arm=/usr/sbin/pufferd \
-      $(GOPATH)/build/templates=/var/lib/pufferd/
-
-    mkdir $(GOPATH)/build/buster-arm
-    mv *.deb $(GOPATH)/build/buster-arm
-  displayName: 'Create packages'
-  workingDirectory: systemd/pufferd/xenial
-
-- script: |
     fpm -s deb -t rpm \
       --name pufferd \
       --maintainer dev@pufferpanel.com \
@@ -164,7 +145,7 @@ steps:
 
 - script: |
     fpm -s dir -t deb \
-      --name pufferpanel -v $(version) \
+      --name pufferd -v $(version) \
       --maintainer dev@pufferpanel.com \
       --deb-user pufferpanel --deb-group pufferd \
       --deb-systemd servicefiles/systemd/pufferd \
