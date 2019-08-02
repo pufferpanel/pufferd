@@ -57,6 +57,7 @@ type DataObject struct {
 	Required     bool        `json:"required,omitempty"`
 	Value        interface{} `json:"value,omitempty"`
 	UserEditable bool        `json:"userEdit,omitempty"`
+	Type         string      `json:"type"`
 }
 
 type RunObject struct {
