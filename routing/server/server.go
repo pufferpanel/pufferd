@@ -18,8 +18,10 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/response"
+	"github.com/pufferpanel/pufferd/errors"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -175,7 +177,7 @@ func CreateServer(c *gin.Context) {
 	} else {
 		data := make(map[string]interface{})
 		data["id"] = serverId
-		response.Respond(c).Send()
+		response.Respond(c).Data(data).Send()
 	}
 }
 
@@ -274,64 +276,35 @@ func GetFile(c *gin.Context) {
 	targetPath := c.Param("filename")
 	logging.Debug("Getting following file: %s", targetPath)
 
-	targetFile := apufferi.JoinPath(server.GetEnvironment().GetRootDirectory(), targetPath)
+	data, err := server.GetItem(targetPath)
+	defer apufferi.Close(data.Contents)
 
-	if !apufferi.EnsureAccess(targetFile, server.GetEnvironment().GetRootDirectory()) {
-		response.Respond(c).Status(403).Message("invalid file path").Send()
+	if err != nil {
+		answer := response.Respond(c).Fail()
+		if os.IsNotExist(err) {
+			answer.Status(404)
+		} else if err == errors.ErrIllegalFileAccess {
+			answer.Status(500).Error(err)
+		} else {
+			answer.Status(500).Error(err)
+		}
+		answer.Send()
 		return
 	}
 
-	info, err := os.Stat(targetFile)
+	if data.FileList != nil {
+		response.Respond(c).Data(data.FileList).Send()
+	} else if data.Contents != nil {
+		fileName := filepath.Base(data.Name)
 
-	if err != nil {
-		if os.IsNotExist(err) {
-			response.Respond(c).Status(404).Send()
-			return
-		} else {
-			errorConnection(c, err)
-			return
-		}
-	}
-
-	if info.IsDir() {
-		files, _ := ioutil.ReadDir(targetFile)
-		fileNames := make([]messages.FileDesc, 0)
-		if targetPath != "" && targetPath != "." && targetPath != "/" {
-			newFile := messages.FileDesc{
-				Name: "..",
-				File: false,
-			}
-			fileNames = append(fileNames, newFile)
+		extraHeaders := map[string]string{
+			"Content-Disposition": fmt.Sprintf(`attachment; filename="%s"`, fileName),
 		}
 
-		//validate any symlinks are valid
-		files = apufferi.RemoveInvalidSymlinks(files, targetFile, server.GetEnvironment().GetRootDirectory())
-
-		for _, file := range files {
-			newFile := messages.FileDesc{
-				Name: file.Name(),
-				File: !file.IsDir(),
-			}
-
-			if newFile.File {
-				newFile.Size = file.Size()
-				newFile.Modified = file.ModTime().Unix()
-				newFile.Extension = filepath.Ext(file.Name())
-			}
-
-			fileNames = append(fileNames, newFile)
-		}
-		response.Respond(c).Data(fileNames).Send()
+		c.DataFromReader(gohttp.StatusOK, data.ContentLength, "application/octet-stream", data.Contents, extraHeaders)
 	} else {
-		_, err := os.Open(targetFile)
-		if err != nil {
-			if err == os.ErrNotExist {
-				response.Respond(c).Status(404).Send()
-			} else {
-				errorConnection(c, err)
-			}
-		}
-		c.File(targetFile)
+		//uhhhhhhhhhhhhh
+		response.Respond(c).Fail().Send()
 	}
 }
 
