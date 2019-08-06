@@ -22,8 +22,8 @@ import (
 	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/pufferd/cache"
 	"github.com/pufferpanel/pufferd/environments/envs"
-	"github.com/pufferpanel/pufferd/environments/envs/impl/docker"
-	"github.com/pufferpanel/pufferd/environments/envs/impl/standard"
+	"github.com/pufferpanel/pufferd/environments/impl/docker"
+	"github.com/pufferpanel/pufferd/environments/impl/standard"
 	"github.com/pufferpanel/pufferd/utils"
 )
 

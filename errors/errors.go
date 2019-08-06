@@ -24,3 +24,4 @@ var ErrServerDisabled = apufferi.CreateError("server is disabled", "ErrServerDis
 var ErrContainerRunning = apufferi.CreateError("container already running", "ErrContainerRunning")
 var ErrImageDownloading = apufferi.CreateError("image downloading", "ErrImageDownloading")
 var ErrProcessRunning = apufferi.CreateError("process already running", "ErrProcessRunning")
+var ErrMissingFactory = apufferi.CreateError("missing factory", "ErrMissingFactory")

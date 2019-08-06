@@ -20,15 +20,16 @@ import (
 	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/errors"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/command"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/download"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/forgedl"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/mkdir"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/mojangdl"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/move"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/spongeforgedl"
+	"github.com/pufferpanel/pufferd/programs/operations/impl/writefile"
 	"github.com/pufferpanel/pufferd/programs/operations/ops"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/command"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/download"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/forgedl"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/mkdir"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/mojangdl"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/move"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/spongeforgedl"
-	"github.com/pufferpanel/pufferd/programs/operations/ops/impl/writefile"
 )
 
 var commandMapping map[string]ops.OperationFactory
@@ -41,20 +42,26 @@ func LoadOperations() {
 	loadOpModules()
 }
 
-func GenerateProcess(directions []map[string]interface{}, environment envs.Environment, dataMapping map[string]interface{}, env map[string]string) OperationProcess {
+func GenerateProcess(directions []map[string]interface{}, environment envs.Environment, dataMapping map[string]interface{}, env map[string]string) (OperationProcess, error) {
 	dataMap := make(map[string]interface{})
 	for k, v := range dataMapping {
 		dataMap[k] = v
 	}
 
-	//DEPRECATED: This will be removed in 1.4/2.0. This key should have been camelCased.
-	dataMap["rootdir"] = environment.GetRootDirectory()
-
 	dataMap["rootDir"] = environment.GetRootDirectory()
 	operationList := make([]ops.Operation, 0)
 	for _, mapping := range directions {
 
-		factory := commandMapping[mapping["type"].(string)]
+		factoryName, ok := mapping["type"].(string)
+		if !ok {
+			return OperationProcess{}, errors.ErrMissingFactory
+		}
+
+		factory := commandMapping[factoryName]
+
+		if factory == nil {
+			return OperationProcess{}, errors.ErrMissingFactory
+		}
 
 		mapCopy := make(map[string]interface{}, 0)
 
@@ -100,7 +107,7 @@ func GenerateProcess(directions []map[string]interface{}, environment envs.Envir
 
 		operationList = append(operationList, op)
 	}
-	return OperationProcess{processInstructions: operationList}
+	return OperationProcess{processInstructions: operationList}, nil
 }
 
 type OperationProcess struct {

@@ -57,8 +57,8 @@ type DataObject struct {
 	Required     bool        `json:"required,omitempty"`
 	Value        interface{} `json:"value,omitempty"`
 	UserEditable bool        `json:"userEdit,omitempty"`
-	Type         string      `json:"type"`
-	Options      []string `json:"options"`
+	Type         string      `json:"type,omitempty"`
+	Options      []string    `json:"options,omitempty"`
 }
 
 type RunObject struct {
@@ -76,7 +76,7 @@ type RunObject struct {
 }
 
 type InstallSection struct {
-	Operations []map[string]interface{} `json:"commands,,omitempty"`
+	Operations []map[string]interface{} `json:"commands,omitempty"`
 }
 
 func (p ProgramData) DataToMap() map[string]interface{} {
@@ -127,7 +127,12 @@ func (p *ProgramData) Start() (err error) {
 		data[k] = v.Value
 	}
 
-	process := operations.GenerateProcess(p.RunData.Pre, p.Environment, p.DataToMap(), p.RunData.EnvironmentVariables)
+	process, err := operations.GenerateProcess(p.RunData.Pre, p.Environment, p.DataToMap(), p.RunData.EnvironmentVariables)
+	if err != nil {
+		p.Environment.DisplayToConsole("Error running pre execute, check daemon logs\n")
+		return
+	}
+
 	err = process.Run(p.Environment)
 	if err != nil {
 		p.Environment.DisplayToConsole("Error running pre execute, check daemon logs\n")
@@ -195,7 +200,12 @@ func (p *ProgramData) Create() (err error) {
 //This will delete the server, environment, and any files related to it.
 func (p *ProgramData) Destroy() (err error) {
 	logging.Debug("Destroying server %s", p.Id())
-	process := operations.GenerateProcess(p.UninstallData.Operations, p.Environment, p.DataToMap(), p.RunData.EnvironmentVariables)
+	process, err := operations.GenerateProcess(p.UninstallData.Operations, p.Environment, p.DataToMap(), p.RunData.EnvironmentVariables)
+	if err != nil {
+		p.Environment.DisplayToConsole("Error running uninstall, check daemon logs\n")
+		return
+	}
+
 	err = process.Run(p.Environment)
 	if err != nil {
 		p.Environment.DisplayToConsole("Error running uninstall, check daemon logs\n")
@@ -235,6 +245,7 @@ func (p *ProgramData) Install() (err error) {
 	if err != nil || !os.IsExist(err) {
 		logging.Exception("error creating server directory", err)
 		p.Environment.DisplayToConsole("Error installing server\n")
+		return
 	}
 
 	var process operations.OperationProcess
@@ -256,11 +267,14 @@ func (p *ProgramData) Install() (err error) {
 			return err
 		}
 
-		process = operations.GenerateProcess(templateJson.ProgramData.InstallData.Operations, p.GetEnvironment(), p.DataToMap(), p.RunData.EnvironmentVariables)
+		process, err = operations.GenerateProcess(templateJson.ProgramData.InstallData.Operations, p.GetEnvironment(), p.DataToMap(), p.RunData.EnvironmentVariables)
 
 	} else {
 		logging.Debug("Server %s has defined install data", p.Id())
-		process = operations.GenerateProcess(p.InstallData.Operations, p.GetEnvironment(), p.DataToMap(), p.RunData.EnvironmentVariables)
+		process, err = operations.GenerateProcess(p.InstallData.Operations, p.GetEnvironment(), p.DataToMap(), p.RunData.EnvironmentVariables)
+	}
+	if err != nil {
+		p.Environment.DisplayToConsole("Error running installer, check daemon logs\n")
 	}
 
 	err = process.Run(p.Environment)
@@ -364,11 +378,15 @@ func (p *ProgramData) GetNetwork() string {
 	port := "0"
 
 	if ipData, ok := data["ip"]; ok {
-		ip = ipData.Value.(string)
+		if _, ok = ipData.Value.(string); ok {
+			ip = ipData.Value.(string)
+		}
 	}
 
 	if portData, ok := data["port"]; ok {
-		port = portData.Value.(string)
+		if _, ok = portData.Value.(string); ok {
+			port = portData.Value.(string)
+		}
 	}
 
 	return ip + ":" + port
@@ -392,12 +410,16 @@ func (p *ProgramData) afterExit(graceful bool) {
 	mapping := p.DataToMap()
 	mapping["success"] = graceful
 
-	processes := operations.GenerateProcess(p.RunData.Post, p.Environment, mapping, p.RunData.EnvironmentVariables)
-
+	processes, err := operations.GenerateProcess(p.RunData.Post, p.Environment, mapping, p.RunData.EnvironmentVariables)
+	if err != nil {
+		logging.Error("Error running post processing")
+		p.Environment.DisplayToConsole("Error executing post steps\n")
+		return
+	}
 	p.Environment.DisplayToConsole("Running post-execution steps\n")
 	logging.Debug("Running post execution steps: %s", p.Id())
 
-	err := processes.Run(p.Environment)
+	err = processes.Run(p.Environment)
 	if err != nil {
 		logging.Error("Error running post processing")
 		p.Environment.DisplayToConsole("Error executing post steps\n")
