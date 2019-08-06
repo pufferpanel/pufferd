@@ -159,7 +159,7 @@ func CreateServer(c *gin.Context) {
 		return
 	}
 
-	createData := programs.ProgramData{}
+	createData := programs.Program{}
 	err := json.NewDecoder(c.Request.Body).Decode(&createData)
 
 	if err != nil {
@@ -169,7 +169,7 @@ func CreateServer(c *gin.Context) {
 	}
 
 	data := createData.DataToMap()
-	environment := createData.EnvironmentData
+	environment := createData.Server.Environment
 	typeServer := createData.Type
 
 	if !programs.Create(serverId, typeServer, data, environment) {

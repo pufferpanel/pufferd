@@ -38,7 +38,7 @@ func LoadModules() {
 	loadAdditionalModules(mapping)
 }
 
-func Create(environmentType, folder, id string, environmentSection map[string]interface{}) (envs.Environment, error) {
+func Create(environmentType, folder, id string, environmentSection apufferi.TypeWithMetadata) (envs.Environment, error) {
 	factory := mapping[environmentType]
 
 	if factory == nil {
@@ -46,11 +46,11 @@ func Create(environmentType, folder, id string, environmentSection map[string]in
 	}
 
 	serverRoot := apufferi.JoinPath(folder, id)
-	rootDirectory := apufferi.GetStringOrDefault(environmentSection, "root", serverRoot)
+	rootDirectory := apufferi.GetStringOrDefault(environmentSection.Metadata, "root", serverRoot)
 	envCache := cache.CreateCache()
 	wsManager := utils.CreateWSManager()
 
-	env := factory.Create(folder, id, environmentSection, rootDirectory, envCache, wsManager)
+	env := factory.Create(folder, id, environmentSection.Metadata, rootDirectory, envCache, wsManager)
 
 	return env, nil
 }

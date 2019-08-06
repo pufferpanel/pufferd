@@ -46,7 +46,7 @@ func Shutdown() *sync.WaitGroup {
 	prgs := programs.GetAll()
 	wg.Add(len(prgs))
 	for _, element := range prgs {
-		go func(e programs.Program) {
+		go func(e *programs.Program) {
 			defer wg.Done()
 			defer func() {
 				if err := recover(); err != nil {

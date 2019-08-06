@@ -76,8 +76,7 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 				return
 			}
 
-			var program programs.Program
-			program, _ = programs.Get(serverId)
+			program, _ := programs.Get(serverId)
 			if program == nil {
 				response.Respond(gin).Fail().Status(404).Message("no server with id " + serverId).Send()
 				return

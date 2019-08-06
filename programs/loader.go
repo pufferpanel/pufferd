@@ -33,7 +33,7 @@ import (
 )
 
 var (
-	allPrograms    = make([]Program, 0)
+	allPrograms    = make([]*Program, 0)
 	ServerFolder   string
 	TemplateFolder string
 )
@@ -54,7 +54,7 @@ func LoadFromFolder() {
 	if err != nil {
 		logging.Critical("Error reading from server data folder: %s", err)
 	}
-	var program Program
+	var program *Program
 	for _, element := range programFiles {
 		if element.IsDir() {
 			continue
@@ -70,7 +70,7 @@ func LoadFromFolder() {
 	}
 }
 
-func Get(id string) (program Program, err error) {
+func Get(id string) (program *Program, err error) {
 	program = GetFromCache(id)
 	if program == nil {
 		program, err = Load(id)
@@ -78,11 +78,11 @@ func Get(id string) (program Program, err error) {
 	return
 }
 
-func GetAll() []Program {
+func GetAll() []*Program {
 	return allPrograms
 }
 
-func Load(id string) (program Program, err error) {
+func Load(id string) (program *Program, err error) {
 	var data []byte
 	data, err = ioutil.ReadFile(apufferi.JoinPath(ServerFolder, id+".json"))
 	if len(data) == 0 || err != nil {
@@ -92,27 +92,24 @@ func Load(id string) (program Program, err error) {
 	return
 }
 
-func LoadFromData(id string, source []byte) (program Program, err error) {
-	data := ServerJson{}
-	data.ProgramData = CreateProgram()
-	err = json.Unmarshal(source, &data)
+func LoadFromData(id string, source []byte) (*Program, error) {
+	data := CreateProgram()
+	err := json.Unmarshal(source, &data)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	data.ProgramData.Identifier = id
+	data.Identifier = id
 
-	environmentType := apufferi.GetStringOrDefault(data.ProgramData.EnvironmentData, "type", "standard")
-
-	data.ProgramData.Environment, err = environments.Create(environmentType, ServerFolder, id, data.ProgramData.EnvironmentData)
+	environmentType := data.Server.Environment.Type
+	data.Environment, err = environments.Create(environmentType, ServerFolder, id, data.Server.Environment)
 	if err != nil {
-		return
+		return nil, err
 	}
-	program = &data.ProgramData
-	return
+	return data, nil
 }
 
-func Create(id string, serverType string, data map[string]interface{}, env map[string]interface{}) bool {
+func Create(id string, serverType string, data map[string]interface{}, env apufferi.TypeWithMetadata) bool {
 	if GetFromCache(id) != nil {
 		return false
 	}
@@ -123,11 +120,8 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 		return false
 	}
 
-	templateJson := ProgramTemplate{Core: ProgramTemplateData{}}
-
-	templateJson.Core.ProgramData = CreateProgram()
-	templateJson.Core.ProgramData.Identifier = id
-	templateJson.Core.ProgramData.Template = serverType
+	templateJson := apufferi.Template{}
+	templateJson.Identifier = id
 	err = json.Unmarshal(templateData, &templateJson)
 
 	if err != nil {
@@ -136,16 +130,16 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 	}
 
 	if data != nil {
-		mapper := templateJson.Core.ProgramData.Data
+		mapper := templateJson.Variables
 		if mapper == nil {
-			mapper = make(map[string]DataObject, 0)
+			mapper = make(map[string]apufferi.Variable, 0)
 		}
 		for k, v := range data {
 			if d, ok := mapper[k]; ok {
 				d.Value = v
 				mapper[k] = d
 			} else {
-				newMap := DataObject{
+				newMap := apufferi.Variable{
 					Value:       v,
 					Description: "No Description",
 					Display:     k,
@@ -155,10 +149,11 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 				mapper[k] = newMap
 			}
 		}
-		templateJson.Core.ProgramData.Data = mapper
+		templateJson.Variables = mapper
 	}
 
-	program := templateJson.Create(env)
+	templateJson.Environment = env
+	templateJson.SupportedEnvironments = make([]apufferi.TypeWithMetadata, 0)
 
 	f, err := os.Create(apufferi.JoinPath(ServerFolder, id+".json"))
 	defer apufferi.Close(f)
@@ -170,21 +165,21 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 	encoder := json.NewEncoder(f)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", "  ")
-	err = encoder.Encode(program)
+	err = encoder.Encode(templateJson)
 
 	if err != nil {
 		logging.Exception("error writing server", err)
 		return false
 	}
 
-	newData, err := json.Marshal(program)
+	newData, err := json.Marshal(templateJson)
 
 	if err != nil {
 		logging.Exception("error writing server", err)
 		return false
 	}
 
-	program, _ = LoadFromData(id, newData)
+	program, _ := LoadFromData(id, newData)
 	allPrograms = append(allPrograms, program)
 	err = program.Create()
 	return err == nil
@@ -192,7 +187,7 @@ func Create(id string, serverType string, data map[string]interface{}, env map[s
 
 func Delete(id string) (err error) {
 	var index int
-	var program Program
+	var program *Program
 	for i, element := range allPrograms {
 		if element.Id() == id {
 			program = element
@@ -228,7 +223,7 @@ func Delete(id string) (err error) {
 	return
 }
 
-func GetFromCache(id string) Program {
+func GetFromCache(id string) *Program {
 	for _, element := range allPrograms {
 		if element != nil && element.Id() == id {
 			return element
@@ -248,24 +243,19 @@ func Save(id string) (err error) {
 }
 
 func Reload(id string) (err error) {
-	temp := GetFromCache(id)
-	if temp == nil {
+	program := GetFromCache(id)
+	if program == nil {
 		err = errors.New("server does not exist")
 		return
 	}
-	logging.Info("Reloading server %s", temp.Id())
-	//have to cast it for this to work
-	program, _ := temp.(*ProgramData)
-
+	logging.Info("Reloading server %s", program.Id())
 	newVersion, err := Load(id)
 	if err != nil {
 		logging.Exception("error reloading server", err)
 		return
 	}
 
-	newV2 := newVersion.(*ProgramData)
-
-	program.CopyFrom(newV2)
+	program.CopyFrom(newVersion)
 	return
 }
 
@@ -288,19 +278,19 @@ func GetPlugins() map[string]interface{} {
 	return mapping
 }
 
-func GetPlugin(name string) (ProgramTemplateData, error) {
+func GetPlugin(name string) (apufferi.Template, error) {
 	templateData, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, name+".json"))
 	if err != nil {
-		return ProgramTemplateData{}, err
+		return apufferi.Template{}, err
 	}
 
-	var template ProgramTemplate
+	var template apufferi.Template
 	err = json.Unmarshal(templateData, &template)
 	if err != nil {
 		logging.Exception(fmt.Sprintf("Malformed json for program %s", name), err)
-		return ProgramTemplateData{}, err
+		return apufferi.Template{}, err
 	}
-	return template.Core, nil
+	return template, nil
 }
 
 func GetPluginReadme(name string) (string, error) {

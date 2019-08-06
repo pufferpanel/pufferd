@@ -42,7 +42,7 @@ func LoadOperations() {
 	loadOpModules()
 }
 
-func GenerateProcess(directions []map[string]interface{}, environment envs.Environment, dataMapping map[string]interface{}, env map[string]string) (OperationProcess, error) {
+func GenerateProcess(directions []apufferi.TypeWithMetadata, environment envs.Environment, dataMapping map[string]interface{}, env map[string]string) (OperationProcess, error) {
 	dataMap := make(map[string]interface{})
 	for k, v := range dataMapping {
 		dataMap[k] = v
@@ -52,12 +52,7 @@ func GenerateProcess(directions []map[string]interface{}, environment envs.Envir
 	operationList := make([]ops.Operation, 0)
 	for _, mapping := range directions {
 
-		factoryName, ok := mapping["type"].(string)
-		if !ok {
-			return OperationProcess{}, errors.ErrMissingFactory
-		}
-
-		factory := commandMapping[factoryName]
+		factory := commandMapping[mapping.Type]
 
 		if factory == nil {
 			return OperationProcess{}, errors.ErrMissingFactory
@@ -66,30 +61,30 @@ func GenerateProcess(directions []map[string]interface{}, environment envs.Envir
 		mapCopy := make(map[string]interface{}, 0)
 
 		//replace tokens
-		for k, v := range mapping {
-			if k == "type" {
-				continue
-			}
-
+		for k, v := range mapping.Metadata {
 			switch v.(type) {
-			case string: {
-				mapCopy[k] = apufferi.ReplaceTokens(v.(string), dataMap)
-			}
-			case []string: {
-				mapCopy[k] = apufferi.ReplaceTokensInArr(v.([]string), dataMap)
-			}
-			case map[string]string: {
-				mapCopy[k] = apufferi.ReplaceTokensInMap(v.(map[string]string), dataMap)
-			}
-			case []interface{}: {
-				//if we can convert this to a string list, we can work with it
-				temp := apufferi.ToStringArray(v)
-				if len(temp) == len(v.([]interface{})) {
-					mapCopy[k] = apufferi.ReplaceTokensInArr(temp, dataMap)
-				} else {
-					mapCopy[k] = v
+			case string:
+				{
+					mapCopy[k] = apufferi.ReplaceTokens(v.(string), dataMap)
 				}
-			}
+			case []string:
+				{
+					mapCopy[k] = apufferi.ReplaceTokensInArr(v.([]string), dataMap)
+				}
+			case map[string]string:
+				{
+					mapCopy[k] = apufferi.ReplaceTokensInMap(v.(map[string]string), dataMap)
+				}
+			case []interface{}:
+				{
+					//if we can convert this to a string list, we can work with it
+					temp := apufferi.ToStringArray(v)
+					if len(temp) == len(v.([]interface{})) {
+						mapCopy[k] = apufferi.ReplaceTokensInArr(temp, dataMap)
+					} else {
+						mapCopy[k] = v
+					}
+				}
 			default:
 				mapCopy[k] = v
 			}
