@@ -31,8 +31,8 @@ type EnvironmentFactory struct {
 
 func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) envs.Environment {
 	t := &tty{BaseEnvironment: &envs.BaseEnvironment{Type: "tty"}}
-	BaseEnvironment.ExecutionFunction = t.ttyExecuteAsync
-	BaseEnvironment.WaitFunction = t.WaitForMainProcess
+	t.BaseEnvironment.ExecutionFunction = t.ttyExecuteAsync
+	t.BaseEnvironment.WaitFunction = t.WaitForMainProcess
 	t.wait = &sync.WaitGroup{}
 
 	t.RootDirectory = rootDirectory
