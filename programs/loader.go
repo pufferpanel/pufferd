@@ -109,53 +109,12 @@ func LoadFromData(id string, source []byte) (*Program, error) {
 	return data, nil
 }
 
-func Create(id string, serverType string, data map[string]interface{}, env apufferi.TypeWithMetadata) bool {
-	if GetFromCache(id) != nil {
+func Create(program *Program) bool {
+	if GetFromCache(program.Id()) != nil {
 		return false
 	}
 
-	templateData, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, serverType+".json"))
-	if err != nil {
-		logging.Exception(fmt.Sprintf("Error reading template file for type %s", serverType), err)
-		return false
-	}
-
-	templateJson := apufferi.Template{}
-	templateJson.Identifier = id
-	err = json.Unmarshal(templateData, &templateJson)
-
-	if err != nil {
-		logging.Exception(fmt.Sprintf("Error reading template file for type %s", serverType), err)
-		return false
-	}
-
-	if data != nil {
-		mapper := templateJson.Variables
-		if mapper == nil {
-			mapper = make(map[string]apufferi.Variable, 0)
-		}
-		for k, v := range data {
-			if d, ok := mapper[k]; ok {
-				d.Value = v
-				mapper[k] = d
-			} else {
-				newMap := apufferi.Variable{
-					Value:       v,
-					Description: "No Description",
-					Display:     k,
-					Required:    false,
-					Internal:    true,
-				}
-				mapper[k] = newMap
-			}
-		}
-		templateJson.Variables = mapper
-	}
-
-	templateJson.Environment = env
-	templateJson.SupportedEnvironments = make([]apufferi.TypeWithMetadata, 0)
-
-	f, err := os.Create(apufferi.JoinPath(ServerFolder, id+".json"))
+	f, err := os.Create(apufferi.JoinPath(ServerFolder, program.Id()+".json"))
 	defer apufferi.Close(f)
 	if err != nil {
 		logging.Exception("error writing server", err)
@@ -165,21 +124,13 @@ func Create(id string, serverType string, data map[string]interface{}, env apuff
 	encoder := json.NewEncoder(f)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", "  ")
-	err = encoder.Encode(templateJson)
+	err = encoder.Encode(program)
 
 	if err != nil {
 		logging.Exception("error writing server", err)
 		return false
 	}
 
-	newData, err := json.Marshal(templateJson)
-
-	if err != nil {
-		logging.Exception("error writing server", err)
-		return false
-	}
-
-	program, _ := LoadFromData(id, newData)
 	allPrograms = append(allPrograms, program)
 	err = program.Create()
 	return err == nil

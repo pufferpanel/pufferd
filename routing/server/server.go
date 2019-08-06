@@ -159,8 +159,8 @@ func CreateServer(c *gin.Context) {
 		return
 	}
 
-	createData := programs.Program{}
-	err := json.NewDecoder(c.Request.Body).Decode(&createData)
+	prg = &programs.Program{}
+	err := json.NewDecoder(c.Request.Body).Decode(prg)
 
 	if err != nil {
 		logging.Exception("error decoding JSON body", err)
@@ -168,11 +168,9 @@ func CreateServer(c *gin.Context) {
 		return
 	}
 
-	data := createData.DataToMap()
-	environment := createData.Server.Environment
-	typeServer := createData.Type
+	prg.Identifier = serverId
 
-	if !programs.Create(serverId, typeServer, data, environment) {
+	if !programs.Create(prg) {
 		errorConnection(c, nil)
 	} else {
 		data := make(map[string]interface{})
