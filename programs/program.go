@@ -85,7 +85,7 @@ func processQueue() {
 		if next == nil {
 			continue
 		}
-		program := next.Value.(Program)
+		program := next.Value.(*Program)
 		if run, _ := program.IsRunning(); !run {
 			_ = program.Start()
 		}

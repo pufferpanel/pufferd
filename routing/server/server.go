@@ -277,7 +277,11 @@ func GetFile(c *gin.Context) {
 	logging.Debug("Getting following file: %s", targetPath)
 
 	data, err := server.GetItem(targetPath)
-	defer apufferi.Close(data.Contents)
+	defer func() {
+		if data != nil {
+			apufferi.Close(data.Contents)
+		}
+	}()
 
 	if err != nil {
 		answer := response.Respond(c).Fail()
