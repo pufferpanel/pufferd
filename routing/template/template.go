@@ -36,59 +36,59 @@ func RegisterRoutes(e *gin.Engine) {
 }
 
 func GetTemplates(c *gin.Context) {
-	response.Respond(c).Data(programs.GetPlugins()).Send()
+	response.From(c).Data(programs.GetPlugins())
 }
 
 func GetTemplate(c *gin.Context) {
 	name, exists := c.GetQuery("id")
 	if !exists || name == "" {
-		response.Respond(c).Fail().Status(400).Message("no template name provided").Send()
+		response.From(c).Fail().Status(400).Message("no template name provided")
 		return
 	}
 	data, err := programs.GetPlugin(name)
 	if err != nil {
 		if os.IsNotExist(err) {
-			response.Respond(c).Fail().Status(404).Message("no template with provided name").Send()
+			response.From(c).Fail().Status(404).Message("no template with provided name")
 		} else {
-			response.Respond(c).Fail().Status(500).Message("error reading template").Send()
+			response.From(c).Fail().Status(500).Message("error reading template")
 		}
 	} else {
-		response.Respond(c).Status(200).Data(data).Send()
+		response.From(c).Status(200).Data(data)
 	}
 }
 
 func GetTemplateReadme(c *gin.Context) {
 	name, exists := c.GetQuery("id")
 	if !exists || name == "" {
-		response.Respond(c).Fail().Status(400).Message("no template name provided").Send()
+		response.From(c).Fail().Status(400).Message("no template name provided")
 		return
 	}
 	data, err := programs.GetPluginReadme(name)
 	if err != nil {
 		if os.IsNotExist(err) {
-			response.Respond(c).Fail().Status(404).Message("no template readme with provided name").Send()
+			response.From(c).Fail().Status(404).Message("no template readme with provided name")
 		} else {
-			response.Respond(c).Fail().Status(500).Message("error reading template readme").Send()
+			response.From(c).Fail().Status(500).Message("error reading template readme")
 		}
 	} else {
-		response.Respond(c).Status(200).Data(data).Send()
+		response.From(c).Status(200).Data(data)
 	}
 }
 
 func EditTemplate(c *gin.Context) {
 	name, exists := c.GetQuery("id")
 	if !exists || name == "" {
-		response.Respond(c).Fail().Status(400).Message("no template name provided").Send()
+		response.From(c).Fail().Status(400).Message("no template name provided")
 		return
 	}
 	data, err := programs.GetPlugin(name)
 	if err != nil {
 		if os.IsNotExist(err) {
-			response.Respond(c).Fail().Status(404).Message("no template with provided name").Send()
+			response.From(c).Fail().Status(404).Message("no template with provided name")
 		} else {
-			response.Respond(c).Fail().Status(500).Message("error reading template").Send()
+			response.From(c).Fail().Status(500).Message("error reading template")
 		}
 	} else {
-		response.Respond(c).Status(200).Data(data).Send()
+		response.From(c).Status(200).Data(data)
 	}
 }

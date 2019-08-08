@@ -34,7 +34,7 @@ func ConfigureWeb() *gin.Engine {
 		r.Use(gin.Recovery())
 		r.Use(gin.LoggerWithWriter(logging.AsWriter(logging.INFO)))
 		r.Use(func(c *gin.Context) {
-			middleware.ExecuteAndRecover(c)
+			middleware.ResponseAndRecover(c)
 		})
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
@@ -48,7 +48,7 @@ func ConfigureWeb() *gin.Engine {
 
 func RegisterRoutes(e *gin.Engine) {
 	e.GET("", func(c *gin.Context) {
-		response.Respond(c).Message("pufferd is running").Send()
+		response.From(c).Message("pufferd is running")
 	})
 	e.HEAD("", func(c *gin.Context) {
 		c.Status(200)
@@ -57,6 +57,6 @@ func RegisterRoutes(e *gin.Engine) {
 }
 
 func Shutdown(c *gin.Context) {
-	response.Respond(c).Message("shutting down").Send()
+	response.From(c).Message("shutting down")
 	go shutdown.CompleteShutdown()
 }

@@ -107,9 +107,9 @@ func StartServer(c *gin.Context) {
 
 	err := server.Start()
 	if err != nil {
-		response.Respond(c).Status(500).Data(err).Message("error starting server").Send()
+		response.From(c).Status(500).Data(err).Message("error starting server")
 	} else {
-		response.Respond(c).Send()
+		response.From(c)
 	}
 }
 
@@ -132,7 +132,6 @@ func StopServer(c *gin.Context) {
 			return
 		}
 	}
-	response.Respond(c).Send()
 }
 
 func KillServer(c *gin.Context) {
@@ -144,8 +143,6 @@ func KillServer(c *gin.Context) {
 		errorConnection(c, err)
 		return
 	}
-
-	response.Respond(c).Send()
 }
 
 func CreateServer(c *gin.Context) {
@@ -157,7 +154,7 @@ func CreateServer(c *gin.Context) {
 	prg, _ := programs.Get(serverId)
 
 	if prg != nil {
-		response.Respond(c).Status(409).Message("server already exists").Send()
+		response.From(c).Status(409).Message("server already exists")
 		return
 	}
 
@@ -166,7 +163,7 @@ func CreateServer(c *gin.Context) {
 
 	if err != nil {
 		logging.Exception("error decoding JSON body", err)
-		response.Respond(c).Status(400).Message("error parsing json").Data(err).Send()
+		response.From(c).Status(400).Message("error parsing json").Data(err)
 		return
 	}
 
@@ -177,7 +174,7 @@ func CreateServer(c *gin.Context) {
 	} else {
 		data := make(map[string]interface{})
 		data["id"] = serverId
-		response.Respond(c).Data(data).Send()
+		response.From(c).Data(data)
 	}
 }
 
@@ -186,9 +183,7 @@ func DeleteServer(c *gin.Context) {
 	prg := item.(programs.Program)
 	err := programs.Delete(prg.Id())
 	if err != nil {
-		response.Respond(c).Status(500).Data(err).Message("error deleting server").Send()
-	} else {
-		response.Respond(c).Send()
+		response.From(c).Status(500).Data(err).Message("error deleting server")
 	}
 }
 
@@ -199,7 +194,6 @@ func InstallServer(c *gin.Context) {
 	go func(p programs.Program) {
 		_ = p.Install()
 	}(prg)
-	response.Respond(c).Send()
 }
 
 func EditServer(c *gin.Context) {
@@ -209,15 +203,14 @@ func EditServer(c *gin.Context) {
 	data := make(map[string]interface{}, 0)
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+		response.From(c).Status(500).Data(err).Message("error editing server")
+		return
 	}
 
 	err = prg.Edit(data, false)
 
 	if err != nil {
-		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
-	} else {
-		response.Respond(c).Send()
+		response.From(c).Status(500).Data(err).Message("error editing server")
 	}
 }
 
@@ -228,15 +221,14 @@ func EditServerAdmin(c *gin.Context) {
 	data := &admin{}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
 	if err != nil {
-		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
+		response.From(c).Status(500).Data(err).Message("error editing server")
+		return
 	}
 
 	err = prg.Edit(data.Data, true)
 
 	if err != nil {
-		response.Respond(c).Status(500).Data(err).Message("error editing server").Send()
-	} else {
-		response.Respond(c).Send()
+		response.From(c).Status(500).Data(err).Message("error editing server")
 	}
 }
 
@@ -246,9 +238,7 @@ func ReloadServer(c *gin.Context) {
 
 	err := programs.Reload(prg.Id())
 	if err != nil {
-		response.Respond(c).Status(500).Data(err).Message("error reloading server").Send()
-	} else {
-		response.Respond(c).Send()
+		response.From(c).Status(500).Data(err).Message("error reloading server")
 	}
 }
 
@@ -260,13 +250,13 @@ func GetServer(c *gin.Context) {
 	result := make(map[string]interface{}, 0)
 	result["data"] = data
 
-	response.Respond(c).Data(data).Send()
+	response.From(c).Data(data)
 }
 
 func GetServerAdmin(c *gin.Context) {
 	item, _ := c.Get("server")
 
-	response.Respond(c).Data(item).Send()
+	response.From(c).Data(item)
 }
 
 func GetFile(c *gin.Context) {
@@ -284,7 +274,7 @@ func GetFile(c *gin.Context) {
 	}()
 
 	if err != nil {
-		answer := response.Respond(c).Fail()
+		answer := response.From(c).Fail()
 		if os.IsNotExist(err) {
 			answer.Status(404)
 		} else if err == errors.ErrIllegalFileAccess {
@@ -292,12 +282,11 @@ func GetFile(c *gin.Context) {
 		} else {
 			answer.Status(500).Error(err)
 		}
-		answer.Send()
 		return
 	}
 
 	if data.FileList != nil {
-		response.Respond(c).Data(data.FileList).Send()
+		response.From(c).Data(data.FileList)
 	} else if data.Contents != nil {
 		fileName := filepath.Base(data.Name)
 
@@ -305,10 +294,12 @@ func GetFile(c *gin.Context) {
 			"Content-Disposition": fmt.Sprintf(`attachment; filename="%s"`, fileName),
 		}
 
+		//discard the built-in response, we cannot use this one at all
+		response.From(c).Discard()
 		c.DataFromReader(gohttp.StatusOK, data.ContentLength, "application/octet-stream", data.Contents, extraHeaders)
 	} else {
 		//uhhhhhhhhhhhhh
-		response.Respond(c).Fail().Send()
+		response.From(c).Fail()
 	}
 }
 
@@ -331,7 +322,7 @@ func PutFile(c *gin.Context) {
 		if err != nil {
 			errorConnection(c, err)
 		} else {
-			response.Respond(c).Send()
+			response.From(c)
 		}
 		return
 	}
@@ -357,8 +348,6 @@ func PutFile(c *gin.Context) {
 		_, err = io.Copy(file, sourceFile)
 		if err != nil {
 			errorConnection(c, err)
-		} else {
-			response.Respond(c).Send()
 		}
 	}
 }
@@ -372,8 +361,6 @@ func DeleteFile(c *gin.Context) {
 	err := server.DeleteItem(targetPath)
 	if err != nil {
 		errorConnection(c, err)
-	} else {
-		response.Respond(c).Send()
 	}
 }
 
@@ -386,8 +373,6 @@ func PostConsole(c *gin.Context) {
 	err := prg.Execute(cmd)
 	if err != nil {
 		errorConnection(c, err)
-	} else {
-		response.Respond(c).Send()
 	}
 }
 
@@ -401,6 +386,8 @@ func GetConsole(c *gin.Context) {
 		errorConnection(c, err)
 		return
 	}
+
+	response.From(c).Discard()
 
 	console, _ := program.GetEnvironment().GetConsole()
 	_ = messages.Write(conn, messages.ConsoleMessage{Logs: console})
@@ -417,16 +404,16 @@ func GetStats(c *gin.Context) {
 		result := make(map[string]interface{})
 		result["memory"] = 0
 		result["cpu"] = 0
-		response.Respond(c).Data(result).Status(200).Send()
+		response.From(c).Data(result)
 	} else {
-		response.Respond(c).Data(results).Send()
+		response.From(c).Data(results)
 	}
 }
 
 func NetworkServer(c *gin.Context) {
 	s := c.DefaultQuery("ids", "")
 	if s == "" {
-		response.Respond(c).Status(400).Message("no server ids provided").Send()
+		response.From(c).Status(400).Message("no server ids provided")
 		return
 	}
 	ids := strings.Split(s, ",")
@@ -438,7 +425,7 @@ func NetworkServer(c *gin.Context) {
 		}
 		result[program.Id()] = program.GetNetwork()
 	}
-	response.Respond(c).Data(result).Send()
+	response.From(c).Data(result)
 }
 
 func GetLogs(c *gin.Context) {
@@ -451,7 +438,7 @@ func GetLogs(c *gin.Context) {
 
 	if ok != nil {
 		//c.AbortWithError(400, errors.New("Time provided is not a valid UNIX time"))
-		response.Respond(c).Message("time provided is not a valid UNIX time").Send()
+		response.From(c).Fail().Status(400).Message("time provided is not a valid UNIX time")
 		return
 	}
 
@@ -463,7 +450,7 @@ func GetLogs(c *gin.Context) {
 	result := make(map[string]interface{})
 	result["epoch"] = epoch
 	result["logs"] = msg
-	response.Respond(c).Data(result).Send()
+	response.From(c).Data(result)
 }
 
 func GetStatus(c *gin.Context) {
@@ -475,10 +462,10 @@ func GetStatus(c *gin.Context) {
 
 	if err != nil {
 		result["error"] = err.Error()
-		response.Respond(c).Data(result).Status(500).Send()
+		response.From(c).Data(result).Status(500)
 	} else {
 		result["running"] = running
-		response.Respond(c).Data(result).Send()
+		response.From(c).Data(result)
 	}
 }
 
@@ -506,7 +493,7 @@ func OpenSocket(c *gin.Context) {
 
 func errorConnection(c *gin.Context, err error) {
 	logging.Exception("error on API call", err)
-	response.Respond(c).Status(500).Data(err).Message("error handling request").Send()
+	response.From(c).Status(500).Data(err).Message("error handling request")
 }
 
 type admin struct {
