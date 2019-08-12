@@ -33,8 +33,8 @@ import (
 )
 
 var (
-	allPrograms    = make([]*Program, 0)
-	ServerFolder   string
+	allPrograms  = make([]*Program, 0)
+	ServerFolder string
 )
 
 func Initialize() {
@@ -112,6 +112,18 @@ func Create(program *Program) bool {
 		return false
 	}
 
+	var err error
+
+	defer func() {
+		if err != nil {
+			//revert since we have an error
+			_ = os.Remove(apufferi.JoinPath(ServerFolder, program.Id()+".json"))
+			if program.Environment != nil {
+				_ = program.Environment.Delete()
+			}
+		}
+	}()
+
 	f, err := os.Create(apufferi.JoinPath(ServerFolder, program.Id()+".json"))
 	defer apufferi.Close(f)
 	if err != nil {
@@ -132,9 +144,13 @@ func Create(program *Program) bool {
 	environmentType := program.Server.Environment.Type
 	program.Environment, err = environments.Create(environmentType, ServerFolder, program.Id(), program.Server.Environment)
 
-	allPrograms = append(allPrograms, program)
 	err = program.Create()
-	return err == nil
+	if err != nil {
+		return false
+	}
+
+	allPrograms = append(allPrograms, program)
+	return true
 }
 
 func Delete(id string) (err error) {
