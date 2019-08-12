@@ -57,48 +57,48 @@ func RegisterRoutes(e *gin.Engine) {
 			c.Header("Access-Control-Allow-Origin", "*")
 			c.Header("Access-Control-Allow-Credentials", "false")
 		})
-		l.PUT("/:id", httphandlers.OAuth2Handler("server.create", false), CreateServer)
-		l.DELETE("/:id", httphandlers.OAuth2Handler("server.delete", true), DeleteServer)
+		l.PUT("/:id", httphandlers.OAuth2Handler("servers.create", false), CreateServer)
+		l.DELETE("/:id", httphandlers.OAuth2Handler("servers.delete", true), DeleteServer)
 
-		l.GET("/:id", httphandlers.OAuth2Handler("server.edit.admin", true), GetServerAdmin)
-		l.POST("/:id", httphandlers.OAuth2Handler("server.edit.admin", true), EditServerAdmin)
+		l.GET("/:id", httphandlers.OAuth2Handler("servers.edit.admin", true), GetServerAdmin)
+		l.POST("/:id", httphandlers.OAuth2Handler("servers.edit.admin", true), EditServerAdmin)
 
-		l.GET("/:id/data", httphandlers.OAuth2Handler("server.edit", true), GetServer)
-		l.POST("/:id/data", httphandlers.OAuth2Handler("server.edit", true), EditServer)
+		l.GET("/:id/data", httphandlers.OAuth2Handler("servers.edit", true), GetServer)
+		l.POST("/:id/data", httphandlers.OAuth2Handler("servers.edit", true), EditServer)
 
-		l.POST("/:id/reload", httphandlers.OAuth2Handler("server.edit.admin", true), ReloadServer)
+		l.POST("/:id/reload", httphandlers.OAuth2Handler("servers.edit.admin", true), ReloadServer)
 
-		l.GET("/:id/start", httphandlers.OAuth2Handler("server.start", true), StartServer)
-		l.GET("/:id/stop", httphandlers.OAuth2Handler("server.stop", true), StopServer)
-		l.GET("/:id/kill", httphandlers.OAuth2Handler("server.stop", true), KillServer)
+		l.GET("/:id/start", httphandlers.OAuth2Handler("servers.start", true), StartServer)
+		l.GET("/:id/stop", httphandlers.OAuth2Handler("servers.stop", true), StopServer)
+		l.GET("/:id/kill", httphandlers.OAuth2Handler("servers.stop", true), KillServer)
 
-		l.POST("/:id/start", httphandlers.OAuth2Handler("server.start", true), StartServer)
-		l.POST("/:id/stop", httphandlers.OAuth2Handler("server.stop", true), StopServer)
-		l.POST("/:id/kill", httphandlers.OAuth2Handler("server.stop", true), KillServer)
+		l.POST("/:id/start", httphandlers.OAuth2Handler("servers.start", true), StartServer)
+		l.POST("/:id/stop", httphandlers.OAuth2Handler("servers.stop", true), StopServer)
+		l.POST("/:id/kill", httphandlers.OAuth2Handler("servers.stop", true), KillServer)
 
-		l.POST("/:id/install", httphandlers.OAuth2Handler("server.install", true), InstallServer)
+		l.POST("/:id/install", httphandlers.OAuth2Handler("servers.install", true), InstallServer)
 
-		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler("server.files", true), GetFile)
-		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler("server.files.put", true), PutFile)
-		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler("server.files.delete", true), DeleteFile)
+		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler("servers.files", true), GetFile)
+		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler("servers.files.put", true), PutFile)
+		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler("servers.files.delete", true), DeleteFile)
 
-		l.POST("/:id/console", httphandlers.OAuth2Handler("server.console.send", true), PostConsole)
-		l.GET("/:id/console", httphandlers.OAuth2Handler("server.console", true), cors.Middleware(cors.Config{
+		l.POST("/:id/console", httphandlers.OAuth2Handler("servers.console.send", true), PostConsole)
+		l.GET("/:id/console", httphandlers.OAuth2Handler("servers.console", true), cors.Middleware(cors.Config{
 			Origins:     "*",
 			Credentials: true,
 		}), GetConsole)
-		l.GET("/:id/logs", httphandlers.OAuth2Handler("server.console", true), GetLogs)
+		l.GET("/:id/logs", httphandlers.OAuth2Handler("servers.console", true), GetLogs)
 
-		l.GET("/:id/stats", httphandlers.OAuth2Handler("server.stats", true), GetStats)
-		l.GET("/:id/status", httphandlers.OAuth2Handler("server.stats", true), GetStatus)
+		l.GET("/:id/stats", httphandlers.OAuth2Handler("servers.stats", true), GetStats)
+		l.GET("/:id/status", httphandlers.OAuth2Handler("servers.stats", true), GetStatus)
 
-		l.GET("/:id/socket", httphandlers.OAuth2Handler("server.console", true), cors.Middleware(cors.Config{
+		l.GET("/:id/socket", httphandlers.OAuth2Handler("servers.console", true), cors.Middleware(cors.Config{
 			Origins:     "*",
 			Credentials: true,
 		}), OpenSocket)
 	}
-	l.POST("", httphandlers.OAuth2Handler("server.create", false), CreateServer)
-	e.GET("/network", httphandlers.OAuth2Handler("server.network", false), NetworkServer)
+	l.POST("", httphandlers.OAuth2Handler("servers.create", false), CreateServer)
+	e.GET("/network", httphandlers.OAuth2Handler("servers.network", false), NetworkServer)
 }
 
 func StartServer(c *gin.Context) {

@@ -129,6 +129,9 @@ func Create(program *Program) bool {
 		return false
 	}
 
+	environmentType := program.Server.Environment.Type
+	program.Environment, err = environments.Create(environmentType, ServerFolder, program.Id(), program.Server.Environment)
+
 	allPrograms = append(allPrograms, program)
 	err = program.Create()
 	return err == nil
