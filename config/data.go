@@ -22,7 +22,6 @@ type Base struct {
 
 type Data struct {
 	ServerFolder             string `json:"servers"`
-	TemplateFolder           string `json:"templates"`
 	CacheFolder              string `json:"cache"`
 	ModuleFolder             string `json:"modules"`
 	CrashLimit               int    `json:"crashLimit"`

@@ -35,12 +35,10 @@ import (
 var (
 	allPrograms    = make([]*Program, 0)
 	ServerFolder   string
-	TemplateFolder string
 )
 
 func Initialize() {
 	ServerFolder = config.Get().Data.ServerFolder
-	TemplateFolder = config.Get().Data.TemplateFolder
 
 	operations.LoadOperations()
 }
@@ -208,47 +206,4 @@ func Reload(id string) (err error) {
 
 	program.CopyFrom(newVersion)
 	return
-}
-
-func GetPlugins() map[string]interface{} {
-	temps, _ := ioutil.ReadDir(TemplateFolder)
-
-	mapping := make(map[string]interface{})
-
-	for _, element := range temps {
-		if element.IsDir() {
-			continue
-		}
-		name := strings.TrimSuffix(element.Name(), filepath.Ext(element.Name()))
-		data, err := GetPlugin(name)
-		if err == nil {
-			mapping[name] = data
-		}
-	}
-
-	return mapping
-}
-
-func GetPlugin(name string) (apufferi.Template, error) {
-	templateData, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, name+".json"))
-	if err != nil {
-		return apufferi.Template{}, err
-	}
-
-	var template apufferi.Template
-	err = json.Unmarshal(templateData, &template)
-	if err != nil {
-		logging.Exception(fmt.Sprintf("Malformed json for program %s", name), err)
-		return apufferi.Template{}, err
-	}
-	return template, nil
-}
-
-func GetPluginReadme(name string) (string, error) {
-	data, err := ioutil.ReadFile(apufferi.JoinPath(TemplateFolder, name+".md"))
-	if err != nil {
-		return "", err
-	}
-
-	return string(data), nil
 }

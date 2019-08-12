@@ -21,10 +21,8 @@ import (
 	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/apufferi/middleware"
 	"github.com/pufferpanel/apufferi/response"
-	"github.com/pufferpanel/pufferd/httphandlers"
 	"github.com/pufferpanel/pufferd/oauth2"
 	"github.com/pufferpanel/pufferd/routing/server"
-	"github.com/pufferpanel/pufferd/routing/template"
 	"github.com/pufferpanel/pufferd/shutdown"
 )
 
@@ -38,7 +36,6 @@ func ConfigureWeb() *gin.Engine {
 		})
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
-		template.RegisterRoutes(r)
 	}
 
 	oauth2.RefreshToken()
@@ -53,7 +50,7 @@ func RegisterRoutes(e *gin.Engine) {
 	e.HEAD("", func(c *gin.Context) {
 		c.Status(200)
 	})
-	e.GET("/_shutdown", httphandlers.OAuth2Handler("node.stop", false), Shutdown)
+	//e.GET("/_shutdown", httphandlers.OAuth2Handler("node.stop", false), Shutdown)
 }
 
 func Shutdown(c *gin.Context) {

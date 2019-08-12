@@ -58,7 +58,6 @@ func init() {
 	global.Data = Data{
 		CacheFolder:    path.Join(baseDataPath, "cache"),
 		ServerFolder:   path.Join(baseDataPath, "servers"),
-		TemplateFolder: path.Join(baseDataPath, "templates"),
 		ModuleFolder:   path.Join(baseDataPath, "modules"),
 		BasePath:       baseDataPath,
 		LogFolder:      logPath,

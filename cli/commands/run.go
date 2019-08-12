@@ -55,14 +55,6 @@ func runRun() error {
 
 	var err error
 
-	if _, err = os.Stat(programs.TemplateFolder); os.IsNotExist(err) {
-		logging.Info("No template directory found, creating")
-		err = os.MkdirAll(programs.TemplateFolder, 0755)
-		if err != nil && !os.IsExist(err) {
-			return err
-		}
-	}
-
 	if _, err = os.Stat(programs.ServerFolder); os.IsNotExist(err) {
 		logging.Info("No server directory found, creating")
 		err = os.MkdirAll(programs.ServerFolder, 0755)
