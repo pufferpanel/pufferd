@@ -103,7 +103,7 @@ func RegisterRoutes(e *gin.Engine) {
 
 func StartServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	server := item.(*programs.Program)
 
 	err := server.Start()
 	if err != nil {
@@ -115,7 +115,7 @@ func StartServer(c *gin.Context) {
 
 func StopServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	server := item.(*programs.Program)
 
 	_, wait := c.GetQuery("wait")
 
@@ -136,7 +136,7 @@ func StopServer(c *gin.Context) {
 
 func KillServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	server := item.(*programs.Program)
 
 	err := server.Kill()
 	if err != nil {
@@ -180,7 +180,7 @@ func CreateServer(c *gin.Context) {
 
 func DeleteServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	prg := item.(programs.Program)
+	prg := item.(*programs.Program)
 	err := programs.Delete(prg.Id())
 	if err != nil {
 		response.From(c).Status(500).Data(err).Message("error deleting server")
@@ -189,16 +189,16 @@ func DeleteServer(c *gin.Context) {
 
 func InstallServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	prg := item.(programs.Program)
+	prg := item.(*programs.Program)
 
-	go func(p programs.Program) {
+	go func(p *programs.Program) {
 		_ = p.Install()
 	}(prg)
 }
 
 func EditServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	prg := item.(programs.Program)
+	prg := item.(*programs.Program)
 
 	data := make(map[string]interface{}, 0)
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
@@ -216,7 +216,7 @@ func EditServer(c *gin.Context) {
 
 func EditServerAdmin(c *gin.Context) {
 	item, _ := c.Get("server")
-	prg := item.(programs.Program)
+	prg := item.(*programs.Program)
 
 	data := &admin{}
 	err := json.NewDecoder(c.Request.Body).Decode(&data)
@@ -234,7 +234,7 @@ func EditServerAdmin(c *gin.Context) {
 
 func ReloadServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	prg := item.(programs.Program)
+	prg := item.(*programs.Program)
 
 	err := programs.Reload(prg.Id())
 	if err != nil {
@@ -244,7 +244,7 @@ func ReloadServer(c *gin.Context) {
 
 func GetServer(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	server := item.(*programs.Program)
 
 	data := server.GetData()
 	result := make(map[string]interface{}, 0)
@@ -261,7 +261,7 @@ func GetServerAdmin(c *gin.Context) {
 
 func GetFile(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	server := item.(*programs.Program)
 
 	targetPath := c.Param("filename")
 	logging.Debug("Getting following file: %s", targetPath)
@@ -305,7 +305,7 @@ func GetFile(c *gin.Context) {
 
 func PutFile(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	server := item.(*programs.Program)
 
 	targetPath := c.Param("filename")
 
@@ -354,7 +354,7 @@ func PutFile(c *gin.Context) {
 
 func DeleteFile(c *gin.Context) {
 	item, _ := c.Get("server")
-	server := item.(programs.Program)
+	server := item.(*programs.Program)
 
 	targetPath := c.Param("filename")
 
@@ -366,7 +366,7 @@ func DeleteFile(c *gin.Context) {
 
 func PostConsole(c *gin.Context) {
 	item, _ := c.Get("server")
-	prg := item.(programs.Program)
+	prg := item.(*programs.Program)
 
 	d, _ := ioutil.ReadAll(c.Request.Body)
 	cmd := string(d)
@@ -378,7 +378,7 @@ func PostConsole(c *gin.Context) {
 
 func GetConsole(c *gin.Context) {
 	item, _ := c.Get("server")
-	program := item.(programs.Program)
+	program := item.(*programs.Program)
 
 	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -397,7 +397,7 @@ func GetConsole(c *gin.Context) {
 
 func GetStats(c *gin.Context) {
 	item, _ := c.Get("server")
-	svr := item.(programs.Program)
+	svr := item.(*programs.Program)
 
 	results, err := svr.GetEnvironment().GetStats()
 	if err != nil {
@@ -430,7 +430,7 @@ func NetworkServer(c *gin.Context) {
 
 func GetLogs(c *gin.Context) {
 	item, _ := c.Get("server")
-	program := item.(programs.Program)
+	program := item.(*programs.Program)
 
 	time := c.DefaultQuery("time", "0")
 
@@ -455,7 +455,7 @@ func GetLogs(c *gin.Context) {
 
 func GetStatus(c *gin.Context) {
 	item, _ := c.Get("server")
-	program := item.(programs.Program)
+	program := item.(*programs.Program)
 
 	running, err := program.IsRunning()
 	result := make(map[string]interface{})
@@ -471,7 +471,7 @@ func GetStatus(c *gin.Context) {
 
 func OpenSocket(c *gin.Context) {
 	item, _ := c.Get("server")
-	program := item.(programs.Program)
+	program := item.(*programs.Program)
 
 	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {

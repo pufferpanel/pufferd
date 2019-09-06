@@ -32,6 +32,9 @@ func ConfigureWeb() *gin.Engine {
 		r.Use(gin.Recovery())
 		r.Use(gin.LoggerWithWriter(logging.AsWriter(logging.INFO)))
 		r.Use(func(c *gin.Context) {
+			if c.GetHeader("Connection") == "Upgrade" {
+				return
+			}
 			middleware.ResponseAndRecover(c)
 		})
 		RegisterRoutes(r)

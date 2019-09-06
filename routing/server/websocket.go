@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []string) {
+func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []string) {
 	for {
 		msgType, data, err := conn.ReadMessage()
 		if err != nil {
@@ -38,7 +38,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 			switch strings.ToLower(message) {
 			case "stat":
 				{
-					if apufferi.ContainsValue(scopes, "server.stats") {
+					if apufferi.ContainsValue(scopes, "servers.stats") {
 						results, err := server.GetEnvironment().GetStats()
 						msg := messages.StatMessage{}
 						if err != nil {
@@ -53,32 +53,32 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 				}
 			case "start":
 				{
-					if apufferi.ContainsValue(scopes, "server.start") {
+					if apufferi.ContainsValue(scopes, "servers.start") {
 						_ = server.Start()
 					}
 					break
 				}
 			case "stop":
 				{
-					if apufferi.ContainsValue(scopes, "server.stop") {
+					if apufferi.ContainsValue(scopes, "servers.stop") {
 						_ = server.Stop()
 					}
 				}
 			case "install":
 				{
-					if apufferi.ContainsValue(scopes, "server.install") {
+					if apufferi.ContainsValue(scopes, "servers.install") {
 						_ = server.Install()
 					}
 				}
 			case "kill":
 				{
-					if apufferi.ContainsValue(scopes, "server.kill") {
+					if apufferi.ContainsValue(scopes, "servers.kill") {
 						_ = server.Kill()
 					}
 				}
 			case "reload":
 				{
-					if apufferi.ContainsValue(scopes, "server.reload") {
+					if apufferi.ContainsValue(scopes, "servers.reload") {
 						_ = programs.Reload(server.Id())
 					}
 				}
@@ -97,7 +97,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 				}
 			case "file":
 				{
-					if !apufferi.ContainsValue(scopes, "server.files") {
+					if !apufferi.ContainsValue(scopes, "servers.files") {
 						break
 					}
 
@@ -119,7 +119,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 						break
 					case "delete":
 						{
-							if !apufferi.ContainsValue(scopes, "server.files.put") {
+							if !apufferi.ContainsValue(scopes, "servers.files.put") {
 								break
 							}
 
@@ -134,7 +134,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 						break
 					case "create":
 						{
-							if !apufferi.ContainsValue(scopes, "server.files.put") {
+							if !apufferi.ContainsValue(scopes, "servers.files.put") {
 								break
 							}
 
@@ -158,7 +158,7 @@ func listenOnSocket(conn *websocket.Conn, server programs.Program, scopes []stri
 	}
 }
 
-func handleGetFile(conn *websocket.Conn, server programs.Program, path string, editMode bool) {
+func handleGetFile(conn *websocket.Conn, server *programs.Program, path string, editMode bool) {
 	data, err := server.GetItem(path)
 	if err != nil {
 		_ = messages.Write(conn, messages.FileListMessage{Error: err.Error()})
