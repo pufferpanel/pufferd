@@ -19,9 +19,16 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/itsjamie/gin-cors"
 	"github.com/pufferpanel/apufferi"
+	"github.com/pufferpanel/apufferi/logging"
 	"github.com/pufferpanel/apufferi/response"
+	"github.com/pufferpanel/apufferi/scope"
 	"github.com/pufferpanel/pufferd/errors"
+	"github.com/pufferpanel/pufferd/httphandlers"
+	"github.com/pufferpanel/pufferd/programs"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -29,14 +36,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"github.com/itsjamie/gin-cors"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/httphandlers"
-	"github.com/pufferpanel/pufferd/programs"
 
 	"github.com/pufferpanel/pufferd/messages"
 	"github.com/satori/go.uuid"
@@ -57,48 +56,47 @@ func RegisterRoutes(e *gin.Engine) {
 			c.Header("Access-Control-Allow-Origin", "*")
 			c.Header("Access-Control-Allow-Credentials", "false")
 		})
-		l.PUT("/:id", httphandlers.OAuth2Handler("servers.create", false), CreateServer)
-		l.DELETE("/:id", httphandlers.OAuth2Handler("servers.delete", true), DeleteServer)
+		l.PUT("/:id", httphandlers.OAuth2Handler(scope.ServersCreate, false), CreateServer)
+		l.DELETE("/:id", httphandlers.OAuth2Handler(scope.ServersDelete, true), DeleteServer)
 
-		l.GET("/:id", httphandlers.OAuth2Handler("servers.edit.admin", true), GetServerAdmin)
-		l.POST("/:id", httphandlers.OAuth2Handler("servers.edit.admin", true), EditServerAdmin)
+		l.GET("/:id", httphandlers.OAuth2Handler(scope.ServersEditAdmin, true), GetServerAdmin)
+		l.POST("/:id", httphandlers.OAuth2Handler(scope.ServersEditAdmin, true), EditServerAdmin)
 
-		l.GET("/:id/data", httphandlers.OAuth2Handler("servers.edit", true), GetServer)
-		l.POST("/:id/data", httphandlers.OAuth2Handler("servers.edit", true), EditServer)
+		l.GET("/:id/data", httphandlers.OAuth2Handler(scope.ServersEdit, true), GetServer)
+		l.POST("/:id/data", httphandlers.OAuth2Handler(scope.ServersEdit, true), EditServer)
 
-		l.POST("/:id/reload", httphandlers.OAuth2Handler("servers.edit.admin", true), ReloadServer)
+		l.POST("/:id/reload", httphandlers.OAuth2Handler(scope.ServersEditAdmin, true), ReloadServer)
 
-		l.GET("/:id/start", httphandlers.OAuth2Handler("servers.start", true), StartServer)
-		l.GET("/:id/stop", httphandlers.OAuth2Handler("servers.stop", true), StopServer)
-		l.GET("/:id/kill", httphandlers.OAuth2Handler("servers.stop", true), KillServer)
+		l.GET("/:id/start", httphandlers.OAuth2Handler(scope.ServersStart, true), StartServer)
+		l.GET("/:id/stop", httphandlers.OAuth2Handler(scope.ServersStop, true), StopServer)
+		l.GET("/:id/kill", httphandlers.OAuth2Handler(scope.ServersStop, true), KillServer)
 
-		l.POST("/:id/start", httphandlers.OAuth2Handler("servers.start", true), StartServer)
-		l.POST("/:id/stop", httphandlers.OAuth2Handler("servers.stop", true), StopServer)
-		l.POST("/:id/kill", httphandlers.OAuth2Handler("servers.stop", true), KillServer)
+		l.POST("/:id/start", httphandlers.OAuth2Handler(scope.ServersStart, true), StartServer)
+		l.POST("/:id/stop", httphandlers.OAuth2Handler(scope.ServersStop, true), StopServer)
+		l.POST("/:id/kill", httphandlers.OAuth2Handler(scope.ServersStop, true), KillServer)
 
-		l.POST("/:id/install", httphandlers.OAuth2Handler("servers.install", true), InstallServer)
+		l.POST("/:id/install", httphandlers.OAuth2Handler(scope.ServersInstall, true), InstallServer)
 
-		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler("servers.files", true), GetFile)
-		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler("servers.files.put", true), PutFile)
-		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler("servers.files.delete", true), DeleteFile)
+		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesGet, true), GetFile)
+		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), PutFile)
+		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), DeleteFile)
 
-		l.POST("/:id/console", httphandlers.OAuth2Handler("servers.console.send", true), PostConsole)
-		l.GET("/:id/console", httphandlers.OAuth2Handler("servers.console", true), cors.Middleware(cors.Config{
+		l.POST("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsoleSend, true), PostConsole)
+		l.GET("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsole, true), cors.Middleware(cors.Config{
 			Origins:     "*",
 			Credentials: true,
 		}), GetConsole)
-		l.GET("/:id/logs", httphandlers.OAuth2Handler("servers.console", true), GetLogs)
+		l.GET("/:id/logs", httphandlers.OAuth2Handler(scope.ServersConsole, true), GetLogs)
 
-		l.GET("/:id/stats", httphandlers.OAuth2Handler("servers.stats", true), GetStats)
-		l.GET("/:id/status", httphandlers.OAuth2Handler("servers.stats", true), GetStatus)
+		l.GET("/:id/stats", httphandlers.OAuth2Handler(scope.ServersStat, true), GetStats)
+		l.GET("/:id/status", httphandlers.OAuth2Handler(scope.ServersStat, true), GetStatus)
 
-		l.GET("/:id/socket", httphandlers.OAuth2Handler("servers.console", true), cors.Middleware(cors.Config{
+		l.GET("/:id/socket", httphandlers.OAuth2Handler(scope.ServersConsole, true), cors.Middleware(cors.Config{
 			Origins:     "*",
 			Credentials: true,
 		}), OpenSocket)
 	}
-	l.POST("", httphandlers.OAuth2Handler("servers.create", false), CreateServer)
-	e.GET("/network", httphandlers.OAuth2Handler("servers.network", false), NetworkServer)
+	l.POST("", httphandlers.OAuth2Handler(scope.ServersCreate, false), CreateServer)
 }
 
 func StartServer(c *gin.Context) {
@@ -408,24 +406,6 @@ func GetStats(c *gin.Context) {
 	} else {
 		response.From(c).Data(results)
 	}
-}
-
-func NetworkServer(c *gin.Context) {
-	s := c.DefaultQuery("ids", "")
-	if s == "" {
-		response.From(c).Status(400).Message("no server ids provided")
-		return
-	}
-	ids := strings.Split(s, ",")
-	result := make(map[string]string)
-	for _, v := range ids {
-		program, _ := programs.Get(v)
-		if program == nil {
-			continue
-		}
-		result[program.Id()] = program.GetNetwork()
-	}
-	response.From(c).Data(result)
 }
 
 func GetLogs(c *gin.Context) {

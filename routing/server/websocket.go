@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pufferpanel/apufferi"
 	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/apufferi/scope"
 	"github.com/pufferpanel/pufferd/config"
 	"github.com/pufferpanel/pufferd/messages"
 	"github.com/pufferpanel/pufferd/programs"
@@ -38,7 +39,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []str
 			switch strings.ToLower(message) {
 			case "stat":
 				{
-					if apufferi.ContainsValue(scopes, "servers.stats") {
+					if apufferi.ContainsValue(scopes, scope.ServersStat) {
 						results, err := server.GetEnvironment().GetStats()
 						msg := messages.StatMessage{}
 						if err != nil {
@@ -53,32 +54,32 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []str
 				}
 			case "start":
 				{
-					if apufferi.ContainsValue(scopes, "servers.start") {
+					if apufferi.ContainsValue(scopes, scope.ServersStart) {
 						_ = server.Start()
 					}
 					break
 				}
 			case "stop":
 				{
-					if apufferi.ContainsValue(scopes, "servers.stop") {
+					if apufferi.ContainsValue(scopes, scope.ServersStop) {
 						_ = server.Stop()
 					}
 				}
 			case "install":
 				{
-					if apufferi.ContainsValue(scopes, "servers.install") {
+					if apufferi.ContainsValue(scopes, scope.ServersInstall) {
 						_ = server.Install()
 					}
 				}
 			case "kill":
 				{
-					if apufferi.ContainsValue(scopes, "servers.kill") {
+					if apufferi.ContainsValue(scopes, scope.ServersStop) {
 						_ = server.Kill()
 					}
 				}
 			case "reload":
 				{
-					if apufferi.ContainsValue(scopes, "servers.reload") {
+					if apufferi.ContainsValue(scopes, scope.ServersEditAdmin) {
 						_ = programs.Reload(server.Id())
 					}
 				}
@@ -97,7 +98,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []str
 				}
 			case "file":
 				{
-					if !apufferi.ContainsValue(scopes, "servers.files") {
+					if !apufferi.ContainsValue(scopes, scope.ServersFilesGet) {
 						break
 					}
 
@@ -119,7 +120,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []str
 						break
 					case "delete":
 						{
-							if !apufferi.ContainsValue(scopes, "servers.files.put") {
+							if !apufferi.ContainsValue(scopes, scope.ServersFilesPut) {
 								break
 							}
 
@@ -134,7 +135,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []str
 						break
 					case "create":
 						{
-							if !apufferi.ContainsValue(scopes, "servers.files.put") {
+							if !apufferi.ContainsValue(scopes, scope.ServersFilesPut) {
 								break
 							}
 
