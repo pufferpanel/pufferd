@@ -35,11 +35,13 @@ jobs:
       
     - name: Mkdir
       if: startsWith(matrix.os, 'windows') == false
-      run: mkdir -p go/bin
+      run: |
+        mkdir -p go/bin
+        ls -l
+        pwd
       
     - name: Get dependencies
       run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
         if [ -f Gopkg.toml ]; then
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
