@@ -4,6 +4,7 @@ on:
     branches:
     - master
     - v1-dev
+    - actions
     
 jobs:
   build:
@@ -30,7 +31,12 @@ jobs:
       uses: actions/checkout@v1
       
     - name: Mkdir
-      run: mkdir %GOBIN%
+      if: !startsWith(matrix.os, 'windows')
+      run: mkdir $GOPATH\bin
+      
+    - name: Mkdir
+      if: startsWith(matrix.os, 'windows')
+      run: mkdir %GOPATH%\bin
 
     - name: Get dependencies
       run: |
