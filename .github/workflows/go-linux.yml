@@ -30,7 +30,8 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
-      path: $(go env GOPATH)/src/github.com/pufferpanel/pufferd
+      with:
+        path: $(go env GOPATH)/src/github.com/pufferpanel/pufferd
       
     - name: Mkdir
       if: startsWith(matrix.os, 'windows') == false
