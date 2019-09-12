@@ -18,13 +18,14 @@ jobs:
         exclude:
           - os: windows-2019
             arch: arm
+        go: 1.12
 
     steps:
 
-    - name: Set up Go 1.12
+    - name: Set up Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.12
+        go-version: ${{ matrix.go }}
       id: go
 
     - name: Check out code into the Go module directory
@@ -32,7 +33,7 @@ jobs:
       
     - name: Mkdir
       if: startsWith(matrix.os, 'windows') == false
-      run: mkdir $GOPATH\bin
+      run: mkdir $GOPATH/bin
       
     - name: Mkdir
       if: startsWith(matrix.os, 'windows')
@@ -40,6 +41,7 @@ jobs:
 
     - name: Get dependencies
       run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
         go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
