@@ -31,16 +31,15 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
       with:
-        path: $(go env GOPATH)/src/github.com/pufferpanel/pufferd
+        path: src/github.com/pufferpanel/pufferd
       
     - name: Mkdir
       if: startsWith(matrix.os, 'windows') == false
-      run: mkdir -p $(go env GOPATH)/bin
+      run: mkdir -p go/bin
       
     - name: Get dependencies
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
-        go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
