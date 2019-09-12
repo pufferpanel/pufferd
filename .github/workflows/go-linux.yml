@@ -33,7 +33,7 @@ jobs:
       
     - name: Mkdir
       if: startsWith(matrix.os, 'windows') == false
-      run: mkdir $(go env GOPATH)/bin
+      run: mkdir -p $(go env GOROOT)
       
     - name: Get dependencies
       run: |
