@@ -40,10 +40,9 @@ jobs:
       
     - name: Get dependencies
       run: |
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
+        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+        export PATH=$PATH:/home/runner/go/bin/
+        dep ensure
 
     - name: Build
       run: go build -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=${{ github.sha }} -v github.com/pufferpanel/pufferd
