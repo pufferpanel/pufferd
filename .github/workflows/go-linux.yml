@@ -13,7 +13,7 @@ jobs:
     
     strategy:
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-18.04,windows-2019]
         arch: [amd64, arm]
         go: [ '1.12' ]
         exclude:
@@ -37,6 +37,13 @@ jobs:
       if: startsWith(matrix.os, 'windows') == false
       run: |
         mkdir -p /home/runner/go/bin
+        
+    - name: Mkdir
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        mkdir %GITHUB_WORKSPACE%\bin
+      env:
+        GOPATH: $GITHUB_WORKSPACE
       
     - name: Get dependencies
       run: |
@@ -45,9 +52,9 @@ jobs:
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh        
         dep ensure
       env:
-        GOPATH: /home/runner/work/pufferd
-
+        GOPATH: $GITHUB_WORKSPACE
+        
     - name: Build
       run: go build -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=${{ github.sha }}" -v github.com/pufferpanel/pufferd
       env:
-        GOPATH: /home/runner/work/pufferd
+        GOPATH: $GITHUB_WORKSPACE
