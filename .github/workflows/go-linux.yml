@@ -36,9 +36,7 @@ jobs:
     - name: Mkdir
       if: startsWith(matrix.os, 'windows') == false
       run: |
-        mkdir -p go/bin
-        ls -l
-        pwd
+        mkdir -p /home/runner/go/bin
       
     - name: Get dependencies
       run: |
