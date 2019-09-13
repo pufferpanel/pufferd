@@ -40,8 +40,9 @@ jobs:
       
     - name: Get dependencies
       run: |
-        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-        export PATH=$PATH:/home/runner/go/bin/
+        export PATH=$PATH:$GOPATH/bin/
+        mkdir -p $GOPATH/bin
+        curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh        
         dep ensure
       env:
         GOPATH: /home/runner/work/pufferd
