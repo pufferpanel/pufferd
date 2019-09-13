@@ -12,62 +12,34 @@ pool:
   vmImage: 'Ubuntu-16.04'
 
 variables:
-  GOBIN:  '$(GOPATH)/bin' # Go binaries path
-  GOROOT: '/usr/local/go1.11' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-  modulePath: '$(GOPATH)/src/github.com/pufferpanel/pufferd' # Path to the module's code
   version: $(Build.BuildNumber)
+  packageVersion: v2
   majorVersion: 2.0.0
 
 steps:
 - script: |
-    mkdir -p '$(GOBIN)'
-    mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
-    shopt -s extglob
-    mv !(gopath) '$(modulePath)'
-    echo '##vso[task.prependpath]$(GOBIN)'
-    echo '##vso[task.prependpath]$(GOROOT)/bin'
-    mkdir $(GOPATH)/build
+    mkdir /build
     go version
   displayName: 'Set up the Go workspace'
 
 - script: |
-    curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-    dep version
-  workingDirectory: '$(modulePath)'
-  displayName: 'Download dep and run `dep ensure`'
-
-- script: |
     export GOOS=windows
     export GOARCH=amd64
-    dep ensure -v
-    go build -o $(GOPATH)/build/pufferd.exe -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
+    go build -o /build/pufferd.exe -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)
   workingDirectory: '$(modulePath)'
   displayName: 'Windows Build'
 
 - script: |
     export GOOS=linux
     export GOARCH=amd64
-    dep ensure -v
-    go build -o $(GOPATH)/build/pufferd -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
-  workingDirectory: '$(modulePath)'
-  displayName: 'Linux Build'
-
-- script: |
-    export GOOS=linux
-    export GOARCH=arm
-    dep ensure -v
-    go build -o $(GOPATH)/build/pufferd-arm -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
-  workingDirectory: '$(modulePath)'
+    go build -o /build/pufferd -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)
   displayName: 'Linux Build'
 
 - script: |
     export GOOS=linux
     export GOARCH=arm
     export GOARM=7
-    dep ensure -v
-    go build -o $(GOPATH)/build/pufferd-arm -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd
+    go build -o /build/pufferd-arm -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)
   workingDirectory: '$(modulePath)'
   displayName: 'Linux Build - ARM'
 
@@ -88,9 +60,9 @@ steps:
   displayName: 'Get supporting files'
 
 - script: |
-    mkdir $(GOPATH)/build/templates
+    mkdir /build/templates
     cd templates
-    cp */*.json $(GOPATH)/build/templates
+    cp */*.json /build/templates
   displayName: 'Build templates'
 
 - script: |
@@ -103,11 +75,11 @@ steps:
       --after-upgrade scripts/postupgrade.sh \
       --before-remove scripts/prerm.sh \
       --deb-after-purge scripts/purge.sh \
-      $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
-      $(GOPATH)/build/templates=/var/lib/pufferd/
+      /build/pufferd=/usr/sbin/pufferd \
+      /build/templates=/var/lib/pufferd/
 
-    mkdir $(GOPATH)/build/xenial
-    mv *.deb $(GOPATH)/build/xenial
+    mkdir /build/xenial
+    mv *.deb /build/xenial
   displayName: 'Create packages'
   workingDirectory: systemd/pufferd/xenial
 
@@ -119,10 +91,10 @@ steps:
       --before-install scripts/preinst.sh \
       --after-upgrade scripts/postupgrade.sh \
       --before-remove scripts/prerm.sh \
-      $(GOPATH)/build/xenial/pufferd_*_amd64.deb
+      /build/xenial/pufferd_*_amd64.deb
 
-    mkdir $(GOPATH)/build/rpm
-    mv *.rpm $(GOPATH)/build/rpm
+    mkdir /build/rpm
+    mv *.rpm /build/rpm
   displayName: 'Create packages'
   workingDirectory: systemd/pufferd/rpm7
 
@@ -135,11 +107,11 @@ steps:
       --before-install scripts/preinst.sh \
       --before-remove scripts/prerm.sh \
       --deb-after-purge scripts/purge.sh \
-      $(GOPATH)/build/pufferd=/usr/sbin/pufferd \
-      $(GOPATH)/build/templates=/var/lib/pufferd/
+      /build/pufferd=/usr/sbin/pufferd \
+      /build/templates=/var/lib/pufferd/
     
-    mkdir $(GOPATH)/build/trusty
-    mv *.deb $(GOPATH)/build/trusty
+    mkdir /build/trusty
+    mv *.deb /build/trusty
   displayName: 'Create packages'
   workingDirectory: systemd/pufferd/trusty
 
@@ -154,15 +126,15 @@ steps:
       --before-remove scripts/prerm.sh \
       --deb-after-purge scripts/purge.sh \
       -a armhf \
-      $(GOPATH)/build/pufferd-arm=/usr/sbin/pufferd \
-      $(GOPATH)/build/templates=/var/lib/pufferd/
+      /build/pufferd-arm=/usr/sbin/pufferd \
+      /build/templates=/var/lib/pufferd/
 
-    mkdir $(GOPATH)/build/buster-arm
-    mv *.deb $(GOPATH)/build/buster-arm
+    mkdir /build/buster-arm
+    mv *.deb /build/buster-arm
   displayName: 'Create packages - buster'
   workingDirectory: systemd/pufferd/xenial
 
 - task: PublishPipelineArtifact@0
   inputs:
     artifactName: 'pufferd'
-    targetPath: '$(GOPATH)/build/.'
+    targetPath: '/build/.'
