@@ -3,6 +3,12 @@ on:
   push:
     branches:
     - master
+    path:
+    - '*'
+    - '!azure-pipelines.yml'
+    - '!.travis.yml'
+    - '!*.md'
+    
     
 jobs:
   build:
