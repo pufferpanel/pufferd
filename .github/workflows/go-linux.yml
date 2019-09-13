@@ -43,6 +43,10 @@ jobs:
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         export PATH=$PATH:/home/runner/go/bin/
         dep ensure
+      env:
+        GOPATH: /home/runner/work/pufferd
 
     - name: Build
       run: go build -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=${{ github.sha }} -v github.com/pufferpanel/pufferd
+      env:
+        GOPATH: /home/runner/work/pufferd
