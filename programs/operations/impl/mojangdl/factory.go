@@ -16,7 +16,7 @@
 
 package mojangdl
 
-import "github.com/pufferpanel/pufferd/programs/operations/ops"
+import "github.com/pufferpanel/pufferd/v2/programs/operations/ops"
 
 type OperationFactory struct {
 	ops.OperationFactory

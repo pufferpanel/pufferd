@@ -17,7 +17,7 @@
 package commons
 
 import (
-	"github.com/pufferpanel/apufferi"
+	"github.com/pufferpanel/apufferi/v3"
 	"net/http"
 )
 

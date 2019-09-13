@@ -18,7 +18,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/pufferpanel/pufferd/data"
+	"github.com/pufferpanel/pufferd/v2/data"
 	"github.com/spf13/cobra"
 )
 

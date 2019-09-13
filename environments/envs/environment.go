@@ -19,9 +19,9 @@ package envs
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/pufferd/config"
-	"github.com/pufferpanel/pufferd/utils"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/pufferd/v2/config"
+	"github.com/pufferpanel/pufferd/v2/utils"
 	"io"
 	"os"
 )

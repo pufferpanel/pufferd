@@ -16,7 +16,7 @@
 
 package errors
 
-import "github.com/pufferpanel/apufferi"
+import "github.com/pufferpanel/apufferi/v3"
 
 var ErrServerOffline = apufferi.CreateError("server offline", "ErrServerOffline")
 var ErrIllegalFileAccess = apufferi.CreateError("invalid file access", "ErrIllegalFileAccess")

@@ -14,10 +14,10 @@
 package cli
 
 import (
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/cli/commands"
-	"github.com/pufferpanel/pufferd/config"
-	"github.com/pufferpanel/pufferd/version"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/pufferd/v2/cli/commands"
+	"github.com/pufferpanel/pufferd/v2/config"
+	"github.com/pufferpanel/pufferd/v2/version"
 	"github.com/spf13/cobra"
 	"os"
 	"runtime"

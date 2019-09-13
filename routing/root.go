@@ -18,12 +18,12 @@ package routing
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/apufferi/middleware"
-	"github.com/pufferpanel/apufferi/response"
-	"github.com/pufferpanel/pufferd/oauth2"
-	"github.com/pufferpanel/pufferd/routing/server"
-	"github.com/pufferpanel/pufferd/shutdown"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v3/middleware"
+	"github.com/pufferpanel/apufferi/v3/response"
+	"github.com/pufferpanel/pufferd/v2/oauth2"
+	"github.com/pufferpanel/pufferd/v2/routing/server"
+	"github.com/pufferpanel/pufferd/v2/shutdown"
 )
 
 func ConfigureWeb() *gin.Engine {

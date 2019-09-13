@@ -18,10 +18,10 @@ package httphandlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/apufferi/response"
-	"github.com/pufferpanel/pufferd/oauth2"
-	"github.com/pufferpanel/pufferd/programs"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v3/response"
+	"github.com/pufferpanel/pufferd/v2/oauth2"
+	"github.com/pufferpanel/pufferd/v2/programs"
 	"strings"
 )
 

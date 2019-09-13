@@ -17,8 +17,8 @@
 package envs
 
 import (
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/pufferd/utils"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/pufferd/v2/utils"
 )
 
 type EnvironmentFactory interface {

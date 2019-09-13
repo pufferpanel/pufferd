@@ -17,7 +17,7 @@
 package standard
 
 import (
-	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"io"
 	"os"
 	"os/exec"
@@ -27,8 +27,8 @@ import (
 	"time"
 
 	"fmt"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/errors"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/pufferd/v2/errors"
 	"github.com/shirou/gopsutil/process"
 	"strings"
 )

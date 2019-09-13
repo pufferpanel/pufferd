@@ -17,11 +17,11 @@
 package writefile
 
 import (
-	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"io/ioutil"
 
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v3/logging"
 )
 
 type WriteFile struct {

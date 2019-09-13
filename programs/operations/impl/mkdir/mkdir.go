@@ -17,11 +17,11 @@
 package mkdir
 
 import (
-	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"os"
 
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v3/logging"
 )
 
 type Mkdir struct {

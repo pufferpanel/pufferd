@@ -17,12 +17,12 @@
 package move
 
 import (
-	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"os"
 	"path/filepath"
 
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v3/logging"
 )
 
 type Move struct {

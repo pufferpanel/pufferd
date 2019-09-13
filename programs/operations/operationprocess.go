@@ -17,19 +17,19 @@
 package operations
 
 import (
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments/envs"
-	"github.com/pufferpanel/pufferd/errors"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/command"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/download"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/forgedl"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/mkdir"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/mojangdl"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/move"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/spongeforgedl"
-	"github.com/pufferpanel/pufferd/programs/operations/impl/writefile"
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/errors"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/command"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/download"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/forgedl"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/mkdir"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/mojangdl"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/move"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/spongeforgedl"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/writefile"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/ops"
 )
 
 var commandMapping map[string]ops.OperationFactory

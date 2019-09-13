@@ -17,7 +17,7 @@
 package ops
 
 import (
-	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
 )
 
 type Operation interface {

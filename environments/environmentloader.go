@@ -19,12 +19,12 @@ package environments
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/pufferd/cache"
-	"github.com/pufferpanel/pufferd/environments/envs"
-	"github.com/pufferpanel/pufferd/environments/impl/docker"
-	"github.com/pufferpanel/pufferd/environments/impl/standard"
-	"github.com/pufferpanel/pufferd/utils"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/pufferd/v2/cache"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/environments/impl/docker"
+	"github.com/pufferpanel/pufferd/v2/environments/impl/standard"
+	"github.com/pufferpanel/pufferd/v2/utils"
 )
 
 var mapping map[string]envs.EnvironmentFactory

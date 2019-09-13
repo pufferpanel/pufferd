@@ -17,11 +17,11 @@
 package command
 
 import (
-	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"strings"
 
 	"fmt"
-	"github.com/pufferpanel/apufferi/logging"
+	"github.com/pufferpanel/apufferi/v3/logging"
 )
 
 type Command struct {

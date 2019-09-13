@@ -20,16 +20,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/pufferd/v2/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/environments"
-	"github.com/pufferpanel/pufferd/programs/operations"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/pufferd/v2/environments"
+	"github.com/pufferpanel/pufferd/v2/programs/operations"
 )
 
 var (

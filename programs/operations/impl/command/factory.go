@@ -17,8 +17,8 @@
 package command
 
 import (
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/pufferd/programs/operations/ops"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/pufferd/v2/programs/operations/ops"
 )
 
 type OperationFactory struct {

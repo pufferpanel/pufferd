@@ -18,8 +18,8 @@ package utils
 
 import (
 	"encoding/json"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/messages"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/pufferd/v2/messages"
 	"sync"
 
 	"github.com/gorilla/websocket"

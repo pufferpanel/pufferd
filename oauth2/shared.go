@@ -19,9 +19,9 @@ package oauth2
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/commons"
-	"github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/pufferd/v2/commons"
+	"github.com/pufferpanel/pufferd/v2/config"
 	"net/http"
 	"net/url"
 	"strconv"

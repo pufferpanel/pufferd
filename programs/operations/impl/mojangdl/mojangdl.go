@@ -20,10 +20,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pufferpanel/apufferi/logging"
-	"github.com/pufferpanel/pufferd/commons"
-	"github.com/pufferpanel/pufferd/environments"
-	"github.com/pufferpanel/pufferd/environments/envs"
+	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/pufferd/v2/commons"
+	"github.com/pufferpanel/pufferd/v2/environments"
+	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"net/http"
 )
 

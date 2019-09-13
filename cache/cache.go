@@ -17,8 +17,8 @@
 package cache
 
 import (
-	"github.com/pufferpanel/apufferi"
-	"github.com/pufferpanel/pufferd/config"
+	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/pufferd/v2/config"
 )
 
 func CreateCache() *apufferi.MemoryCache {
