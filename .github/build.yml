@@ -35,6 +35,6 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
       
-    - name: Get dependencies
+    - name: Build
       run: |
         go build -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=${{ github.sha }}" -v github.com/pufferpanel/pufferd/v2
