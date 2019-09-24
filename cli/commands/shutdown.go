@@ -27,7 +27,7 @@ import (
 
 var ShutdownCmd = &cobra.Command{
 	Use:   "shutdown",
-	Short: "Print the version number of PufferPanel",
+	Short: "Print the version number of pufferd",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := runShutdown()
 		if err != nil {
