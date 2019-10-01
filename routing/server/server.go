@@ -463,10 +463,10 @@ func OpenSocket(c *gin.Context) {
 	console, _ := program.GetEnvironment().GetConsole()
 	_ = messages.Write(conn, messages.ConsoleMessage{Logs: console})
 
-	internalMap, _ := c.Get("serverScopes")
-	scopes := internalMap.(map[string][]string)
+	internalMap, _ := c.Get("scopes")
+	scopes := internalMap.([]scope.Scope)
 
-	go listenOnSocket(conn, program, scopes[program.Id()])
+	go listenOnSocket(conn, program, scopes)
 
 	program.GetEnvironment().AddListener(conn)
 }

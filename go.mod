@@ -8,6 +8,7 @@ require (
 	github.com/braintree/manners v0.0.0-20150503212558-0b5e6b2c2843
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/containerd/containerd v1.2.9 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/distribution v0.0.0-20190905152932-14b96e55d84c // indirect
 	github.com/docker/docker v0.0.0-20190905191220-3b23f9033967
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -24,7 +25,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.10.1
-	github.com/pufferpanel/apufferi/v3 v3.0.0
+	github.com/pufferpanel/apufferi/v3 v3.0.2
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/spf13/cobra v0.0.5

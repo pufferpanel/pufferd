@@ -17,11 +17,23 @@
 package httphandlers
 
 import (
+	"bytes"
+	"crypto/ecdsa"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/apufferi/v3/response"
-	"github.com/pufferpanel/pufferd/v2/oauth2"
+	"github.com/pufferpanel/apufferi/v3/scope"
+	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/programs"
+	"io"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -31,7 +43,7 @@ type oauthCache struct {
 	expireTime int64
 }
 
-func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
+func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFunc {
 	return func(gin *gin.Context) {
 		failure := true
 		defer func() {
@@ -58,24 +70,62 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 			authToken = authArr[1]
 		}
 
-		if !oauth2.ValidateToken(authToken, gin) {
-			gin.Abort()
+		f, err := os.OpenFile(path.Join(config.Get().Data.BasePath, "public.pem"), os.O_RDONLY, 660)
+		defer apufferi.Close(f)
+		if err != nil {
+			logging.Exception("Error handling oauth2 validation", err)
+			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
 			return
 		}
 
-		serverId := gin.Param("id")
-		internalMap, _ := gin.Get("serverScopes")
-		scopes := internalMap.(map[string][]string)
+		var buf bytes.Buffer
 
-		var scopeSet []string
+		_, _ = io.Copy(&buf, f)
+
+		block, _ := pem.Decode(buf.Bytes())
+		if block == nil {
+			logging.Exception("Error handling oauth2 validation", errors.New("public key is not in PEM format"))
+			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
+			return
+		}
+		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			logging.Exception("Error handling oauth2 validation", err)
+			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
+			return
+		}
+
+		pubKey, ok := pub.(*ecdsa.PublicKey)
+		if !ok {
+			logging.Exception("Error handling oauth2 validation", err)
+			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
+			return
+		}
+
+		token, err := apufferi.ParseToken(pubKey, authToken)
+		if err != nil {
+			if err != jwt.ErrSignatureInvalid {
+				logging.Exception("Error handling oauth2 validation", err)
+			}
+			response.Respond(gin).Fail().Status(403).Message("invalid access").Send()
+			return
+		}
+
+		serverId := gin.GetString("serverId")
+		scopes := make([]scope.Scope, 0)
+		if token.Claims.PanelClaims.Scopes[serverId] != nil {
+			scopes = append(scopes, token.Claims.PanelClaims.Scopes[serverId]...)
+		}
+		if token.Claims.PanelClaims.Scopes[""] != nil {
+			scopes = append(scopes, token.Claims.PanelClaims.Scopes[""]...)
+		}
+
+		if !apufferi.Contains(scopes, requiredScope) {
+			response.Respond(gin).Fail().Status(403).Message(fmt.Sprintf("missing scope %s", requiredScope)).Send()
+			return
+		}
 
 		if requireServer {
-			scopeSet = scopes[serverId]
-			if scopeSet == nil || len(scopeSet) == 0 {
-				response.Respond(gin).Fail().Status(403).Message("invalid access").Send()
-				return
-			}
-
 			program, _ := programs.Get(serverId)
 			if program == nil {
 				response.Respond(gin).Fail().Status(404).Message("no server with id " + serverId).Send()
@@ -83,18 +133,9 @@ func OAuth2Handler(scope string, requireServer bool) gin.HandlerFunc {
 			}
 
 			gin.Set("server", program)
-		} else {
-			scopeSet = scopes[""]
-			if scopeSet == nil || len(scopeSet) == 0 {
-				response.Respond(gin).Fail().Status(403).Message("invalid access").Send()
-				return
-			}
 		}
 
-		if !apufferi.ContainsValue(scopeSet, scope) {
-			response.Respond(gin).Fail().Status(403).Message("missing scope " + scope).Send()
-			return
-		}
+		gin.Set("scopes", scopes)
 
 		failure = false
 	}
