@@ -39,7 +39,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []sco
 			switch strings.ToLower(message) {
 			case "stat":
 				{
-					if apufferi.Contains(scopes, scope.ServersStat) {
+					if apufferi.ContainsScope(scopes, scope.ServersStat) {
 						results, err := server.GetEnvironment().GetStats()
 						msg := messages.StatMessage{}
 						if err != nil {
@@ -54,32 +54,32 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []sco
 				}
 			case "start":
 				{
-					if apufferi.Contains(scopes, scope.ServersStart) {
+					if apufferi.ContainsScope(scopes, scope.ServersStart) {
 						_ = server.Start()
 					}
 					break
 				}
 			case "stop":
 				{
-					if apufferi.Contains(scopes, scope.ServersStop) {
+					if apufferi.ContainsScope(scopes, scope.ServersStop) {
 						_ = server.Stop()
 					}
 				}
 			case "install":
 				{
-					if apufferi.Contains(scopes, scope.ServersInstall) {
+					if apufferi.ContainsScope(scopes, scope.ServersInstall) {
 						_ = server.Install()
 					}
 				}
 			case "kill":
 				{
-					if apufferi.Contains(scopes, scope.ServersStop) {
+					if apufferi.ContainsScope(scopes, scope.ServersStop) {
 						_ = server.Kill()
 					}
 				}
 			case "reload":
 				{
-					if apufferi.Contains(scopes, scope.ServersEditAdmin) {
+					if apufferi.ContainsScope(scopes, scope.ServersEditAdmin) {
 						_ = programs.Reload(server.Id())
 					}
 				}
@@ -98,7 +98,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []sco
 				}
 			case "file":
 				{
-					if !apufferi.Contains(scopes, scope.ServersFilesGet) {
+					if !apufferi.ContainsScope(scopes, scope.ServersFilesGet) {
 						break
 					}
 
@@ -120,7 +120,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []sco
 						break
 					case "delete":
 						{
-							if !apufferi.Contains(scopes, scope.ServersFilesPut) {
+							if !apufferi.ContainsScope(scopes, scope.ServersFilesPut) {
 								break
 							}
 
@@ -135,7 +135,7 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []sco
 						break
 					case "create":
 						{
-							if !apufferi.Contains(scopes, scope.ServersFilesPut) {
+							if !apufferi.ContainsScope(scopes, scope.ServersFilesPut) {
 								break
 							}
 

@@ -25,7 +25,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.10.1
-	github.com/pufferpanel/apufferi/v3 v3.0.2
+	github.com/pufferpanel/apufferi/v3 v3.0.3
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/spf13/cobra v0.0.5

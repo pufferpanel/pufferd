@@ -111,7 +111,7 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 			return
 		}
 
-		serverId := gin.GetString("serverId")
+		serverId := gin.Param("id")
 		scopes := make([]scope.Scope, 0)
 		if token.Claims.PanelClaims.Scopes[serverId] != nil {
 			scopes = append(scopes, token.Claims.PanelClaims.Scopes[serverId]...)
@@ -120,7 +120,7 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 			scopes = append(scopes, token.Claims.PanelClaims.Scopes[""]...)
 		}
 
-		if !apufferi.Contains(scopes, requiredScope) {
+		if !apufferi.ContainsScope(scopes, requiredScope) {
 			response.Respond(gin).Fail().Status(403).Message(fmt.Sprintf("missing scope %s", requiredScope)).Send()
 			return
 		}
