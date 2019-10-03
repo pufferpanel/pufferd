@@ -18,11 +18,11 @@ package cache
 
 import (
 	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/pufferd/v2/config"
+	"github.com/spf13/viper"
 )
 
 func CreateCache() *apufferi.MemoryCache {
-	capacity := config.Get().Console.Buffer
+	capacity := viper.GetInt("console.buffer")
 	if capacity <= 0 {
 		capacity = 50
 	}

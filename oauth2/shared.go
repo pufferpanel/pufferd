@@ -19,9 +19,10 @@ package oauth2
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/commons"
-	"github.com/pufferpanel/pufferd/v2/config"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -44,15 +45,24 @@ func RefreshToken() bool {
 		return false
 	}
 
-	clientId := config.Get().Auth.ClientID
-	clientSecret := config.Get().Auth.ClientSecret
+	clientId := viper.GetString("auth.clientId")
+	if clientId == "" {
+		logging.Exception("error talking to auth server", errors.New("client id not specified"))
+		return false
+	}
+
+	clientSecret := viper.GetString("auth.clientSecret")
+	if clientSecret == "" {
+		logging.Exception("error talking to auth server", errors.New("client secret not specified"))
+		return false
+	}
 
 	data := url.Values{}
 	data.Set("grant_type", "client_credentials")
 	data.Set("client_id", clientId)
 	data.Set("client_secret", clientSecret)
 	encodedData := data.Encode()
-	request, _ := http.NewRequest("POST", config.Get().Auth.AuthURL, bytes.NewBufferString(encodedData))
+	request, _ := http.NewRequest("POST", viper.GetString("auth.url"), bytes.NewBufferString(encodedData))
 
 	request.Header.Add("Authorization", "Bearer "+daemonToken)
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")

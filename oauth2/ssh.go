@@ -22,7 +22,7 @@ import (
 	"errors"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/commons"
-	"github.com/pufferpanel/pufferd/v2/config"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net/http"
@@ -42,7 +42,7 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 	data.Set("password", password)
 	data.Set("scope", "sftp")
 	encodedData := data.Encode()
-	request, _ := http.NewRequest("POST", config.Get().Auth.AuthURL, bytes.NewBufferString(encodedData))
+	request, _ := http.NewRequest("POST", viper.GetString("auth.url"), bytes.NewBufferString(encodedData))
 
 	RefreshIfStale()
 

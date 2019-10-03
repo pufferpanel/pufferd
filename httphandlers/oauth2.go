@@ -29,19 +29,12 @@ import (
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/apufferi/v3/response"
 	"github.com/pufferpanel/apufferi/v3/scope"
-	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/programs"
+	"github.com/spf13/viper"
 	"io"
 	"os"
-	"path"
 	"strings"
 )
-
-type oauthCache struct {
-	oauthToken string
-	scopes     map[string][]string
-	expireTime int64
-}
 
 func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFunc {
 	return func(gin *gin.Context) {
@@ -70,7 +63,7 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 			authToken = authArr[1]
 		}
 
-		f, err := os.OpenFile(path.Join(config.Get().Data.BasePath, "public.pem"), os.O_RDONLY, 660)
+		f, err := os.OpenFile(viper.GetString("auth.publicKey"), os.O_RDONLY, 660)
 		defer apufferi.Close(f)
 		if err != nil {
 			logging.Exception("Error handling oauth2 validation", err)

@@ -14,11 +14,13 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/cli/commands"
 	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/version"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 	"runtime"
 )
@@ -55,8 +57,10 @@ func Execute() error {
 }
 
 func load() {
-	config.SetPath(configPath)
-	_ = config.LoadConfig()
+	err := config.LoadConfig(configPath)
+	if err != nil {
+		fmt.Printf("Error loading config: %s", err)
+	}
 
 	level := logging.GetLevel(loggingLevel)
 	if level == nil {
@@ -65,6 +69,6 @@ func load() {
 
 	logging.SetLevel(os.Stdout, level)
 
-	var logPath = config.Get().Data.LogFolder
+	var logPath = viper.GetString("data.logs")
 	_ = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
 }

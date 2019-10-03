@@ -22,8 +22,8 @@ import (
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/commons"
-	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
+	"github.com/spf13/viper"
 	"io"
 	"log"
 	"net/http"
@@ -83,7 +83,7 @@ func DownloadFileToCache(url, fileName string) error {
 }
 
 func DownloadViaMaven(downloadUrl string, env envs.Environment) (string, error) {
-	localPath := path.Join(config.Get().Data.CacheFolder, strings.TrimPrefix(strings.TrimPrefix(downloadUrl, "http://"), "https://"))
+	localPath := path.Join(viper.GetString("data.cache"), strings.TrimPrefix(strings.TrimPrefix(downloadUrl, "http://"), "https://"))
 
 	if os.PathSeparator != '/' {
 		localPath = strings.Replace(localPath, "/", string(os.PathSeparator), -1)

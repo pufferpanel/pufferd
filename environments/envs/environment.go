@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/utils"
+	"github.com/spf13/viper"
 	"io"
 	"os"
 )
@@ -116,11 +116,11 @@ func (e *BaseEnvironment) AddListener(ws *websocket.Conn) {
 
 func (e *BaseEnvironment) DisplayToConsole(msg string, data ...interface{}) {
 	if len(data) == 0 {
-		fmt.Fprint(e.ConsoleBuffer, msg)
-		fmt.Fprint(e.WSManager, msg)
+		_, _ = fmt.Fprint(e.ConsoleBuffer, msg)
+		_, _ = fmt.Fprint(e.WSManager, msg)
 	} else {
-		fmt.Fprintf(e.ConsoleBuffer, msg, data...)
-		fmt.Fprintf(e.WSManager, msg, data...)
+		_, _ = fmt.Fprintf(e.ConsoleBuffer, msg, data...)
+		_, _ = fmt.Fprintf(e.WSManager, msg, data...)
 	}
 }
 
@@ -134,7 +134,7 @@ func (e *BaseEnvironment) Delete() (err error) {
 }
 
 func (e *BaseEnvironment) CreateWrapper() io.Writer {
-	if config.Get().Console.Forward {
+	if viper.GetBool("console.forward") {
 		return io.MultiWriter(os.Stdout, e.ConsoleBuffer, e.WSManager)
 	}
 	return io.MultiWriter(e.ConsoleBuffer, e.WSManager)

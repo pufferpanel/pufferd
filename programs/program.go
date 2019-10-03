@@ -21,11 +21,11 @@ import (
 	"encoding/json"
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"github.com/pufferpanel/pufferd/v2/errors"
 	"github.com/pufferpanel/pufferd/v2/messages"
 	"github.com/pufferpanel/pufferd/v2/programs/operations"
+	"github.com/spf13/viper"
 	"io"
 	"io/ioutil"
 	"os"
@@ -430,7 +430,7 @@ func (p *Program) afterExit(graceful bool) {
 
 	if graceful && p.Execution.AutoRestartFromGraceful {
 		StartViaService(p)
-	} else if !graceful && p.Execution.AutoRestartFromCrash && p.CrashCounter < config.Get().Data.CrashLimit {
+	} else if !graceful && p.Execution.AutoRestartFromCrash && p.CrashCounter < viper.GetInt("data.crashLimit") {
 		p.CrashCounter++
 		StartViaService(p)
 	}

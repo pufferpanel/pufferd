@@ -17,7 +17,9 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/braintree/manners"
+	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/environments"
@@ -27,9 +29,12 @@ import (
 	"github.com/pufferpanel/pufferd/v2/shutdown"
 	"github.com/pufferpanel/pufferd/v2/version"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
+	"runtime"
 	"runtime/debug"
 	"syscall"
 )
@@ -96,9 +101,8 @@ func runServices() error {
 
 	useHttps := false
 
-	dataFolder := config.Get().Data.BasePath
-	httpsPem := filepath.Join(dataFolder, "https.pem")
-	httpsKey := filepath.Join(dataFolder, "https.key")
+	httpsPem := viper.GetString("listen.webCert")
+	httpsKey := viper.GetString("listen.webKey")
 
 	if _, err := os.Stat(httpsPem); os.IsNotExist(err) {
 		logging.Warn("No HTTPS.PEM found in data folder, will use http instead")
@@ -110,7 +114,7 @@ func runServices() error {
 
 	sftp.Run()
 
-	web := config.Get().Listener.Web
+	web := viper.GetString("listen.web")
 
 	logging.Info("Starting web access on %s", web)
 	var err error
@@ -118,6 +122,42 @@ func runServices() error {
 		err = manners.ListenAndServeTLS(web, httpsPem, httpsKey, router)
 	} else {
 		err = manners.ListenAndServe(web, router)
+	}
+
+	if runtime.GOOS != "windows" {
+		go func() {
+			file := viper.GetString("listen.socket")
+
+			if file == "" {
+				return
+			}
+
+			err := os.Remove(file)
+			if err != nil && !os.IsNotExist(err) {
+				logging.Exception(fmt.Sprintf("Error deleting %s", file), err)
+				return
+			}
+
+			listener, err := net.Listen("unix", file)
+			defer apufferi.Close(listener)
+			if err != nil {
+				logging.Exception(fmt.Sprintf("Error listening on %s", file), err)
+				return
+			}
+
+			err = os.Chmod(file, 0777)
+			if err != nil {
+				logging.Exception(fmt.Sprintf("Error listening on %s", file), err)
+				return
+			}
+
+			logging.Info("Listening for socket requests")
+			err = http.Serve(listener, router)
+			if err != nil {
+				logging.Exception(fmt.Sprintf("Error listening on %s", file), err)
+				return
+			}
+		}()
 	}
 
 	return err
@@ -139,9 +179,9 @@ func createHook() {
 			sig = <-c
 			switch sig {
 			case syscall.SIGHUP:
-				manners.Close()
-				sftp.Stop()
-				config.LoadConfig()
+				//manners.Close()
+				//sftp.Stop()
+				_ = config.LoadConfig("")
 			case syscall.SIGPIPE:
 				//ignore SIGPIPEs for now, we're somehow getting them and it's causing issues
 			}

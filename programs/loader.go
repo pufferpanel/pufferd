@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pufferpanel/pufferd/v2/config"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -38,7 +38,7 @@ var (
 )
 
 func Initialize() {
-	ServerFolder = config.Get().Data.ServerFolder
+	ServerFolder = viper.GetString("data.servers")
 
 	operations.LoadOperations()
 }

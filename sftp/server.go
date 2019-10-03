@@ -24,9 +24,9 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
-	pufferdConfig "github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/oauth2"
 	"github.com/pufferpanel/pufferd/v2/programs"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net"
@@ -54,7 +54,7 @@ func runServer() error {
 		},
 	}
 
-	serverKeyFile := pufferdConfig.Get().Listener.SFTPKey
+	serverKeyFile := viper.GetString("listen.sftpKey")
 
 	_, e := os.Stat(serverKeyFile)
 
@@ -95,7 +95,7 @@ func runServer() error {
 
 	config.AddHostKey(hkey)
 
-	bind := pufferdConfig.Get().Listener.SFTP
+	bind := viper.GetString("listen.sftp")
 
 	sftpServer, e = net.Listen("tcp", bind)
 	if e != nil {

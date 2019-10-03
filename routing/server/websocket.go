@@ -7,9 +7,9 @@ import (
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/apufferi/v3/scope"
-	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/messages"
 	"github.com/pufferpanel/pufferd/v2/programs"
+	"github.com/spf13/viper"
 	"io"
 	path2 "path"
 	"reflect"
@@ -172,7 +172,7 @@ func handleGetFile(conn *websocket.Conn, server *programs.Program, path string, 
 		_ = messages.Write(conn, messages.FileListMessage{FileList: data.FileList, CurrentPath: path})
 	} else if data.Contents != nil {
 		//if the file is small enough, we'll send it over the websocket
-		if editMode && data.ContentLength < config.Get().Data.MaxWebsocketDownloadSize {
+		if editMode && data.ContentLength < viper.GetInt64("data.maxWSDownloadSize") {
 			var buf bytes.Buffer
 			_, _ = io.Copy(&buf, data.Contents)
 			_ = messages.Write(conn, messages.FileListMessage{Contents: buf.Bytes(), Filename: data.Name})

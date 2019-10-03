@@ -29,6 +29,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/viper v1.3.2
 	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
