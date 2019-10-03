@@ -54,7 +54,6 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 	s.mainProcess = exec.Command(cmd, args...)
 	s.mainProcess.Dir = s.RootDirectory
 	s.mainProcess.Env = append(os.Environ(), "HOME="+s.RootDirectory)
-	envs.Chroot(s.mainProcess, s.RootDirectory)
 	for k, v := range env {
 		s.mainProcess.Env = append(s.mainProcess.Env, fmt.Sprintf("%s=%s", k, v))
 	}
