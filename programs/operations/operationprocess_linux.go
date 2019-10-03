@@ -17,6 +17,7 @@
 package operations
 
 import (
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
 	"path"
@@ -24,12 +25,11 @@ import (
 	"reflect"
 
 	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/ops"
 )
 
 func loadOpModules() {
-	var directory = path.Join(config.Get().Data.ModuleFolder, "operations")
+	var directory = path.Join(viper.GetString("data.modules"), "operations")
 
 	files, err := ioutil.ReadDir(directory)
 	if err != nil && os.IsNotExist(err) {
