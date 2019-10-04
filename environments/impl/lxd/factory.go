@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package docker
+package lxd
 
 import (
 	"github.com/pufferpanel/apufferi/v3"
@@ -28,14 +28,14 @@ type EnvironmentFactory struct {
 }
 
 func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) envs.Environment {
-	imageName := apufferi.GetStringOrDefault(environmentSection, "image", "pufferpanel/generic")
-	enforceNetwork := apufferi.GetBooleanOrDefault(environmentSection, "enforceNetwork", false)
-
-	d := &docker{BaseEnvironment: &envs.BaseEnvironment{Type: "docker"}, ContainerId: id, ImageName: imageName, enforceNetwork: enforceNetwork}
-	d.BaseEnvironment.ExecutionFunction = d.dockerExecuteAsync
+	d := &lxc{BaseEnvironment: &envs.BaseEnvironment{Type: "lxc"}, ContainerId: id}
+	d.BaseEnvironment.ExecutionFunction = d.executeAsync
 	d.BaseEnvironment.WaitFunction = d.WaitForMainProcess
 	d.wait = &sync.WaitGroup{}
 
+	d.ImageName = apufferi.GetStringOrDefault(environmentSection, "image", "alpine/3.9")
+
+	d.ContainerId = "pufferd-" + id
 	d.RootDirectory = rootDirectory
 	d.ConsoleBuffer = cache
 	d.WSManager = wsManager
@@ -43,5 +43,5 @@ func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[st
 }
 
 func (ef EnvironmentFactory) Key() string {
-	return "docker"
+	return "lxd"
 }

@@ -57,6 +57,7 @@ func LoadFromFolder() {
 		if element.IsDir() {
 			continue
 		}
+		logging.Info("Attempting to load " + element.Name())
 		id := strings.TrimSuffix(element.Name(), filepath.Ext(element.Name()))
 		program, err = Load(id)
 		if err != nil {

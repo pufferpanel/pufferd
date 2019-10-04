@@ -87,7 +87,10 @@ func processQueue() {
 		}
 		program := next.Value.(*Program)
 		if run, _ := program.IsRunning(); !run {
-			_ = program.Start()
+			err := program.Start()
+			if err != nil {
+				logging.Exception("Error starting server "+program.Id(), err)
+			}
 		}
 	}
 }
@@ -165,7 +168,7 @@ func (p *Program) Start() (err error) {
 
 	err = p.Environment.ExecuteAsync(p.Execution.ProgramName, apufferi.ReplaceTokensInArr(p.Execution.Arguments, data), apufferi.ReplaceTokensInMap(p.Execution.EnvironmentVariables, data), p.afterExit)
 	if err != nil {
-		logging.Exception("error starting server", err)
+		logging.Exception("error starting server " + p.Id(), err)
 		p.Environment.DisplayToConsole("Failed to start server\n")
 	}
 

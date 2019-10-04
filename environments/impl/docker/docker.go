@@ -54,7 +54,6 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 	running, err := d.IsRunning()
 	if err != nil {
 		return err
-
 	}
 	if running {
 		return errors.ErrContainerRunning
