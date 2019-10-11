@@ -25,9 +25,9 @@ import (
 	"time"
 )
 
-var ShutdownCmd = &cobra.Command{
+var shutdownCmd = &cobra.Command{
 	Use:   "shutdown",
-	Short: "Print the version number of pufferd",
+	Short: "Shuts down pufferd",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := runShutdown()
 		if err != nil {
@@ -39,8 +39,8 @@ var ShutdownCmd = &cobra.Command{
 var shutdownPid int
 
 func init() {
-	ShutdownCmd.Flags().IntVar(&shutdownPid, "pid", 0, "process id of daemon")
-	ShutdownCmd.MarkFlagRequired("pid")
+	shutdownCmd.Flags().IntVar(&shutdownPid, "pid", 0, "process id of daemon")
+	shutdownCmd.MarkFlagRequired("pid")
 }
 
 func runShutdown() error {

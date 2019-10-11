@@ -14,8 +14,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/pufferd/v2/version"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -32,19 +33,25 @@ func init() {
 	cobra.OnInitialize(load)
 
 	rootCmd.AddCommand(
-		LicenseCmd,
-		ShutdownCmd,
+		licenseCmd,
+		shutdownCmd,
 		RunCmd,
-		ReloadCmd,
-		MigrateCmd)
+		reloadCmd,
+		migrateCmd,
+		versionCmd)
 
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", configPath, "Path to the config to use")
 	rootCmd.PersistentFlags().StringVar(&loggingLevel, "logging", loggingLevel, "Logging level to print to stdout")
-	rootCmd.SetVersionTemplate(version.Display)
+	rootCmd.SetVersionTemplate(pufferd.Display)
 }
 
-func Execute() error {
-	return rootCmd.Execute()
+func Execute() {
+	rootCmd.SetVersionTemplate(pufferd.Display)
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func load() {

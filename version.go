@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package version
+package pufferd
 
 import "fmt"
 

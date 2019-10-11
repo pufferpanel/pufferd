@@ -25,20 +25,20 @@ steps:
 - script: |
     export GOOS=windows
     export GOARCH=amd64
-    go build -o /build/pufferd.exe -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)/cmd
+    go build -o /build/pufferd.exe -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)/cmd
   displayName: 'Windows Build'
 
 - script: |
     export GOOS=linux
     export GOARCH=amd64
-    go build -o /build/pufferd -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)/cmd
+    go build -o /build/pufferd -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)/cmd
   displayName: 'Linux Build'
 
 - script: |
     export GOOS=linux
     export GOARCH=arm
     export GOARM=7
-    go build -o /build/pufferd-arm -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd/version.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)/cmd
+    go build -o /build/pufferd-arm -ldflags "-X github.com/pufferpanel/pufferd/version.Hash=$(Build.SourceVersion) -X github.com/pufferpanel/pufferd.Version=$(version)" -v github.com/pufferpanel/pufferd/$(packageVersion)/cmd
   displayName: 'Linux Build - ARM'
 
 - task: UseRubyVersion@0

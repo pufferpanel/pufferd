@@ -27,7 +27,6 @@ import (
 	"github.com/pufferpanel/pufferd/v2/routing"
 	"github.com/pufferpanel/pufferd/v2/sftp"
 	"github.com/pufferpanel/pufferd/v2/shutdown"
-	"github.com/pufferpanel/pufferd/v2/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"net"
@@ -58,7 +57,7 @@ func runRun() error {
 	var logPath = viper.GetString("data.logs")
 	_ = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
 
-	logging.Info(version.Display)
+	logging.Info(pufferd.Display)
 
 	environments.LoadModules()
 	programs.Initialize()

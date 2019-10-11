@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-var MigrateCmd = &cobra.Command{
+var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "This will migrate v1 servers to v2",
 	Run:   migrate,

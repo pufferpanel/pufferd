@@ -24,7 +24,7 @@ import (
 	"syscall"
 )
 
-var ReloadCmd = &cobra.Command{
+var reloadCmd = &cobra.Command{
 	Use:   "reload",
 	Short: "Reloads pufferd",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -38,8 +38,8 @@ var ReloadCmd = &cobra.Command{
 var reloadPid int
 
 func init() {
-	ReloadCmd.Flags().IntVar(&reloadPid, "pid", 0, "process id of daemon")
-	ReloadCmd.MarkPersistentFlagRequired("pid")
+	reloadCmd.Flags().IntVar(&reloadPid, "pid", 0, "process id of daemon")
+	reloadCmd.MarkPersistentFlagRequired("pid")
 }
 
 func runReload() error {

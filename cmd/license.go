@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var LicenseCmd = &cobra.Command{
+var licenseCmd = &cobra.Command{
 	Use:   "license",
 	Short: "Prints the license",
 	Run: func(cmd *cobra.Command, args []string) {
