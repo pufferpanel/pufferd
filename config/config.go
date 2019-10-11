@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-var path string
+var path = "config.json"
 
 func init() {
 	//env configuration

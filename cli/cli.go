@@ -22,7 +22,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
-	"runtime"
 )
 
 var rootCmd = &cobra.Command{
@@ -30,8 +29,8 @@ var rootCmd = &cobra.Command{
 	Short: "pufferpanel daemon",
 }
 
-var configPath string
-var loggingLevel string
+var configPath = "config.json"
+var loggingLevel = "INFO"
 
 func init() {
 	cobra.OnInitialize(load)
@@ -40,15 +39,11 @@ func init() {
 		commands.LicenseCmd,
 		commands.ShutdownCmd,
 		commands.RunCmd,
-		commands.ReloadCmd)
+		commands.ReloadCmd,
+		commands.MigrateCmd)
 
-	path := "config.json"
-	if runtime.GOOS == "linux" {
-		path = "/etc/pufferd/config.json"
-	}
-
-	rootCmd.PersistentFlags().StringVar(&configPath, "config", path, "Path to the config to use")
-	rootCmd.PersistentFlags().StringVar(&loggingLevel, "logging", "INFO", "Logging level to print to stdout")
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", configPath, "Path to the config to use")
+	rootCmd.PersistentFlags().StringVar(&loggingLevel, "logging", loggingLevel, "Logging level to print to stdout")
 	rootCmd.SetVersionTemplate(version.Display)
 }
 

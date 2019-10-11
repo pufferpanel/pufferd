@@ -37,9 +37,11 @@ var (
 	ServerFolder string
 )
 
-func Initialize() {
+func init() {
 	ServerFolder = viper.GetString("data.servers")
+}
 
+func Initialize() {
 	operations.LoadOperations()
 }
 
