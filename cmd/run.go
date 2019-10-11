@@ -14,14 +14,14 @@
  limitations under the License.
 */
 
-package commands
+package main
 
 import (
 	"fmt"
 	"github.com/braintree/manners"
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/pufferd/v2/config"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments"
 	"github.com/pufferpanel/pufferd/v2/programs"
 	"github.com/pufferpanel/pufferd/v2/routing"
@@ -53,6 +53,11 @@ var RunCmd = &cobra.Command{
 var runService = true
 
 func runRun() error {
+	_ = pufferd.LoadConfig()
+
+	var logPath = viper.GetString("data.logs")
+	_ = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
+
 	logging.Info(version.Display)
 
 	environments.LoadModules()
@@ -181,7 +186,7 @@ func createHook() {
 			case syscall.SIGHUP:
 				//manners.Close()
 				//sftp.Stop()
-				_ = config.LoadConfig("")
+				_ = pufferd.LoadConfig()
 			case syscall.SIGPIPE:
 				//ignore SIGPIPEs for now, we're somehow getting them and it's causing issues
 			}

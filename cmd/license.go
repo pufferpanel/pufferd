@@ -1,5 +1,5 @@
 /*
- Copyright 2016 Padduck, LLC
+ Copyright 2019 Padduck, LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@
 package main
 
 import (
-	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/pufferd/v2/cli"
+	"fmt"
+	"github.com/pufferpanel/pufferd/v2/data"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	err := cli.Execute()
-
-	if err != nil {
-		logging.Exception("error running command", err)
-	}
+var LicenseCmd = &cobra.Command{
+	Use:   "license",
+	Short: "Prints the license",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(data.LICENSE)
+	},
 }

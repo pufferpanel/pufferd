@@ -1,10 +1,10 @@
-package commands
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/pufferpanel/apufferi/v3"
-	_ "github.com/pufferpanel/pufferd/v2/config"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/programs"
 	"github.com/spf13/cobra"
 	"io"
@@ -21,6 +21,8 @@ var MigrateCmd = &cobra.Command{
 }
 
 func migrate(cmd *cobra.Command, args [] string) {
+	_ = pufferd.LoadConfig()
+
 	programFiles, err := ioutil.ReadDir(programs.ServerFolder)
 	if err != nil {
 		fmt.Printf("Error reading from server data folder: %s\n", err)

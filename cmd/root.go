@@ -11,16 +11,12 @@
   limitations under the License.
 */
 
-package cli
+package main
 
 import (
-	"fmt"
 	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/pufferd/v2/cli/commands"
-	"github.com/pufferpanel/pufferd/v2/config"
 	"github.com/pufferpanel/pufferd/v2/version"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"os"
 )
 
@@ -36,11 +32,11 @@ func init() {
 	cobra.OnInitialize(load)
 
 	rootCmd.AddCommand(
-		commands.LicenseCmd,
-		commands.ShutdownCmd,
-		commands.RunCmd,
-		commands.ReloadCmd,
-		commands.MigrateCmd)
+		LicenseCmd,
+		ShutdownCmd,
+		RunCmd,
+		ReloadCmd,
+		MigrateCmd)
 
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", configPath, "Path to the config to use")
 	rootCmd.PersistentFlags().StringVar(&loggingLevel, "logging", loggingLevel, "Logging level to print to stdout")
@@ -52,18 +48,10 @@ func Execute() error {
 }
 
 func load() {
-	err := config.LoadConfig(configPath)
-	if err != nil {
-		fmt.Printf("Error loading config: %s", err)
-	}
-
 	level := logging.GetLevel(loggingLevel)
 	if level == nil {
 		level = logging.INFO
 	}
 
 	logging.SetLevel(os.Stdout, level)
-
-	var logPath = viper.GetString("data.logs")
-	_ = logging.WithLogDirectory(logPath, logging.DEBUG, nil)
 }

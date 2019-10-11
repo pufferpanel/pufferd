@@ -14,18 +14,41 @@
  limitations under the License.
 */
 
-package commands
+package main
 
 import (
-	"fmt"
-	"github.com/pufferpanel/pufferd/v2/data"
+	"errors"
+	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/spf13/cobra"
+	"os"
+	"syscall"
 )
 
-var LicenseCmd = &cobra.Command{
-	Use:   "license",
-	Short: "Prints the license",
+var ReloadCmd = &cobra.Command{
+	Use:   "reload",
+	Short: "Reloads pufferd",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(data.LICENSE)
+		err := runReload()
+		if err != nil {
+			logging.Exception("error running reload", err)
+		}
 	},
+}
+
+var reloadPid int
+
+func init() {
+	ReloadCmd.Flags().IntVar(&reloadPid, "pid", 0, "process id of daemon")
+	ReloadCmd.MarkPersistentFlagRequired("pid")
+}
+
+func runReload() error {
+	proc, err := os.FindProcess(reloadPid)
+	if err != nil || proc == nil {
+		if err == nil && proc == nil {
+			err = errors.New("no process found")
+		}
+		return err
+	}
+	return proc.Signal(syscall.Signal(1))
 }
