@@ -22,7 +22,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"sync"
 	"syscall"
 	"time"
 
@@ -37,7 +36,6 @@ type standard struct {
 	*envs.BaseEnvironment
 	mainProcess *exec.Cmd
 	stdInWriter io.Writer
-	wait        *sync.WaitGroup
 }
 
 func (s *standard) standardExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error) {
@@ -49,8 +47,8 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 		err = errors.ErrProcessRunning
 		return
 	}
-	s.wait.Wait()
-	s.wait.Add(1)
+	s.Wait.Wait()
+	s.Wait.Add(1)
 	s.mainProcess = exec.Command(cmd, args...)
 	s.mainProcess.Dir = s.RootDirectory
 	s.mainProcess.Env = append(os.Environ(), "HOME="+s.RootDirectory)
@@ -153,10 +151,10 @@ func (s *standard) WaitForMainProcessFor(timeout int) (err error) {
 			var timer = time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
 				err = s.Kill()
 			})
-			s.wait.Wait()
+			s.Wait.Wait()
 			timer.Stop()
 		} else {
-			s.wait.Wait()
+			s.Wait.Wait()
 		}
 	}
 	return
@@ -174,7 +172,7 @@ func (s *standard) SendCode(code int) error {
 
 func (s *standard) handleClose(callback func(graceful bool)) {
 	err := s.mainProcess.Wait()
-	s.wait.Done()
+	s.Wait.Done()
 
 	var graceful bool
 	if s.mainProcess == nil || s.mainProcess.ProcessState == nil || err != nil {

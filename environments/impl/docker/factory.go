@@ -19,26 +19,22 @@ package docker
 import (
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
-	"github.com/pufferpanel/pufferd/v2/utils"
-	"sync"
 )
 
 type EnvironmentFactory struct {
 	envs.EnvironmentFactory
 }
 
-func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) envs.Environment {
-	imageName := apufferi.GetStringOrDefault(environmentSection, "image", "pufferpanel/generic")
-	enforceNetwork := apufferi.GetBooleanOrDefault(environmentSection, "enforceNetwork", false)
+func (ef EnvironmentFactory) Create(id string) envs.Environment {
+	d := &docker{
+		BaseEnvironment: &envs.BaseEnvironment{
+			TypeWithMetadata: apufferi.TypeWithMetadata{},
+		},
+		ContainerId: id,
+		ImageName:   "pufferpanel/generic",
+	}
 
-	d := &docker{BaseEnvironment: &envs.BaseEnvironment{Type: "docker"}, ContainerId: id, ImageName: imageName, enforceNetwork: enforceNetwork}
-	d.BaseEnvironment.ExecutionFunction = d.dockerExecuteAsync
-	d.BaseEnvironment.WaitFunction = d.WaitForMainProcess
-	d.wait = &sync.WaitGroup{}
-
-	d.RootDirectory = rootDirectory
-	d.ConsoleBuffer = cache
-	d.WSManager = wsManager
+	d.ExecutionFunction = d.dockerExecuteAsync
 	return d
 }
 

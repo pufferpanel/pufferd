@@ -25,6 +25,7 @@ import (
 	"github.com/pufferpanel/pufferd/v2/environments/impl/docker"
 	"github.com/pufferpanel/pufferd/v2/environments/impl/standard"
 	"github.com/pufferpanel/pufferd/v2/utils"
+	"sync"
 )
 
 var mapping map[string]envs.EnvironmentFactory
@@ -45,14 +46,25 @@ func Create(environmentType, folder, id string, environmentSection apufferi.Type
 		return nil, errors.New(fmt.Sprintf("undefined environment: %s", environmentType))
 	}
 
+	item := factory.Create(id)
+	err := environmentSection.ParseMetadata(item)
+	if err != nil {
+		return nil, err
+	}
+
 	serverRoot := apufferi.JoinPath(folder, id)
-	rootDirectory := apufferi.GetStringOrDefault(environmentSection.Metadata, "root", serverRoot)
 	envCache := cache.CreateCache()
 	wsManager := utils.CreateWSManager()
 
-	env := factory.Create(folder, id, environmentSection.Metadata, rootDirectory, envCache, wsManager)
+	e := item.GetBase()
+	if e.RootDirectory == "" {
+		e.RootDirectory = serverRoot
+	}
+	e.WSManager = wsManager
+	e.ConsoleBuffer = envCache
+	e.Wait = &sync.WaitGroup{}
 
-	return env, nil
+	return item, nil
 }
 
 func GetSupportedEnvironments() []string {

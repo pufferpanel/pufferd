@@ -28,7 +28,7 @@ type EnvironmentFactory struct {
 }
 
 func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) envs.Environment {
-	d := &lxc{BaseEnvironment: &envs.BaseEnvironment{Type: "lxc"}, ContainerId: id}
+	d := &lxc{BaseEnvironment: &envs.BaseEnvironment{Type: "lxc"}, TypeWithMetadata: apufferi.TypeWithMetadata{Type: "docker"}, ContainerId: id}
 	d.BaseEnvironment.ExecutionFunction = d.executeAsync
 	d.BaseEnvironment.WaitFunction = d.WaitForMainProcess
 	d.wait = &sync.WaitGroup{}

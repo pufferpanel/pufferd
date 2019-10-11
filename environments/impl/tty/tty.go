@@ -20,7 +20,7 @@ package tty
 
 import (
 	"fmt"
-	"github.com/kr/pty"
+	"github.com/creack/pty"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"github.com/pufferpanel/pufferd/v2/errors"
@@ -29,7 +29,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 )
@@ -38,7 +37,6 @@ type tty struct {
 	*envs.BaseEnvironment
 	mainProcess *exec.Cmd
 	stdInWriter io.Writer
-	wait        *sync.WaitGroup
 }
 
 func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error) {
@@ -50,7 +48,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 		err = errors.ErrProcessRunning
 		return
 	}
-	t.wait.Wait()
+	t.Wait.Wait()
 
 	pr := exec.Command(cmd, args...)
 	pr.Dir = t.RootDirectory
@@ -60,7 +58,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	}
 
 	wrapper := t.CreateWrapper()
-	t.wait.Add(1)
+	t.Wait.Add(1)
 	pr.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
 	t.mainProcess = pr
 	logging.Debug("Starting process: %s %s", t.mainProcess.Path, strings.Join(t.mainProcess.Args[1:], " "))
@@ -155,10 +153,10 @@ func (t *tty) WaitForMainProcessFor(timeout int) (err error) {
 			var timer = time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
 				err = t.Kill()
 			})
-			t.wait.Wait()
+			t.Wait.Wait()
 			timer.Stop()
 		} else {
-			t.wait.Wait()
+			t.Wait.Wait()
 		}
 	}
 	return
@@ -188,7 +186,7 @@ func (t *tty) handleClose(callback func(graceful bool)) {
 		t.mainProcess.Process.Release()
 	}
 	t.mainProcess = nil
-	t.wait.Done()
+	t.Wait.Done()
 
 	if callback != nil {
 		callback(success)

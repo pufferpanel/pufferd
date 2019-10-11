@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 	"io"
 	"os"
+	"sync"
 )
 
 type Environment interface {
@@ -66,17 +67,22 @@ type Environment interface {
 	DisplayToConsole(msg string, data ...interface{})
 
 	SendCode(code int) error
+
+	GetBase() *BaseEnvironment
 }
 
 type BaseEnvironment struct {
 	Environment
-	RootDirectory     string                 `json:"-"`
+	apufferi.TypeWithMetadata
+	RootDirectory     string                 `json:"root"`
 	ConsoleBuffer     apufferi.Cache         `json:"-"`
 	WSManager         utils.WebSocketManager `json:"-"`
-	Type              string                 `json:"type"`
-	ExecutionFunction func(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error)
-	WaitFunction      func() (err error)
+	Wait              *sync.WaitGroup        `json:"-"`
+	ExecutionFunction ExecutionFunction      `json:"-"`
+	WaitFunction      func() (err error)     `json:"-"`
 }
+
+type ExecutionFunction func(cmd string, args []string, env map[string]string, callback func(graceful bool)) (err error)
 
 func (e *BaseEnvironment) Execute(cmd string, args []string, env map[string]string, callback func(graceful bool)) (stdOut []byte, err error) {
 	stdOut = make([]byte, 0)
@@ -138,4 +144,8 @@ func (e *BaseEnvironment) CreateWrapper() io.Writer {
 		return io.MultiWriter(os.Stdout, e.ConsoleBuffer, e.WSManager)
 	}
 	return io.MultiWriter(e.ConsoleBuffer, e.WSManager)
+}
+
+func (e *BaseEnvironment) GetBase() *BaseEnvironment {
+	return e
 }

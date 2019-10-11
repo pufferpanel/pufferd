@@ -20,6 +20,7 @@ import (
 	"github.com/docker/docker/pkg/ioutils"
 	client "github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/shared/api"
+	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"github.com/pufferpanel/pufferd/v2/errors"
@@ -31,6 +32,7 @@ import (
 
 type lxc struct {
 	*envs.BaseEnvironment
+	apufferi.TypeWithMetadata
 	ContainerId string `json:"-"`
 	ImageName   string `json:"image"`
 

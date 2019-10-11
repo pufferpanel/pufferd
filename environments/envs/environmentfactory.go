@@ -16,13 +16,8 @@
 
 package envs
 
-import (
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/pufferd/v2/utils"
-)
-
 type EnvironmentFactory interface {
-	Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) Environment
+	Create(id string) Environment
 
 	Key() string
 }

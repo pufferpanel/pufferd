@@ -34,20 +34,19 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
-	"sync"
 	"syscall"
 	"time"
 )
 
 type docker struct {
 	*envs.BaseEnvironment
-	ContainerId      string `json:"-"`
-	ImageName        string `json:"image"`
+	ContainerId    string `json:"-"`
+	ImageName      string `json:"image"`
+	EnforceNetwork bool   `json:"EnforceNetwork"`
+
 	connection       types.HijackedResponse
 	cli              *client.Client
 	downloadingImage bool
-	enforceNetwork   bool
-	wait             *sync.WaitGroup
 }
 
 func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]string, callback func(graceful bool)) error {
@@ -59,7 +58,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 		return errors.ErrContainerRunning
 	}
 
-	d.wait.Wait()
+	d.Wait.Wait()
 
 	if d.downloadingImage {
 		return errors.ErrImageDownloading
@@ -94,7 +93,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 		return err
 	}
 
-	d.wait.Add(1)
+	d.Wait.Add(1)
 
 	go func() {
 		defer d.connection.Close()
@@ -102,7 +101,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 		_, _ = io.Copy(wrapper, d.connection.Reader)
 		c, _ := d.getClient()
 		err = c.ContainerStop(context.Background(), d.ContainerId, nil)
-		d.wait.Done()
+		d.Wait.Done()
 		if err != nil {
 			logging.Exception("Error stopping container "+d.ContainerId, err)
 		}
@@ -242,10 +241,10 @@ func (d *docker) WaitForMainProcessFor(timeout int) (err error) {
 			var timer = time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
 				err = d.Kill()
 			})
-			d.wait.Wait()
+			d.Wait.Wait()
 			timer.Stop()
 		} else {
-			d.wait.Wait()
+			d.Wait.Wait()
 		}
 	}
 	return
@@ -415,7 +414,6 @@ func calculateCPUPercent(v *types.StatsJSON) float64 {
 	}
 	return 0.00
 }
-
 
 func calculateMemoryPercent(v *types.StatsJSON) float64 {
 	return float64(v.MemoryStats.Usage) / (1024 * 1024) //convert from bytes to MB

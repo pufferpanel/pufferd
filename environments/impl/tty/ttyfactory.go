@@ -21,23 +21,21 @@ package tty
 import (
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
-	"github.com/pufferpanel/pufferd/v2/utils"
-	"sync"
 )
 
 type EnvironmentFactory struct {
 	envs.EnvironmentFactory
 }
 
-func (ef EnvironmentFactory) Create(folder, id string, environmentSection map[string]interface{}, rootDirectory string, cache apufferi.Cache, wsManager utils.WebSocketManager) envs.Environment {
-	t := &tty{BaseEnvironment: &envs.BaseEnvironment{Type: "tty"}}
+func (ef EnvironmentFactory) Create(id string) envs.Environment {
+	t := &tty{
+		BaseEnvironment: &envs.BaseEnvironment{
+			TypeWithMetadata: apufferi.TypeWithMetadata{
+				Type: "tty",
+			},
+		},
+	}
 	t.BaseEnvironment.ExecutionFunction = t.ttyExecuteAsync
-	t.BaseEnvironment.WaitFunction = t.WaitForMainProcess
-	t.wait = &sync.WaitGroup{}
-
-	t.RootDirectory = rootDirectory
-	t.ConsoleBuffer = cache
-	t.WSManager = wsManager
 	return t
 }
 
