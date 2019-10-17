@@ -26,6 +26,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
@@ -40,9 +41,12 @@ import (
 
 type docker struct {
 	*envs.BaseEnvironment
-	ContainerId    string `json:"-"`
-	ImageName      string `json:"image"`
-	EnforceNetwork bool   `json:"EnforceNetwork"`
+	ContainerId string            `json:"-"`
+	ImageName   string            `json:"image"`
+	Binds       map[string]string `json:"bindings,omitempty"`
+	NetworkMode string            `json:"networkMode,omitempty"`
+	Network     string            `json:"networkName,omitempty"`
+	Ports       []string          `json:"portBindings,omitempty"`
 
 	connection       types.HijackedResponse
 	cli              *client.Client
@@ -67,6 +71,7 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 	dockerClient, err := d.getClient()
 	ctx := context.Background()
 
+	//TODO: This logic may not work anymore, it's complicated to use an existing container with install/uninstall
 	exists, err := d.doesContainerExist(dockerClient, ctx)
 
 	if err != nil {
@@ -110,7 +115,8 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 		}
 	}()
 
-	startOpts := types.ContainerStartOptions{}
+	startOpts := types.ContainerStartOptions{
+	}
 
 	err = dockerClient.ContainerStart(ctx, d.ContainerId, startOpts)
 	if err != nil {
@@ -341,9 +347,8 @@ func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd
 	}
 
 	//newEnv := os.Environ()
-	newEnv := make([]string, 0)
-	//newEnv["home"] = root
-	newEnv = append(newEnv, "HOME="+containerRoot)
+	newEnv := []string{"HOME=" + containerRoot}
+
 	for k, v := range env {
 		newEnv = append(newEnv, fmt.Sprintf("%s=%s", k, v))
 	}
@@ -366,17 +371,26 @@ func (d *docker) createContainer(client *client.Client, ctx context.Context, cmd
 	}
 
 	hostConfig := &container.HostConfig{
-		AutoRemove:  true,
-		NetworkMode: "host",
-		Resources:   container.Resources{},
-		Binds:       make([]string, 0),
+		AutoRemove:   true,
+		NetworkMode:  container.NetworkMode(d.NetworkMode),
+		Resources:    container.Resources{},
+		Binds:        []string{root + ":" + containerRoot},
+		PortBindings: nat.PortMap{},
 	}
 
 	config.WorkingDir = containerRoot
 
-	hostConfig.Binds = append(hostConfig.Binds, root+":"+containerRoot)
+	for k, v := range d.Binds {
+		hostConfig.Binds = append(hostConfig.Binds, k+":"+v)
+	}
 
 	networkConfig := &network.NetworkingConfig{}
+
+	_, bindings, err := nat.ParsePortSpecs(d.Ports)
+	if err != nil {
+		return err
+	}
+	hostConfig.PortBindings = bindings
 
 	_, err = client.ContainerCreate(ctx, config, hostConfig, networkConfig, d.ContainerId)
 	return err

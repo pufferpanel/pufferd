@@ -32,6 +32,9 @@ func (ef EnvironmentFactory) Create(id string) envs.Environment {
 		},
 		ContainerId: id,
 		ImageName:   "pufferpanel/generic",
+		NetworkMode: "host",
+		Ports:       make([]string, 0),
+		Binds:       make(map[string]string),
 	}
 
 	d.ExecutionFunction = d.dockerExecuteAsync
