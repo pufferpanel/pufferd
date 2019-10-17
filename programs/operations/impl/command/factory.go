@@ -17,8 +17,8 @@
 package command
 
 import (
-	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/ops"
+	"github.com/spf13/cast"
 )
 
 type OperationFactory struct {
@@ -26,7 +26,7 @@ type OperationFactory struct {
 }
 
 func (of OperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	cmds := apufferi.ToStringArray(op.OperationArgs["commands"])
+	cmds := cast.ToStringSlice(op.OperationArgs["commands"]))
 	return Command{Commands: cmds, Env: op.EnvironmentVariables}
 }
 

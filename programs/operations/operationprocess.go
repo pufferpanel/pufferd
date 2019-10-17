@@ -30,6 +30,7 @@ import (
 	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/spongeforgedl"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/writefile"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/ops"
+	"github.com/spf13/cast"
 )
 
 var commandMapping map[string]ops.OperationFactory
@@ -62,24 +63,24 @@ func GenerateProcess(directions []apufferi.TypeWithMetadata, environment envs.En
 
 		//replace tokens
 		for k, v := range mapping.Metadata {
-			switch v.(type) {
+			switch r := v.(type) {
 			case string:
 				{
-					mapCopy[k] = apufferi.ReplaceTokens(v.(string), dataMap)
+					mapCopy[k] = apufferi.ReplaceTokens(r, dataMap)
 				}
 			case []string:
 				{
-					mapCopy[k] = apufferi.ReplaceTokensInArr(v.([]string), dataMap)
+					mapCopy[k] = apufferi.ReplaceTokensInArr(r, dataMap)
 				}
 			case map[string]string:
 				{
-					mapCopy[k] = apufferi.ReplaceTokensInMap(v.(map[string]string), dataMap)
+					mapCopy[k] = apufferi.ReplaceTokensInMap(r, dataMap)
 				}
 			case []interface{}:
 				{
 					//if we can convert this to a string list, we can work with it
-					temp := apufferi.ToStringArray(v)
-					if len(temp) == len(v.([]interface{})) {
+					temp := cast.ToStringSlice(r)
+					if len(temp) == len(r) {
 						mapCopy[k] = apufferi.ReplaceTokensInArr(temp, dataMap)
 					} else {
 						mapCopy[k] = v
