@@ -23,7 +23,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/pufferpanel/apufferi/v3"
 	"github.com/pufferpanel/apufferi/v3/logging"
@@ -97,9 +96,7 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 
 		token, err := apufferi.ParseToken(pubKey, authToken)
 		if err != nil {
-			if err != jwt.ErrSignatureInvalid {
-				logging.Exception("Error handling oauth2 validation", err)
-			}
+			logging.Exception("Error handling oauth2 validation", err)
 			response.Respond(gin).Fail().Status(403).Message("invalid access").Send()
 			return
 		}
