@@ -116,7 +116,7 @@ func CreateProgram() *Program {
 	return &Program{
 		Server: apufferi.Server{
 			Execution: apufferi.Execution{
-				Enabled:                 true,
+				Disabled:                 true,
 				AutoStart:               false,
 				AutoRestartFromCrash:    false,
 				AutoRestartFromGraceful: false,
@@ -304,13 +304,12 @@ func (p *Program) Execute(command string) (err error) {
 }
 
 func (p *Program) SetEnabled(isEnabled bool) (err error) {
-	p.Execution.Enabled = isEnabled
+	p.Execution.Disabled = !isEnabled
 	return
 }
 
 func (p *Program) IsEnabled() (isEnabled bool) {
-	isEnabled = p.Execution.Enabled
-	return
+	return !p.Execution.Disabled
 }
 
 func (p *Program) SetEnvironment(environment envs.Environment) (err error) {
