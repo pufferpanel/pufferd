@@ -26,7 +26,7 @@ type OperationFactory struct {
 }
 
 func (of OperationFactory) Create(op ops.CreateOperation) ops.Operation {
-	cmds := cast.ToStringSlice(op.OperationArgs["commands"]))
+	cmds := cast.ToStringSlice(op.OperationArgs["commands"])
 	return Command{Commands: cmds, Env: op.EnvironmentVariables}
 }
 
