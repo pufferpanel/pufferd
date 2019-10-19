@@ -116,7 +116,7 @@ func CreateProgram() *Program {
 	return &Program{
 		Server: apufferi.Server{
 			Execution: apufferi.Execution{
-				Disabled:                 true,
+				Disabled:                false,
 				AutoStart:               false,
 				AutoRestartFromCrash:    false,
 				AutoRestartFromGraceful: false,
