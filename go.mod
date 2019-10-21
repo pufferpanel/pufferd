@@ -8,7 +8,7 @@ require (
 	github.com/braintree/manners v0.0.0-20150503212558-0b5e6b2c2843
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/containerd/containerd v1.2.9 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/creack/pty v1.1.7
 	github.com/docker/distribution v0.0.0-20190905152932-14b96e55d84c // indirect
 	github.com/docker/docker v0.0.0-20190905191220-3b23f9033967
 	github.com/docker/go-connections v0.4.0
@@ -19,17 +19,20 @@ require (
 	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/itsjamie/gin-cors v0.0.0-20160420130702-97b4a9da7933
+	github.com/juju/clock v0.0.0-20190205081909-9c5c9712527c // indirect
+	github.com/juju/retry v0.0.0-20180821225755-9058e192b216 // indirect
+	github.com/juju/utils v0.0.0-20180820210520-bf9cc5bdd62d // indirect
+	github.com/juju/version v0.0.0-20180108022336-b64dbd566305 // indirect
 	github.com/juju/webbrowser v0.0.0-20180907093207-efb9432b2bcb // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/kr/pty v1.1.8
 	github.com/lxc/lxd v0.0.0-20191002163551-3a5f63bc4959
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.10.1
-	github.com/pufferpanel/apufferi/v3 v3.0.3
+	github.com/pufferpanel/apufferi/v3 v3.0.5
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
@@ -43,7 +46,6 @@ require (
 	google.golang.org/grpc v1.23.0 // indirect
 	gopkg.in/errgo.v1 v1.0.1 // indirect
 	gopkg.in/httprequest.v1 v1.2.0 // indirect
-	gopkg.in/lxc/go-lxc.v2 v2.0.0-20190625173123-f4822c6bba64 // indirect
 	gopkg.in/macaroon-bakery.v2 v2.1.0 // indirect
 	gopkg.in/macaroon.v2 v2.1.0 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
