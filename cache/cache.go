@@ -17,7 +17,7 @@
 package cache
 
 import (
-	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v4"
 	"github.com/spf13/viper"
 )
 

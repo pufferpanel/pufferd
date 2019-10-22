@@ -19,7 +19,7 @@ package shutdown
 import (
 	"fmt"
 	"github.com/braintree/manners"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2/programs"
 	"os"
 	"runtime/debug"

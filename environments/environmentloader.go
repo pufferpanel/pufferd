@@ -19,7 +19,7 @@ package environments
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/pufferd/v2/cache"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"github.com/pufferpanel/pufferd/v2/environments/impl/docker"

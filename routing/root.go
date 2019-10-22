@@ -18,14 +18,25 @@ package routing
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/apufferi/v3/middleware"
-	"github.com/pufferpanel/apufferi/v3/response"
+	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/apufferi/v4/middleware"
+	"github.com/pufferpanel/apufferi/v4/response"
+	"github.com/pufferpanel/pufferd/v2"
+	_ "github.com/pufferpanel/pufferd/v2/docs"
 	"github.com/pufferpanel/pufferd/v2/oauth2"
 	"github.com/pufferpanel/pufferd/v2/routing/server"
-	"github.com/pufferpanel/pufferd/v2/shutdown"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
+	"strings"
 )
 
+// @title Pufferd API
+// @version 2.0
+// @description PufferPanel daemon service
+// @contact.name PufferPanel
+// @contact.url https://pufferpanel.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 func ConfigureWeb() *gin.Engine {
 	r := gin.New()
 	{
@@ -35,10 +46,14 @@ func ConfigureWeb() *gin.Engine {
 			if c.GetHeader("Connection") == "Upgrade" {
 				return
 			}
+			if strings.HasPrefix(c.Request.URL.Path, "/swagger/") {
+				return
+			}
 			middleware.ResponseAndRecover(c)
 		})
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	oauth2.RefreshToken()
@@ -48,15 +63,10 @@ func ConfigureWeb() *gin.Engine {
 
 func RegisterRoutes(e *gin.Engine) {
 	e.GET("", func(c *gin.Context) {
-		response.From(c).Message("pufferd is running")
+		c.JSON(200, &pufferd.PufferdRunning{Message: "pufferd is running"})
 	})
 	e.HEAD("", func(c *gin.Context) {
 		c.Status(200)
 	})
-	//e.GET("/_shutdown", httphandlers.OAuth2Handler("node.stop", false), Shutdown)
-}
-
-func Shutdown(c *gin.Context) {
-	response.From(c).Message("shutting down")
-	go shutdown.CompleteShutdown()
+	e.Handle("OPTIONS", "", response.CreateOptions("GET", "HEAD"))
 }

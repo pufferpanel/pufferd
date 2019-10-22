@@ -27,10 +27,10 @@ import (
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
-	"github.com/pufferpanel/pufferd/v2/errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -59,13 +59,13 @@ func (d *docker) dockerExecuteAsync(cmd string, args []string, env map[string]st
 		return err
 	}
 	if running {
-		return errors.ErrContainerRunning
+		return pufferd.ErrContainerRunning
 	}
 
 	d.Wait.Wait()
 
 	if d.downloadingImage {
-		return errors.ErrImageDownloading
+		return pufferd.ErrImageDownloading
 	}
 
 	dockerClient, err := d.getClient()
@@ -131,7 +131,7 @@ func (d *docker) ExecuteInMainProcess(cmd string) (err error) {
 		return
 	}
 	if !running {
-		err = errors.ErrServerOffline
+		err = pufferd.ErrServerOffline
 		return
 	}
 
@@ -194,14 +194,14 @@ func (d *docker) IsRunning() (bool, error) {
 	return stats.State.Running, nil
 }
 
-func (d *docker) GetStats() (map[string]interface{}, error) {
+func (d *docker) GetStats() (*pufferd.ServerStats, error) {
 	running, err := d.IsRunning()
 	if err != nil {
 		return nil, err
 	}
 
 	if !running {
-		return nil, errors.ErrServerOffline
+		return nil, pufferd.ErrServerOffline
 	}
 
 	dockerClient, err := d.getClient()
@@ -226,11 +226,11 @@ func (d *docker) GetStats() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resultMap := make(map[string]interface{})
-	resultMap["memory"] = calculateMemoryPercent(data)
-	resultMap["cpu"] = calculateCPUPercent(data)
 
-	return resultMap, nil
+	return &pufferd.ServerStats{
+		Memory: calculateMemoryPercent(data),
+		Cpu:    calculateCPUPercent(data),
+	}, nil
 }
 
 func (d *docker) WaitForMainProcess() error {

@@ -15,7 +15,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2"
 	"github.com/spf13/cobra"
 	"os"

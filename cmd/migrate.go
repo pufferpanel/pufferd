@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/programs"
 	"github.com/spf13/cobra"

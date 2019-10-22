@@ -20,8 +20,8 @@ import (
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"os"
 
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
 )
 
 type Mkdir struct {

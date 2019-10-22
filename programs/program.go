@@ -19,10 +19,10 @@ package programs
 import (
 	"container/list"
 	"encoding/json"
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
-	"github.com/pufferpanel/pufferd/v2/errors"
 	"github.com/pufferpanel/pufferd/v2/messages"
 	"github.com/pufferpanel/pufferd/v2/programs/operations"
 	"github.com/spf13/viper"
@@ -138,7 +138,7 @@ func CreateProgram() *Program {
 func (p *Program) Start() (err error) {
 	if !p.IsEnabled() {
 		logging.Error("Server %s is not enabled, cannot start", p.Id())
-		return errors.ErrServerDisabled
+		return pufferd.ErrServerDisabled
 	}
 	if running, err := p.IsRunning(); running || err != nil {
 		return err
@@ -168,7 +168,7 @@ func (p *Program) Start() (err error) {
 
 	err = p.Environment.ExecuteAsync(p.Execution.ProgramName, apufferi.ReplaceTokensInArr(p.Execution.Arguments, data), apufferi.ReplaceTokensInMap(p.Execution.EnvironmentVariables, data), p.afterExit)
 	if err != nil {
-		logging.Exception("error starting server " + p.Id(), err)
+		logging.Exception("error starting server "+p.Id(), err)
 		p.Environment.DisplayToConsole("Failed to start server\n")
 	}
 
@@ -242,7 +242,7 @@ func (p *Program) Destroy() (err error) {
 func (p *Program) Install() (err error) {
 	if !p.IsEnabled() {
 		logging.Error("Server %s is not enabled, cannot install", p.Id())
-		return errors.ErrServerDisabled
+		return pufferd.ErrServerDisabled
 	}
 
 	logging.Debug("Installing server %s", p.Id())
@@ -347,20 +347,21 @@ func (p *Program) Save(file string) (err error) {
 	return
 }
 
-func (p *Program) Edit(data map[string]interface{}, overrideUser bool) (err error) {
+func (p *Program) Edit(data map[string]apufferi.Variable, overrideUser bool) (err error) {
 	for k, v := range data {
 		var elem apufferi.Variable
 
 		if _, ok := p.Variables[k]; ok {
 			elem = p.Variables[k]
 		} else {
-			elem = apufferi.Variable{}
+			//copy from provided
+			elem = v
 		}
 		if !elem.UserEditable && !overrideUser {
 			continue
 		}
 
-		elem.Value = v
+		elem.Value = v.Value
 
 		p.Variables[k] = elem
 	}
@@ -441,7 +442,7 @@ func (p *Program) afterExit(graceful bool) {
 func (p *Program) GetItem(name string) (*FileData, error) {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
-		return nil, errors.ErrIllegalFileAccess
+		return nil, pufferd.ErrIllegalFileAccess
 	}
 
 	info, err := os.Stat(targetFile)
@@ -497,7 +498,7 @@ func (p *Program) CreateFolder(name string) error {
 	folder := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 
 	if !apufferi.EnsureAccess(folder, p.GetEnvironment().GetRootDirectory()) {
-		return errors.ErrIllegalFileAccess
+		return pufferd.ErrIllegalFileAccess
 	}
 	return os.Mkdir(folder, 0755)
 }
@@ -506,7 +507,7 @@ func (p *Program) OpenFile(name string) (io.WriteCloser, error) {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
-		return nil, errors.ErrIllegalFileAccess
+		return nil, pufferd.ErrIllegalFileAccess
 	}
 
 	file, err := os.Create(targetFile)
@@ -517,7 +518,7 @@ func (p *Program) DeleteItem(name string) error {
 	targetFile := apufferi.JoinPath(p.GetEnvironment().GetRootDirectory(), name)
 
 	if !apufferi.EnsureAccess(targetFile, p.GetEnvironment().GetRootDirectory()) {
-		return errors.ErrIllegalFileAccess
+		return pufferd.ErrIllegalFileAccess
 	}
 
 	return os.RemoveAll(targetFile)

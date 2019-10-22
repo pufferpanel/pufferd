@@ -24,7 +24,7 @@ import (
 	"plugin"
 	"reflect"
 
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/ops"
 )
 

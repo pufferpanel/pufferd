@@ -20,10 +20,10 @@ import (
 	"github.com/docker/docker/pkg/ioutils"
 	client "github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/shared/api"
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
-	"github.com/pufferpanel/pufferd/v2/errors"
 	"io"
 	"os"
 	"sync"
@@ -50,7 +50,7 @@ func (l *lxc) executeAsync(cmd string, args []string, env map[string]string, cal
 		return err
 	}
 	if running {
-		return errors.ErrContainerRunning
+		return pufferd.ErrContainerRunning
 	}
 
 	//send an exec
@@ -167,7 +167,7 @@ func (l *lxc) ExecuteInMainProcess(cmd string) (err error) {
 		return
 	}
 	if !running {
-		err = errors.ErrServerOffline
+		err = pufferd.ErrServerOffline
 		return
 	}
 
@@ -204,10 +204,10 @@ func (l *lxc) Create() error {
 	return err
 }
 
-func (l *lxc) GetStats() (map[string]interface{}, error) {
-	return map[string]interface{}{
-		"cpu":    0,
-		"memory": 0,
+func (l *lxc) GetStats() (*pufferd.ServerStats, error) {
+	return &pufferd.ServerStats{
+		Cpu:    0,
+		Memory: 0,
 	}, nil
 }
 

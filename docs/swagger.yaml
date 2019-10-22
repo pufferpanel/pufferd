@@ -1,0 +1,50 @@
+definitions:
+  response.Error:
+    properties:
+      error:
+        type: string
+    type: object
+info:
+  contact:
+    name: PufferPanel
+    url: https://pufferpanel.com
+  description: PufferPanel daemon service
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Pufferd API
+  version: "2.0"
+paths:
+  /server/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Starts the given server
+      parameters:
+      - description: Server Identifier
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Starts server
+swagger: "2.0"

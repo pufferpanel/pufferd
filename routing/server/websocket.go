@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/apufferi/v3/scope"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/apufferi/v4/scope"
 	"github.com/pufferpanel/pufferd/v2/messages"
 	"github.com/pufferpanel/pufferd/v2/programs"
 	"github.com/spf13/viper"
@@ -46,8 +46,8 @@ func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []sco
 							msg.Cpu = 0
 							msg.Memory = 0
 						} else {
-							msg.Cpu, _ = results["cpu"].(float64)
-							msg.Memory, _ = results["memory"].(float64)
+							msg.Cpu = results.Cpu
+							msg.Memory = results.Memory
 						}
 						_ = messages.Write(conn, msg)
 					}

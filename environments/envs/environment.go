@@ -19,7 +19,8 @@ package envs
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/utils"
 	"github.com/spf13/viper"
 	"io"
@@ -62,7 +63,7 @@ type Environment interface {
 
 	AddListener(ws *websocket.Conn)
 
-	GetStats() (map[string]interface{}, error)
+	GetStats() (*pufferd.ServerStats, error)
 
 	DisplayToConsole(msg string, data ...interface{})
 

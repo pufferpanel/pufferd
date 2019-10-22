@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	"github.com/pkg/sftp"
-	utils "github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	utils "github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
 )
 
 type requestPrefix struct {

@@ -19,8 +19,8 @@ package environments
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2/commons"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"github.com/spf13/viper"

@@ -21,42 +21,39 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/apufferi/v3/response"
-	"github.com/pufferpanel/apufferi/v3/scope"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/response"
+	"github.com/pufferpanel/apufferi/v4/scope"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/programs"
 	"github.com/spf13/viper"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 )
 
 func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFunc {
-	return func(gin *gin.Context) {
+	return func(c *gin.Context) {
 		failure := true
 		defer func() {
-			if failure && !gin.IsAborted() {
-				gin.Abort()
+			if failure && !c.IsAborted() {
+				c.Abort()
 			}
 		}()
-		authHeader := gin.Request.Header.Get("Authorization")
+		authHeader := c.Request.Header.Get("Authorization")
 		var authToken string
 		if authHeader == "" {
-			authToken = gin.Query("accessToken")
+			authToken = c.Query("accessToken")
 			if authToken == "" {
-				response.Respond(gin).Fail().Status(400).Message("no access token provided").Send()
-				gin.Abort()
+				response.HandleError(c, pufferd.ErrMissingAccessToken, http.StatusBadRequest)
 				return
 			}
 		} else {
 			authArr := strings.SplitN(authHeader, " ", 2)
 			if len(authArr) < 2 || authArr[0] != "Bearer" {
-				response.Respond(gin).Fail().Status(400).Message("invalid access token format").Send()
-				gin.Abort()
+				response.HandleError(c, pufferd.ErrNotBearerToken, http.StatusBadRequest)
 				return
 			}
 			authToken = authArr[1]
@@ -64,9 +61,7 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 
 		f, err := os.OpenFile(viper.GetString("auth.publicKey"), os.O_RDONLY, 660)
 		defer apufferi.Close(f)
-		if err != nil {
-			logging.Exception("Error handling oauth2 validation", err)
-			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
+		if response.HandleError(c, err, http.StatusInternalServerError) {
 			return
 		}
 
@@ -76,32 +71,26 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 
 		block, _ := pem.Decode(buf.Bytes())
 		if block == nil {
-			logging.Exception("Error handling oauth2 validation", errors.New("public key is not in PEM format"))
-			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
+			response.HandleError(c, pufferd.ErrKeyNotPEM, http.StatusInternalServerError)
 			return
 		}
 		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-		if err != nil {
-			logging.Exception("Error handling oauth2 validation", err)
-			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
+		if response.HandleError(c, err, http.StatusInternalServerError) {
 			return
 		}
 
 		pubKey, ok := pub.(*ecdsa.PublicKey)
 		if !ok {
-			logging.Exception("Error handling oauth2 validation", err)
-			response.Respond(gin).Fail().Status(500).Message("error validating access token").Send()
+			response.HandleError(c, pufferd.ErrKeyNotECDSA, http.StatusInternalServerError)
 			return
 		}
 
 		token, err := apufferi.ParseToken(pubKey, authToken)
-		if err != nil {
-			logging.Exception("Error handling oauth2 validation", err)
-			response.Respond(gin).Fail().Status(403).Message("invalid access").Send()
+		if response.HandleError(c, err, http.StatusForbidden) {
 			return
 		}
 
-		serverId := gin.Param("id")
+		serverId := c.Param("id")
 		scopes := make([]scope.Scope, 0)
 		if token.Claims.PanelClaims.Scopes[serverId] != nil {
 			scopes = append(scopes, token.Claims.PanelClaims.Scopes[serverId]...)
@@ -111,21 +100,21 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 		}
 
 		if !apufferi.ContainsScope(scopes, requiredScope) {
-			response.Respond(gin).Fail().Status(403).Message(fmt.Sprintf("missing scope %s", requiredScope)).Send()
+			response.HandleError(c, pufferd.CreateErrMissingScope(requiredScope), http.StatusForbidden)
 			return
 		}
 
 		if requireServer {
 			program, _ := programs.Get(serverId)
 			if program == nil {
-				response.Respond(gin).Fail().Status(404).Message("no server with id " + serverId).Send()
+				c.AbortWithStatus(http.StatusNotFound)
 				return
 			}
 
-			gin.Set("server", program)
+			c.Set("server", program)
 		}
 
-		gin.Set("scopes", scopes)
+		c.Set("scopes", scopes)
 
 		failure = false
 	}

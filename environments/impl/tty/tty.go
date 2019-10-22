@@ -21,10 +21,11 @@ package tty
 import (
 	"fmt"
 	"github.com/creack/pty"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
-	"github.com/pufferpanel/pufferd/v2/errors"
 	"github.com/shirou/gopsutil/process"
+	"github.com/spf13/cast"
 	"io"
 	"os"
 	"os/exec"
@@ -45,7 +46,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 		return
 	}
 	if running {
-		err = errors.ErrProcessRunning
+		err = pufferd.ErrProcessRunning
 		return
 	}
 	t.Wait.Wait()
@@ -83,7 +84,7 @@ func (t *tty) ExecuteInMainProcess(cmd string) (err error) {
 		return err
 	}
 	if !running {
-		err = errors.ErrServerOffline
+		err = pufferd.ErrServerOffline
 		return
 	}
 	stdIn := t.stdInWriter
@@ -115,24 +116,26 @@ func (t *tty) IsRunning() (isRunning bool, err error) {
 	return
 }
 
-func (t *tty) GetStats() (map[string]interface{}, error) {
+func (t *tty) GetStats() (*pufferd.ServerStats, error) {
 	running, err := t.IsRunning()
 	if err != nil {
 		return nil, err
 	}
 	if !running {
-		return nil, errors.ErrServerOffline
+		return nil, pufferd.ErrServerOffline
 	}
 	pr, err := process.NewProcess(int32(t.mainProcess.Process.Pid))
 	if err != nil {
 		return nil, err
 	}
-	resultMap := make(map[string]interface{})
+
 	memMap, _ := pr.MemoryInfo()
-	resultMap["memory"] = memMap.RSS
-	cpu, _ := pr.Percent(time.Millisecond * 50)
-	resultMap["cpu"] = cpu
-	return resultMap, nil
+	cpu, _ := pr.Percent(time.Second * 1)
+
+	return &pufferd.ServerStats{
+		Cpu:    cpu,
+		Memory: cast.ToFloat64(memMap.RSS),
+	}, nil
 }
 
 func (t *tty) Create() error {

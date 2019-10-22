@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
+	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/braintree/manners v0.0.0-20150503212558-0b5e6b2c2843
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/containerd/containerd v1.2.9 // indirect
@@ -32,13 +33,16 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.10.1
-	github.com/pufferpanel/apufferi/v3 v3.0.5
+	github.com/pufferpanel/apufferi/v4 v4.0.0
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/spf13/cast v1.3.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
+	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
+	github.com/swaggo/gin-swagger v1.2.0
+	github.com/swaggo/swag v1.5.1
 	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect

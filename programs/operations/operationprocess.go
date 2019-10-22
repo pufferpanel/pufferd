@@ -17,10 +17,10 @@
 package operations
 
 import (
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
-	"github.com/pufferpanel/pufferd/v2/errors"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/command"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/download"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/forgedl"
@@ -56,7 +56,7 @@ func GenerateProcess(directions []apufferi.TypeWithMetadata, environment envs.En
 		factory := commandMapping[mapping.Type]
 
 		if factory == nil {
-			return OperationProcess{}, errors.ErrMissingFactory
+			return OperationProcess{}, pufferd.ErrMissingFactory
 		}
 
 		mapCopy := make(map[string]interface{}, 0)

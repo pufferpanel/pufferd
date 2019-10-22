@@ -19,8 +19,8 @@ package main
 import (
 	"fmt"
 	"github.com/braintree/manners"
-	"github.com/pufferpanel/apufferi/v3"
-	"github.com/pufferpanel/apufferi/v3/logging"
+	"github.com/pufferpanel/apufferi/v4"
+	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments"
 	"github.com/pufferpanel/pufferd/v2/programs"

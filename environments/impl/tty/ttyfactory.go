@@ -19,7 +19,7 @@
 package tty
 
 import (
-	"github.com/pufferpanel/apufferi/v3"
+	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 )
 

@@ -17,7 +17,9 @@
 package standard
 
 import (
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
+	"github.com/spf13/cast"
 	"io"
 	"os"
 	"os/exec"
@@ -26,8 +28,7 @@ import (
 	"time"
 
 	"fmt"
-	"github.com/pufferpanel/apufferi/v3/logging"
-	"github.com/pufferpanel/pufferd/v2/errors"
+	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/shirou/gopsutil/process"
 	"strings"
 )
@@ -44,7 +45,7 @@ func (s *standard) standardExecuteAsync(cmd string, args []string, env map[strin
 		return
 	}
 	if running {
-		err = errors.ErrProcessRunning
+		err = pufferd.ErrProcessRunning
 		return
 	}
 	s.Wait.Wait()
@@ -81,7 +82,7 @@ func (s *standard) ExecuteInMainProcess(cmd string) (err error) {
 		return err
 	}
 	if !running {
-		err = errors.ErrServerOffline
+		err = pufferd.ErrServerOffline
 		return
 	}
 	stdIn := s.stdInWriter
@@ -113,24 +114,26 @@ func (s *standard) IsRunning() (isRunning bool, err error) {
 	return
 }
 
-func (s *standard) GetStats() (map[string]interface{}, error) {
+func (s *standard) GetStats() (*pufferd.ServerStats, error) {
 	running, err := s.IsRunning()
 	if err != nil {
 		return nil, err
 	}
 	if !running {
-		return nil, errors.ErrServerOffline
+		return nil, pufferd.ErrServerOffline
 	}
 	pr, err := process.NewProcess(int32(s.mainProcess.Process.Pid))
 	if err != nil {
 		return nil, err
 	}
-	resultMap := make(map[string]interface{})
+
 	memMap, _ := pr.MemoryInfo()
-	resultMap["memory"] = memMap.RSS
 	cpu, _ := pr.Percent(time.Second * 1)
-	resultMap["cpu"] = cpu
-	return resultMap, nil
+
+	return &pufferd.ServerStats{
+		Cpu:    cpu,
+		Memory: cast.ToFloat64(memMap.RSS),
+	}, nil
 }
 
 func (s *standard) Create() error {
