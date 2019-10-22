@@ -27,6 +27,7 @@ import (
 	"github.com/pufferpanel/pufferd/v2/routing/server"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
+	"net/http"
 	"strings"
 )
 
@@ -62,11 +63,29 @@ func ConfigureWeb() *gin.Engine {
 }
 
 func RegisterRoutes(e *gin.Engine) {
-	e.GET("", func(c *gin.Context) {
-		c.JSON(200, &pufferd.PufferdRunning{Message: "pufferd is running"})
-	})
-	e.HEAD("", func(c *gin.Context) {
-		c.Status(200)
-	})
+	e.GET("", getStatusGET)
+	e.HEAD("", getStatusHEAD)
 	e.Handle("OPTIONS", "", response.CreateOptions("GET", "HEAD"))
+}
+
+// Root godoc
+// @Summary Is daemon up
+// @Description Easy way to tell if the daemon is running is by using this endpoint
+// @Accept json
+// @Produce json
+// @Success 200 {object} pufferd.PufferdRunning "Service running"
+// @Router / [get]
+func getStatusGET(c *gin.Context) {
+	c.JSON(http.StatusOK, &pufferd.PufferdRunning{Message: "pufferd is running"})
+}
+
+// Root godoc
+// @Summary Is daemon up
+// @Description Easy way to tell if the daemon is running is by using this endpoint
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "Service running"
+// @Router / [head]
+func getStatusHEAD(c *gin.Context) {
+	c.Status(http.StatusNoContent)
 }

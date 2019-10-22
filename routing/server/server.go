@@ -52,12 +52,6 @@ var wsupgrader = websocket.Upgrader{
 func RegisterRoutes(e *gin.Engine) {
 	l := e.Group("/server")
 	{
-		l.Handle("CONNECT", "/:id/console", func(c *gin.Context) {
-			c.Header("Access-Control-Allow-Origin", "*")
-			c.Header("Access-Control-Allow-Credentials", "false")
-		})
-		l.OPTIONS("/:id/console", response.CreateOptions("CONNECT"))
-
 		l.PUT("/:id", httphandlers.OAuth2Handler(scope.ServersCreate, false), CreateServer)
 		l.DELETE("/:id", httphandlers.OAuth2Handler(scope.ServersDelete, true), DeleteServer)
 		l.GET("/:id", httphandlers.OAuth2Handler(scope.ServersEditAdmin, true), GetServerAdmin)
@@ -93,7 +87,11 @@ func RegisterRoutes(e *gin.Engine) {
 			Origins:     "*",
 			Credentials: true,
 		}), GetConsole)
-		l.OPTIONS("/:id/console", response.CreateOptions("GET", "POST"))
+		l.Handle("CONNECT", "/:id/console", func(c *gin.Context) {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Credentials", "false")
+		})
+		l.OPTIONS("/:id/console", response.CreateOptions("GET", "POST", "CONNECT"))
 
 		l.GET("/:id/logs", httphandlers.OAuth2Handler(scope.ServersConsole, true), GetLogs)
 		l.OPTIONS("/:id/logs", response.CreateOptions("GET"))
@@ -115,20 +113,19 @@ func RegisterRoutes(e *gin.Engine) {
 	l.OPTIONS("", response.CreateOptions("POST"))
 }
 
-// StartServer godoc
 // @Summary Starts server
 // @Description Starts the given server
 // @Accept json
 // @Produce json
-// @Success 200
+// @Success 204 {object} pufferd.Empty "Server started"
+// @Success 202 {object} pufferd.Empty "Start has been queued"
 // @Failure 400 {object} response.Error
 // @Failure 403 {object} response.Error
 // @Failure 404 {object} response.Error
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
-// @securitydefinitions.oauth2.application OAuth2Application
-// @scope.server.start
-// @Router /server/{id} [post]
+// @Param wait query bool false "Wait for the operation to complete"
+// @Router /server/{id}/start [post]
 func StartServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
@@ -149,6 +146,19 @@ func StartServer(c *gin.Context) {
 	}
 }
 
+// @Summary Stop server
+// @Description Stops the given server
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "Server stopped"
+// @Success 202 {object} pufferd.Empty "Stop has been queued"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param wait query bool false "Wait for the operation to complete"
+// @Router /server/{id}/stop [post]
 func StopServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
@@ -171,6 +181,17 @@ func StopServer(c *gin.Context) {
 	}
 }
 
+// @Summary Kill server
+// @Description Stops the given server forcefully
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "Server killed"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id}/stop [post]
 func KillServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
@@ -182,6 +203,18 @@ func KillServer(c *gin.Context) {
 	}
 }
 
+// @Summary Create server
+// @Description Creates the server
+// @Accept json
+// @Produce json
+// @Success 200 {object} pufferd.ServerIdResponse "Server created"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param server body apufferi.Server true "Server to create"
+// @Router /server/{id} [put]
 func CreateServer(c *gin.Context) {
 	serverId := c.Param("id")
 	if serverId == "" {
@@ -213,6 +246,17 @@ func CreateServer(c *gin.Context) {
 	}
 }
 
+// @Summary Deletes server
+// @Description Deletes the given server
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "Server deleted"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id} [delete]
 func DeleteServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
@@ -223,6 +267,17 @@ func DeleteServer(c *gin.Context) {
 	}
 }
 
+// @Summary Installs server
+// @Description installs the given server
+// @Accept json
+// @Produce json
+// @Success 202 {object} pufferd.Empty "Install has been queued"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id}/install [post]
 func InstallServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
@@ -234,6 +289,18 @@ func InstallServer(c *gin.Context) {
 	c.Status(http.StatusAccepted)
 }
 
+// @Summary Edit server data
+// @Description Edits the given server data
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "Server edited"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param data body pufferd.ServerData true "Server data"
+// @Router /server/{id}/data [post]
 func EditServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
@@ -251,6 +318,18 @@ func EditServer(c *gin.Context) {
 	}
 }
 
+// @Summary Edit server data as admin
+// @Description Edits the given server
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "Server edited"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param data body pufferd.ServerData true "Server data"
+// @Router /server/{id} [post]
 func EditServerAdmin(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
@@ -268,6 +347,17 @@ func EditServerAdmin(c *gin.Context) {
 	}
 }
 
+// @Summary Reload server
+// @Description Reloads the server from disk
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "Reloaded server"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id}/reload [post]
 func ReloadServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
@@ -279,6 +369,17 @@ func ReloadServer(c *gin.Context) {
 	}
 }
 
+// @Summary Gets server data
+// @Description Gets the given server data
+// @Accept json
+// @Produce json
+// @Success 200 {object} pufferd.ServerData "Data for this server"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id}/data [get]
 func GetServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
@@ -288,12 +389,37 @@ func GetServer(c *gin.Context) {
 	c.JSON(200, &pufferd.ServerData{Variables: data})
 }
 
+// @Summary Gets server data as admin
+// @Description Gets the given server data from an admin's view
+// @Accept json
+// @Produce json
+// @Success 200 {object} pufferd.ServerDataAdmin "Data for this server"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id} [get]
 func GetServerAdmin(c *gin.Context) {
 	item, _ := c.MustGet("server").(*apufferi.Server)
 
 	c.JSON(200, &pufferd.ServerDataAdmin{Server: item})
 }
 
+// @Summary Get file/list
+// @Description Gets a file or a file list from the server
+// @Accept json
+// @Produce json
+// @Produce octet-stream
+// @Success 200 {object} string "File"
+// @Success 200 {object} messages.FileDesc "File List"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param filename path string true "File name"
+// @Router /server/{id}/{filename} [get]
 func GetFile(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
@@ -336,6 +462,20 @@ func GetFile(c *gin.Context) {
 	}
 }
 
+// @Summary Put file/folder
+// @Description Puts a file or folder on the server
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "If file/folder was created"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param filename path string true "File name"
+// @Param folder path bool true "If this is a folder"
+// @Param file formData file false "File to place"
+// @Router /server/{id}/{filename} [put]
 func PutFile(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
@@ -380,6 +520,18 @@ func PutFile(c *gin.Context) {
 	}
 }
 
+// @Summary Delete file
+// @Description Deletes a file from the server
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "If file was deleted"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param filename path string true "File name"
+// @Router /server/{id}/{filename} [delete]
 func DeleteFile(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
@@ -393,6 +545,18 @@ func DeleteFile(c *gin.Context) {
 	}
 }
 
+// @Summary Run command
+// @Description Runs a command in the server
+// @Accept json
+// @Produce json
+// @Success 204 {object} pufferd.Empty "If command was ran"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Param commands body string true "Command to run"
+// @Router /server/{id}/console [post]
 func PostConsole(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
@@ -421,6 +585,17 @@ func GetConsole(c *gin.Context) {
 	program.GetEnvironment().AddListener(conn)
 }
 
+// @Summary Gets server stats
+// @Description Gets the given server stats
+// @Accept json
+// @Produce json
+// @Success 200 {object} pufferd.ServerStats "Stats for this server"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id}/stats [get]
 func GetStats(c *gin.Context) {
 	item, _ := c.Get("server")
 	svr := item.(*programs.Program)
@@ -432,6 +607,17 @@ func GetStats(c *gin.Context) {
 	}
 }
 
+// @Summary Gets server logs
+// @Description Gets the given server logs since a certain time period
+// @Accept json
+// @Produce json
+// @Success 200 {object} pufferd.ServerLogs "Logs for this server"
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id}/logs [get]
 func GetLogs(c *gin.Context) {
 	item, _ := c.Get("server")
 	program := item.(*programs.Program)
@@ -456,6 +642,17 @@ func GetLogs(c *gin.Context) {
 	})
 }
 
+// @Summary Gets server status
+// @Description Gets the given server status
+// @Accept json
+// @Produce json
+// @Success 200 {object} pufferd.ServerRunning
+// @Failure 400 {object} response.Error
+// @Failure 403 {object} response.Error
+// @Failure 404 {object} response.Error
+// @Failure 500 {object} response.Error
+// @Param id path string true "Server Identifier"
+// @Router /server/{id}/status [get]
 func GetStatus(c *gin.Context) {
 	item, _ := c.Get("server")
 	program := item.(*programs.Program)

@@ -199,6 +199,7 @@ func createHook() {
 func recoverPanic() {
 	if rec := recover(); rec != nil {
 		err := rec.(error)
+		fmt.Printf("CRITICAL: %s", err.Error())
 		logging.Critical("Unhandled error: %s", err.Error())
 	}
 }
