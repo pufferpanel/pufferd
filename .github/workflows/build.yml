@@ -3,7 +3,7 @@ on:
   push:
     branches:
     - master
-    path:
+    paths:
     - '*'
     - '!azure-pipelines.yml'
     - '!.travis.yml'
@@ -17,12 +17,13 @@ jobs:
     
     strategy:
       matrix:
-        os: [ubuntu-18.04,windows-2019]
+        os: [ubuntu-18.04]
+        goos: [ linux, windows ]
         arch: [amd64, arm]
         go: [ '1.12' ]
         exclude:
-          - os: windows-2019
-            arch: arm
+          - goos: windows
+            arch: arm        
 
     steps:
 
@@ -38,6 +39,8 @@ jobs:
     - name: Generate swagger docs
       run: |
         go get -u github.com/swaggo/swag/cmd/swag
+        export PATH=$PATH:$(go env GOPATH)/bin
+        go build github.com/pufferpanel/pufferd/v2
         swag init --parseDependency -g routing/root.go
       
     - name: Build
