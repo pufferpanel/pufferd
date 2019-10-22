@@ -2,13 +2,7 @@ name: Go
 on: 
   push:
     branches:
-    - master
-    paths:
-    - '*'
-    - '!azure-pipelines.yml'
-    - '!.travis.yml'
-    - '!*.md'
-    
+    - master    
     
 jobs:
   build:
