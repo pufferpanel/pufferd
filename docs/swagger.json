@@ -64,11 +64,26 @@
         }
     },
     "definitions": {
+        "apufferi.Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object"
+                },
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
         "response.Error": {
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "type": "object",
+                    "$ref": "#/definitions/apufferi.Error"
                 }
             }
         }

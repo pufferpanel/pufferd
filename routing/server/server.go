@@ -56,47 +56,63 @@ func RegisterRoutes(e *gin.Engine) {
 			c.Header("Access-Control-Allow-Origin", "*")
 			c.Header("Access-Control-Allow-Credentials", "false")
 		})
+		l.OPTIONS("/:id/console", response.CreateOptions("CONNECT"))
+
 		l.PUT("/:id", httphandlers.OAuth2Handler(scope.ServersCreate, false), CreateServer)
 		l.DELETE("/:id", httphandlers.OAuth2Handler(scope.ServersDelete, true), DeleteServer)
-
 		l.GET("/:id", httphandlers.OAuth2Handler(scope.ServersEditAdmin, true), GetServerAdmin)
 		l.POST("/:id", httphandlers.OAuth2Handler(scope.ServersEditAdmin, true), EditServerAdmin)
+		l.OPTIONS("/:id", response.CreateOptions("PUT", "DELETE", "GET", "POST"))
 
 		l.GET("/:id/data", httphandlers.OAuth2Handler(scope.ServersEdit, true), GetServer)
 		l.POST("/:id/data", httphandlers.OAuth2Handler(scope.ServersEdit, true), EditServer)
+		l.OPTIONS("/:id/data", response.CreateOptions("GET", "POST"))
 
 		l.POST("/:id/reload", httphandlers.OAuth2Handler(scope.ServersEditAdmin, true), ReloadServer)
-
-		l.GET("/:id/start", httphandlers.OAuth2Handler(scope.ServersStart, true), StartServer)
-		l.GET("/:id/stop", httphandlers.OAuth2Handler(scope.ServersStop, true), StopServer)
-		l.GET("/:id/kill", httphandlers.OAuth2Handler(scope.ServersStop, true), KillServer)
+		l.OPTIONS("/:id/reload", response.CreateOptions("POST"))
 
 		l.POST("/:id/start", httphandlers.OAuth2Handler(scope.ServersStart, true), StartServer)
+		l.OPTIONS("/:id/start", response.CreateOptions("POST"))
+
 		l.POST("/:id/stop", httphandlers.OAuth2Handler(scope.ServersStop, true), StopServer)
+		l.OPTIONS("/:id/stop", response.CreateOptions("POST"))
+
 		l.POST("/:id/kill", httphandlers.OAuth2Handler(scope.ServersStop, true), KillServer)
+		l.OPTIONS("/:id/kill", response.CreateOptions("POST"))
 
 		l.POST("/:id/install", httphandlers.OAuth2Handler(scope.ServersInstall, true), InstallServer)
+		l.OPTIONS("/:id/install", response.CreateOptions("POST"))
 
 		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesGet, true), GetFile)
 		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), PutFile)
 		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), DeleteFile)
+		l.OPTIONS("/:id/file/*filename", response.CreateOptions("GET", "PUT", "DELETE"))
 
 		l.POST("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsoleSend, true), PostConsole)
 		l.GET("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsole, true), cors.Middleware(cors.Config{
 			Origins:     "*",
 			Credentials: true,
 		}), GetConsole)
+		l.OPTIONS("/:id/console", response.CreateOptions("GET", "POST"))
+
 		l.GET("/:id/logs", httphandlers.OAuth2Handler(scope.ServersConsole, true), GetLogs)
+		l.OPTIONS("/:id/logs", response.CreateOptions("GET"))
 
 		l.GET("/:id/stats", httphandlers.OAuth2Handler(scope.ServersStat, true), GetStats)
+		l.OPTIONS("/:id/stats", response.CreateOptions("GET"))
+
 		l.GET("/:id/status", httphandlers.OAuth2Handler(scope.ServersStat, true), GetStatus)
+		l.OPTIONS("/:id/status", response.CreateOptions("GET"))
 
 		l.GET("/:id/socket", httphandlers.OAuth2Handler(scope.ServersConsole, true), cors.Middleware(cors.Config{
 			Origins:     "*",
 			Credentials: true,
 		}), OpenSocket)
+		l.OPTIONS("/:id/socket", response.CreateOptions("GET"))
 	}
+
 	l.POST("", httphandlers.OAuth2Handler(scope.ServersCreate, false), CreateServer)
+	l.OPTIONS("", response.CreateOptions("POST"))
 }
 
 // StartServer godoc
@@ -117,8 +133,20 @@ func StartServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	server := item.(*programs.Program)
 
-	err := server.Start()
-	response.HandleError(c, err, http.StatusInternalServerError)
+	_, wait := c.GetQuery("wait")
+
+	if wait {
+		err := server.Start()
+		if response.HandleError(c, err, http.StatusInternalServerError) {
+		} else {
+			c.Status(http.StatusNoContent)
+		}
+	} else {
+		go func() {
+			_ = server.Start()
+		}()
+		c.Status(http.StatusAccepted)
+	}
 }
 
 func StopServer(c *gin.Context) {
@@ -128,17 +156,18 @@ func StopServer(c *gin.Context) {
 	_, wait := c.GetQuery("wait")
 
 	err := server.Stop()
-	if err != nil {
-		errorConnection(c, err)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
 		return
 	}
 
 	if wait {
 		err = server.GetEnvironment().WaitForMainProcess()
-		if err != nil {
-			errorConnection(c, err)
-			return
+		if response.HandleError(c, err, http.StatusInternalServerError) {
+		} else {
+			c.Status(http.StatusNoContent)
 		}
+	} else {
+		c.Status(204)
 	}
 }
 
@@ -147,9 +176,9 @@ func KillServer(c *gin.Context) {
 	server := item.(*programs.Program)
 
 	err := server.Kill()
-	if err != nil {
-		errorConnection(c, err)
-		return
+	if response.HandleError(c, err, http.StatusInternalServerError) {
+	} else {
+		c.Status(http.StatusNoContent)
 	}
 }
 
@@ -177,8 +206,8 @@ func CreateServer(c *gin.Context) {
 
 	prg.Identifier = serverId
 
-	if !programs.Create(prg) {
-		errorConnection(c, nil)
+	if err := programs.Create(prg); err != nil {
+		response.HandleError(c, err, http.StatusInternalServerError)
 	} else {
 		c.JSON(200, &pufferd.ServerIdResponse{Id: serverId})
 	}
@@ -188,7 +217,10 @@ func DeleteServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
 	err := programs.Delete(prg.Id())
-	response.HandleError(c, err, http.StatusInternalServerError)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
+	} else {
+		c.Status(http.StatusNoContent)
+	}
 }
 
 func InstallServer(c *gin.Context) {
@@ -213,7 +245,10 @@ func EditServer(c *gin.Context) {
 	}
 
 	err = prg.Edit(data.Variables, false)
-	response.HandleError(c, err, http.StatusInternalServerError)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
+	} else {
+		c.Status(http.StatusNoContent)
+	}
 }
 
 func EditServerAdmin(c *gin.Context) {
@@ -227,7 +262,10 @@ func EditServerAdmin(c *gin.Context) {
 	}
 
 	err = prg.Edit(data.Variables, true)
-	response.HandleError(c, err, http.StatusInternalServerError)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
+	} else {
+		c.Status(http.StatusNoContent)
+	}
 }
 
 func ReloadServer(c *gin.Context) {
@@ -235,7 +273,10 @@ func ReloadServer(c *gin.Context) {
 	prg := item.(*programs.Program)
 
 	err := programs.Reload(prg.Id())
-	response.HandleError(c, err, http.StatusInternalServerError)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
+	} else {
+		c.Status(http.StatusNoContent)
+	}
 }
 
 func GetServer(c *gin.Context) {
@@ -320,8 +361,7 @@ func PutFile(c *gin.Context) {
 	v := c.Request.Header.Get("Content-Type")
 	if t, _, _ := mime.ParseMediaType(v); t == "multipart/form-data" {
 		sourceFile, _, err = c.Request.FormFile("file")
-		if err != nil {
-			errorConnection(c, err)
+		if response.HandleError(c, err, http.StatusInternalServerError) {
 			return
 		}
 	} else {
@@ -330,12 +370,12 @@ func PutFile(c *gin.Context) {
 
 	file, err := server.OpenFile(targetPath)
 	defer apufferi.Close(file)
-	if err != nil {
-		errorConnection(c, err)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
 	} else {
 		_, err = io.Copy(file, sourceFile)
-		if err != nil {
-			errorConnection(c, err)
+		if response.HandleError(c, err, http.StatusInternalServerError) {
+		} else {
+			c.Status(http.StatusNoContent)
 		}
 	}
 }
@@ -347,8 +387,9 @@ func DeleteFile(c *gin.Context) {
 	targetPath := c.Param("filename")
 
 	err := server.DeleteItem(targetPath)
-	if err != nil {
-		errorConnection(c, err)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
+	} else {
+		c.Status(http.StatusNoContent)
 	}
 }
 
@@ -359,8 +400,9 @@ func PostConsole(c *gin.Context) {
 	d, _ := ioutil.ReadAll(c.Request.Body)
 	cmd := string(d)
 	err := prg.Execute(cmd)
-	if err != nil {
-		errorConnection(c, err)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
+	} else {
+		c.Status(http.StatusNoContent)
 	}
 }
 
@@ -369,9 +411,7 @@ func GetConsole(c *gin.Context) {
 	program := item.(*programs.Program)
 
 	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logging.Exception("error creating websocket", err)
-		errorConnection(c, err)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
 		return
 	}
 
@@ -433,9 +473,7 @@ func OpenSocket(c *gin.Context) {
 	program := item.(*programs.Program)
 
 	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		logging.Exception("error creating websocket", err)
-		errorConnection(c, err)
+	if response.HandleError(c, err, http.StatusInternalServerError) {
 		return
 	}
 
@@ -448,9 +486,4 @@ func OpenSocket(c *gin.Context) {
 	go listenOnSocket(conn, program, scopes)
 
 	program.GetEnvironment().AddListener(conn)
-}
-
-func errorConnection(c *gin.Context, err error) {
-	logging.Exception("error on API call", err)
-	response.HandleError(c, err, http.StatusInternalServerError)
 }

@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
@@ -110,9 +111,9 @@ func LoadFromData(id string, source []byte) (*Program, error) {
 	return data, nil
 }
 
-func Create(program *Program) bool {
+func Create(program *Program) error {
 	if GetFromCache(program.Id()) != nil {
-		return false
+		return pufferd.ErrServerAlreadyExists
 	}
 
 	var err error
@@ -131,7 +132,7 @@ func Create(program *Program) bool {
 	defer apufferi.Close(f)
 	if err != nil {
 		logging.Exception("error writing server", err)
-		return false
+		return err
 	}
 
 	encoder := json.NewEncoder(f)
@@ -141,7 +142,7 @@ func Create(program *Program) bool {
 
 	if err != nil {
 		logging.Exception("error writing server", err)
-		return false
+		return err
 	}
 
 	environmentType := program.Server.Environment.Type
@@ -149,11 +150,11 @@ func Create(program *Program) bool {
 
 	err = program.Create()
 	if err != nil {
-		return false
+		return err
 	}
 
 	allPrograms = append(allPrograms, program)
-	return true
+	return nil
 }
 
 func Delete(id string) (err error) {

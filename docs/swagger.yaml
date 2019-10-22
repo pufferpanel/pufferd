@@ -1,8 +1,18 @@
 definitions:
+  apufferi.Error:
+    properties:
+      code:
+        type: string
+      metadata:
+        type: object
+      msg:
+        type: string
+    type: object
   response.Error:
     properties:
       error:
-        type: string
+        $ref: '#/definitions/apufferi.Error'
+        type: object
     type: object
 info:
   contact:
