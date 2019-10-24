@@ -25,8 +25,7 @@ import (
 	_ "github.com/pufferpanel/pufferd/v2/docs"
 	"github.com/pufferpanel/pufferd/v2/oauth2"
 	"github.com/pufferpanel/pufferd/v2/routing/server"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	"github.com/pufferpanel/pufferd/v2/routing/swagger"
 	"net/http"
 	"strings"
 )
@@ -54,7 +53,7 @@ func ConfigureWeb() *gin.Engine {
 		})
 		RegisterRoutes(r)
 		server.RegisterRoutes(r)
-		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		swagger.Load(r)
 	}
 
 	oauth2.RefreshToken()
