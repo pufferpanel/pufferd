@@ -31,6 +31,3 @@ type ServerDataAdmin struct {
 type PufferdRunning struct {
 	Message string `json:"message"`
 }
-
-type Empty struct {
-}

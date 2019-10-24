@@ -117,11 +117,11 @@ func RegisterRoutes(e *gin.Engine) {
 // @Description Starts the given server
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Server started"
-// @Success 202 {object} pufferd.Empty "Start has been queued"
+// @Success 204 {object} response.Empty "Server started"
+// @Success 202 {object} response.Empty "Start has been queued"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param wait query bool false "Wait for the operation to complete"
@@ -150,11 +150,11 @@ func StartServer(c *gin.Context) {
 // @Description Stops the given server
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Server stopped"
-// @Success 202 {object} pufferd.Empty "Stop has been queued"
+// @Success 204 {object} response.Empty "Server stopped"
+// @Success 202 {object} response.Empty "Stop has been queued"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param wait query bool false "Wait for the operation to complete"
@@ -185,10 +185,10 @@ func StopServer(c *gin.Context) {
 // @Description Stops the given server forcefully
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Server killed"
+// @Success 204 {object} response.Empty "Server killed"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id}/stop [post]
@@ -209,8 +209,8 @@ func KillServer(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} pufferd.ServerIdResponse "Server created"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param server body apufferi.Server true "Server to create"
@@ -250,10 +250,10 @@ func CreateServer(c *gin.Context) {
 // @Description Deletes the given server
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Server deleted"
+// @Success 204 {object} response.Empty "Server deleted"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id} [delete]
@@ -271,10 +271,10 @@ func DeleteServer(c *gin.Context) {
 // @Description installs the given server
 // @Accept json
 // @Produce json
-// @Success 202 {object} pufferd.Empty "Install has been queued"
+// @Success 202 {object} response.Empty "Install has been queued"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id}/install [post]
@@ -293,10 +293,10 @@ func InstallServer(c *gin.Context) {
 // @Description Edits the given server data
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Server edited"
+// @Success 204 {object} response.Empty "Server edited"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param data body pufferd.ServerData true "Server data"
@@ -322,10 +322,10 @@ func EditServer(c *gin.Context) {
 // @Description Edits the given server
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Server edited"
+// @Success 204 {object} response.Empty "Server edited"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param data body pufferd.ServerData true "Server data"
@@ -351,10 +351,10 @@ func EditServerAdmin(c *gin.Context) {
 // @Description Reloads the server from disk
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Reloaded server"
+// @Success 204 {object} response.Empty "Reloaded server"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id}/reload [post]
@@ -375,8 +375,8 @@ func ReloadServer(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} pufferd.ServerData "Data for this server"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id}/data [get]
@@ -395,8 +395,8 @@ func GetServer(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} pufferd.ServerDataAdmin "Data for this server"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id} [get]
@@ -414,8 +414,8 @@ func GetServerAdmin(c *gin.Context) {
 // @Success 200 {object} string "File"
 // @Success 200 {object} messages.FileDesc "File List"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param filename path string true "File name"
@@ -466,10 +466,10 @@ func GetFile(c *gin.Context) {
 // @Description Puts a file or folder on the server
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "If file/folder was created"
+// @Success 204 {object} response.Empty "If file/folder was created"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param filename path string true "File name"
@@ -524,10 +524,10 @@ func PutFile(c *gin.Context) {
 // @Description Deletes a file from the server
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "If file was deleted"
+// @Success 204 {object} response.Empty "If file was deleted"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param filename path string true "File name"
@@ -549,10 +549,10 @@ func DeleteFile(c *gin.Context) {
 // @Description Runs a command in the server
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "If command was ran"
+// @Success 204 {object} response.Empty "If command was ran"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Param commands body string true "Command to run"
@@ -591,8 +591,8 @@ func GetConsole(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} pufferd.ServerStats "Stats for this server"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id}/stats [get]
@@ -613,8 +613,8 @@ func GetStats(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} pufferd.ServerLogs "Logs for this server"
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id}/logs [get]
@@ -648,8 +648,8 @@ func GetLogs(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} pufferd.ServerRunning
 // @Failure 400 {object} response.Error
-// @Failure 403 {object} response.Error
-// @Failure 404 {object} response.Error
+// @Failure 403 {object} response.Empty
+// @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
 // @Router /server/{id}/status [get]

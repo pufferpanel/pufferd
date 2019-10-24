@@ -84,7 +84,7 @@ func getStatusGET(c *gin.Context) {
 // @Description Easy way to tell if the daemon is running is by using this endpoint
 // @Accept json
 // @Produce json
-// @Success 204 {object} pufferd.Empty "Service running"
+// @Success 204 {object} response.Empty "Service running"
 // @Router / [head]
 func getStatusHEAD(c *gin.Context) {
 	c.Status(http.StatusNoContent)
