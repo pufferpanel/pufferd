@@ -17,15 +17,12 @@
 package oauth2
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2/commons"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -42,7 +39,8 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 	data.Set("password", password)
 	data.Set("scope", "sftp")
 	encodedData := data.Encode()
-	request, _ := http.NewRequest("POST", viper.GetString("auth.url"), bytes.NewBufferString(encodedData))
+
+	request := createRequest(encodedData)
 
 	RefreshIfStale()
 
@@ -51,6 +49,7 @@ func validateSSH(username string, password string, recurse bool) (*ssh.Permissio
 	atLocker.RUnlock()
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
+
 	response, err := client.Do(request)
 	defer commons.CloseResponse(response)
 	if err != nil {

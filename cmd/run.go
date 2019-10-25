@@ -35,6 +35,7 @@ import (
 	"os/signal"
 	"runtime"
 	"runtime/debug"
+	"strings"
 	"syscall"
 )
 
@@ -132,9 +133,11 @@ func runServices() error {
 		go func() {
 			file := viper.GetString("listen.socket")
 
-			if file == "" {
+			if file == "" || !strings.HasPrefix(file, "unix:") {
 				return
 			}
+
+			file = strings.TrimPrefix(file, "unix:")
 
 			err := os.Remove(file)
 			if err != nil && !os.IsNotExist(err) {

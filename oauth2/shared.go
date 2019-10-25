@@ -18,14 +18,17 @@ package oauth2
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2/commons"
 	"github.com/spf13/viper"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -62,7 +65,8 @@ func RefreshToken() bool {
 	data.Set("client_id", clientId)
 	data.Set("client_secret", clientSecret)
 	encodedData := data.Encode()
-	request, _ := http.NewRequest("POST", viper.GetString("auth.url"), bytes.NewBufferString(encodedData))
+
+	request := createRequest(encodedData)
 
 	request.Header.Add("Authorization", "Bearer "+daemonToken)
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -99,8 +103,27 @@ func RefreshIfStale() {
 	}
 }
 
+func createRequest(encodedData string) *http.Request {
+	authUrl := viper.GetString("auth.url")
+
+	if strings.HasPrefix(authUrl, "unix:") && client.Transport != unixTransport {
+		client.Transport = unixTransport
+		authUrl = strings.TrimPrefix(authUrl, "unix:")
+	}
+
+	request, _ := http.NewRequest("POST", authUrl+"/oauth2/token", bytes.NewBufferString(encodedData))
+	return request
+}
+
 type requestResponse struct {
 	AccessToken string        `json:"access_token"`
 	ExpiresIn   time.Duration `json:"expires_in"`
 	Error       string        `json:"error"`
+}
+
+var unixTransport = &http.Transport{
+	DialContext: func(ctx context.Context, _, addr string) (net.Conn, error) {
+		dialer := net.Dialer{}
+		return dialer.DialContext(ctx, "unix", addr)
+	},
 }

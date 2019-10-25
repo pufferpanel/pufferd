@@ -17,7 +17,7 @@ func init() {
 	viper.SetDefault("console.forward", false)
 
 	viper.SetDefault("listen.web", "0.0.0.0:5656")
-	viper.SetDefault("listen.socket", "/var/run/pufferd.sock")
+	viper.SetDefault("listen.socket", "unix:/var/run/pufferd.sock")
 	viper.SetDefault("listen.webCert", "https.pem")
 	viper.SetDefault("listen.webKey", "https.key")
 	viper.SetDefault("listen.sftp", "0.0.0.0:5657")
@@ -25,11 +25,22 @@ func init() {
 
 	viper.SetDefault("auth.publicKey", "panel.pem")
 	if runtime.GOOS == "windows" {
-		viper.SetDefault("auth.url", "http://localhost:8080/oauth2/token")
+		viper.SetDefault("auth.url", "http://localhost:8080")
 	} else {
-		//TODO: Support unix sockets for authorization endpoint
-		//viper.SetDefault("auth.url", "/var/run/pufferpanel.sock")
-		viper.SetDefault("auth.url", "http://localhost:8080/oauth2/token")
+		pufferpanelConfig := viper.New()
+		pufferpanelConfig.SetEnvPrefix("PUFFERPANEL")
+		pufferpanelConfig.AutomaticEnv()
+		pufferpanelConfig.SetConfigName("config")
+		pufferpanelConfig.AddConfigPath("/etc/pufferpanel/")
+		pufferpanelConfig.AddConfigPath("/pufferpanel/")
+
+		_ = pufferpanelConfig.ReadInConfig()
+		panelUrl := pufferpanelConfig.GetString("web.socket")
+		if panelUrl != "" {
+			viper.SetDefault("auth.url", "unix:"+panelUrl)
+		} else {
+			viper.SetDefault("auth.url", "unix:/var/run/pufferpanel.sock")
+		}
 	}
 
 	viper.SetDefault("auth.clientId", "")
