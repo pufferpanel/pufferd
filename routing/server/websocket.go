@@ -17,6 +17,12 @@ import (
 )
 
 func listenOnSocket(conn *websocket.Conn, server *programs.Program, scopes []scope.Scope) {
+	defer func() {
+		if err := recover(); err != nil {
+			logging.Error("Error with websocket connection for server %s: %s", server.Id(), err)
+		}
+	}()
+
 	for {
 		msgType, data, err := conn.ReadMessage()
 		if err != nil {
