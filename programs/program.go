@@ -266,7 +266,7 @@ func (p *Program) Install() (err error) {
 	p.Environment.DisplayToConsole("Installing server\n")
 
 	err = os.MkdirAll(p.Environment.GetRootDirectory(), 0755)
-	if err != nil || !os.IsExist(err) {
+	if err != nil && !os.IsExist(err) {
 		logging.Exception("error creating server directory", err)
 		p.Environment.DisplayToConsole("Error installing server\n")
 		return
