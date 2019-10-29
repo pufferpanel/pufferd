@@ -19,7 +19,6 @@
 package tty
 
 import (
-	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 )
 
@@ -29,11 +28,7 @@ type EnvironmentFactory struct {
 
 func (ef EnvironmentFactory) Create(id string) envs.Environment {
 	t := &tty{
-		BaseEnvironment: &envs.BaseEnvironment{
-			TypeWithMetadata: apufferi.TypeWithMetadata{
-				Type: "tty",
-			},
-		},
+		BaseEnvironment: &envs.BaseEnvironment{Type: "tty"},
 	}
 	t.BaseEnvironment.ExecutionFunction = t.ttyExecuteAsync
 	return t
