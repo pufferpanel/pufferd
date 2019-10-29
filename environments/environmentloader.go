@@ -39,7 +39,7 @@ func LoadModules() {
 	loadAdditionalModules(mapping)
 }
 
-func Create(environmentType, folder, id string, environmentSection apufferi.TypeWithMetadata) (envs.Environment, error) {
+func Create(environmentType, folder, id string, environmentSection interface{}) (envs.Environment, error) {
 	factory := mapping[environmentType]
 
 	if factory == nil {
@@ -47,7 +47,7 @@ func Create(environmentType, folder, id string, environmentSection apufferi.Type
 	}
 
 	item := factory.Create(id)
-	err := environmentSection.ParseMetadata(item)
+	err := apufferi.UnmarshalTo(environmentSection, item)
 	if err != nil {
 		return nil, err
 	}

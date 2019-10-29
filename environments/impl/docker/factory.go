@@ -17,7 +17,6 @@
 package docker
 
 import (
-	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 )
 
@@ -27,14 +26,12 @@ type EnvironmentFactory struct {
 
 func (ef EnvironmentFactory) Create(id string) envs.Environment {
 	d := &docker{
-		BaseEnvironment: &envs.BaseEnvironment{
-			TypeWithMetadata: apufferi.TypeWithMetadata{},
-		},
-		ContainerId: id,
-		ImageName:   "pufferpanel/generic",
-		NetworkMode: "host",
-		Ports:       make([]string, 0),
-		Binds:       make(map[string]string),
+		BaseEnvironment: &envs.BaseEnvironment{Type: "docker"},
+		ContainerId:     id,
+		ImageName:       "pufferpanel/generic",
+		NetworkMode:     "host",
+		Ports:           make([]string, 0),
+		Binds:           make(map[string]string),
 	}
 
 	d.ExecutionFunction = d.dockerExecuteAsync

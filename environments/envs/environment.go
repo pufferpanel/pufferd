@@ -74,7 +74,7 @@ type Environment interface {
 
 type BaseEnvironment struct {
 	Environment
-	apufferi.TypeWithMetadata
+	Type              string
 	RootDirectory     string                 `json:"root"`
 	ConsoleBuffer     apufferi.Cache         `json:"-"`
 	WSManager         utils.WebSocketManager `json:"-"`

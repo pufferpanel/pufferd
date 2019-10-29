@@ -103,7 +103,13 @@ func LoadFromData(id string, source []byte) (*Program, error) {
 
 	data.Identifier = id
 
-	environmentType := data.Server.Environment.Type
+	var typeMap apufferi.Type
+	err = apufferi.UnmarshalTo(data.Server.Environment, &typeMap)
+	if err != nil {
+		return nil, err
+	}
+
+	environmentType := typeMap.Type
 	data.Environment, err = environments.Create(environmentType, ServerFolder, id, data.Server.Environment)
 	if err != nil {
 		return nil, err
@@ -145,8 +151,13 @@ func Create(program *Program) error {
 		return err
 	}
 
-	environmentType := program.Server.Environment.Type
-	program.Environment, err = environments.Create(environmentType, ServerFolder, program.Id(), program.Server.Environment)
+	var typeMap apufferi.Type
+	err = apufferi.UnmarshalTo(program.Server.Environment, &typeMap)
+	if err != nil {
+		return err
+	}
+
+	program.Environment, err = environments.Create(typeMap.Type, ServerFolder, program.Id(), program.Server.Environment)
 
 	err = program.Create()
 	if err != nil {

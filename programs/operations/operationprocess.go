@@ -43,7 +43,7 @@ func LoadOperations() {
 	loadOpModules()
 }
 
-func GenerateProcess(directions []apufferi.TypeWithMetadata, environment envs.Environment, dataMapping map[string]interface{}, env map[string]string) (OperationProcess, error) {
+func GenerateProcess(directions []interface{}, environment envs.Environment, dataMapping map[string]interface{}, env map[string]string) (OperationProcess, error) {
 	dataMap := make(map[string]interface{})
 	for k, v := range dataMapping {
 		dataMap[k] = v
@@ -53,8 +53,13 @@ func GenerateProcess(directions []apufferi.TypeWithMetadata, environment envs.En
 	operationList := make([]ops.Operation, 0)
 	for _, mapping := range directions {
 
-		factory := commandMapping[mapping.Type]
+		var typeMap apufferi.MetadataType
+		err := apufferi.UnmarshalTo(mapping, typeMap)
+		if err != nil {
+			return OperationProcess{}, err
+		}
 
+		factory := commandMapping[typeMap.Type]
 		if factory == nil {
 			return OperationProcess{}, pufferd.ErrMissingFactory
 		}
@@ -62,7 +67,7 @@ func GenerateProcess(directions []apufferi.TypeWithMetadata, environment envs.En
 		mapCopy := make(map[string]interface{}, 0)
 
 		//replace tokens
-		for k, v := range mapping.Metadata {
+		for k, v := range typeMap.Metadata {
 			switch r := v.(type) {
 			case string:
 				{

@@ -70,11 +70,11 @@ func migrateFile(name string) (err error) {
 	replacement := apufferi.Server{
 		Variables: make(map[string]apufferi.Variable),
 		Display:   program.ProgramData.Display,
-		Environment: apufferi.TypeWithMetadata{
+		Environment: apufferi.Type{
 			Type: program.ProgramData.EnvironmentData["type"].(string),
 		},
-		Installation:   make([]apufferi.TypeWithMetadata, 0),
-		Uninstallation: make([]apufferi.TypeWithMetadata, 0),
+		Installation:   make([]interface{}, 0),
+		Uninstallation: make([]interface{}, 0),
 		Type:           program.ProgramData.Type,
 		Identifier:     program.ProgramData.Identifier,
 		Execution: apufferi.Execution{
@@ -86,8 +86,8 @@ func migrateFile(name string) (err error) {
 			AutoStart:               program.ProgramData.RunData.AutoStart,
 			AutoRestartFromCrash:    program.ProgramData.RunData.AutoRestartFromCrash,
 			AutoRestartFromGraceful: program.ProgramData.RunData.AutoRestartFromGraceful,
-			PreExecution:            make([]apufferi.TypeWithMetadata, 0),
-			PostExecution:           make([]apufferi.TypeWithMetadata, 0),
+			PreExecution:            make([]interface{}, 0),
+			PostExecution:           make([]interface{}, 0),
 			StopCode:                program.ProgramData.RunData.StopCode,
 			EnvironmentVariables:    program.ProgramData.RunData.EnvironmentVariables,
 		},
@@ -117,7 +117,7 @@ func migrateFile(name string) (err error) {
 			c[i] = o
 		}
 
-		replacement.Installation = append(replacement.Installation, apufferi.TypeWithMetadata{
+		replacement.Installation = append(replacement.Installation, apufferi.MetadataType{
 			Type:     v["type"].(string),
 			Metadata: c,
 		})
@@ -132,7 +132,7 @@ func migrateFile(name string) (err error) {
 			c[i] = o
 		}
 
-		replacement.Uninstallation = append(replacement.Uninstallation, apufferi.TypeWithMetadata{
+		replacement.Uninstallation = append(replacement.Uninstallation, apufferi.MetadataType{
 			Type:     v["type"].(string),
 			Metadata: c,
 		})
@@ -147,7 +147,7 @@ func migrateFile(name string) (err error) {
 			c[i] = o
 		}
 
-		replacement.Execution.PreExecution = append(replacement.Execution.PreExecution, apufferi.TypeWithMetadata{
+		replacement.Execution.PreExecution = append(replacement.Execution.PreExecution, apufferi.MetadataType{
 			Type:     v["type"].(string),
 			Metadata: c,
 		})
@@ -162,7 +162,7 @@ func migrateFile(name string) (err error) {
 			c[i] = o
 		}
 
-		replacement.Execution.PostExecution = append(replacement.Execution.PostExecution, apufferi.TypeWithMetadata{
+		replacement.Execution.PostExecution = append(replacement.Execution.PostExecution, apufferi.MetadataType{
 			Type:     v["type"].(string),
 			Metadata: c,
 		})

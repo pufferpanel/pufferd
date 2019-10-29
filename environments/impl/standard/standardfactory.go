@@ -17,7 +17,6 @@
 package standard
 
 import (
-	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 )
 
@@ -27,11 +26,7 @@ type EnvironmentFactory struct {
 
 func (ef EnvironmentFactory) Create(id string) envs.Environment {
 	s := &standard{
-		BaseEnvironment: &envs.BaseEnvironment{
-			TypeWithMetadata: apufferi.TypeWithMetadata{
-				Type: "standard",
-			},
-		},
+		BaseEnvironment: &envs.BaseEnvironment{Type: "standard"},
 	}
 	s.BaseEnvironment.ExecutionFunction = s.standardExecuteAsync
 	return s

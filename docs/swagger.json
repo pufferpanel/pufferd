@@ -1127,9 +1127,6 @@
         "apufferi.TypeWithMetadata": {
             "type": "object",
             "properties": {
-                "metadata": {
-                    "type": "object"
-                },
                 "type": {
                     "type": "string"
                 }
