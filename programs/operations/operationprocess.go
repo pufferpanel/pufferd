@@ -18,7 +18,6 @@ package operations
 
 import (
 	"github.com/pufferpanel/apufferi/v4"
-	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments/envs"
 	"github.com/pufferpanel/pufferd/v2/programs/operations/impl/command"
@@ -119,7 +118,6 @@ func (p *OperationProcess) Run(env envs.Environment) (err error) {
 	for p.HasNext() {
 		err = p.RunNext(env)
 		if err != nil {
-			logging.Exception("error running process", err)
 			break
 		}
 	}

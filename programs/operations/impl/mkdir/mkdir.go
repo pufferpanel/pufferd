@@ -30,7 +30,7 @@ type Mkdir struct {
 
 func (m *Mkdir) Run(env envs.Environment) error {
 	logging.Debug("Making directory: %s\n", m.TargetFile)
-	env.DisplayToConsole("Creating directory: %s\n", m.TargetFile)
+	env.DisplayToConsole(true, "Creating directory: %s\n", m.TargetFile)
 	target := apufferi.JoinPath(env.GetRootDirectory(), m.TargetFile)
 	return os.MkdirAll(target, 0755)
 }

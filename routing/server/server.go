@@ -140,7 +140,10 @@ func StartServer(c *gin.Context) {
 		}
 	} else {
 		go func() {
-			_ = server.Start()
+			err := server.Start()
+			if err != nil {
+				logging.Exception(fmt.Sprintf("Error starting server %s", server.Id()), err)
+			}
 		}()
 		c.Status(http.StatusAccepted)
 	}
@@ -277,16 +280,27 @@ func DeleteServer(c *gin.Context) {
 // @Failure 404 {object} response.Empty
 // @Failure 500 {object} response.Error
 // @Param id path string true "Server Identifier"
+// @Param wait query bool false "Wait for the operation to complete"
 // @Router /server/{id}/install [post]
 func InstallServer(c *gin.Context) {
 	item, _ := c.Get("server")
 	prg := item.(*programs.Program)
 
-	go func(p *programs.Program) {
-		_ = p.Install()
-	}(prg)
+	_, wait := c.GetQuery("wait")
 
-	c.Status(http.StatusAccepted)
+	if wait {
+		err := prg.Install()
+		if response.HandleError(c, err, http.StatusInternalServerError) {
+		} else {
+			c.Status(http.StatusNoContent)
+		}
+	} else {
+		go func(p *programs.Program) {
+			_ = p.Install()
+		}(prg)
+
+		c.Status(http.StatusAccepted)
+	}
 }
 
 // @Summary Edit server data

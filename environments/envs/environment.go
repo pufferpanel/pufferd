@@ -65,7 +65,7 @@ type Environment interface {
 
 	GetStats() (*pufferd.ServerStats, error)
 
-	DisplayToConsole(msg string, data ...interface{})
+	DisplayToConsole(prefix bool, msg string, data ...interface{})
 
 	SendCode(code int) error
 
@@ -121,13 +121,17 @@ func (e *BaseEnvironment) AddListener(ws *websocket.Conn) {
 	e.WSManager.Register(ws)
 }
 
-func (e *BaseEnvironment) DisplayToConsole(msg string, data ...interface{}) {
+func (e *BaseEnvironment) DisplayToConsole(daemon bool, msg string, data ...interface{}) {
+	format := msg
+	if daemon {
+		format = "[DAEMON] " + msg
+	}
 	if len(data) == 0 {
-		_, _ = fmt.Fprint(e.ConsoleBuffer, msg)
-		_, _ = fmt.Fprint(e.WSManager, msg)
+		_, _ = fmt.Fprint(e.ConsoleBuffer, format)
+		_, _ = fmt.Fprint(e.WSManager, format)
 	} else {
-		_, _ = fmt.Fprintf(e.ConsoleBuffer, msg, data...)
-		_, _ = fmt.Fprintf(e.WSManager, msg, data...)
+		_, _ = fmt.Fprintf(e.ConsoleBuffer, format, data...)
+		_, _ = fmt.Fprintf(e.WSManager, format, data...)
 	}
 }
 

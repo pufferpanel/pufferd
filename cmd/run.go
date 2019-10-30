@@ -79,10 +79,10 @@ func runRun() error {
 
 	for _, element := range programs.GetAll() {
 		if element.IsEnabled() {
-			element.GetEnvironment().DisplayToConsole("Daemon has been started\n")
+			element.GetEnvironment().DisplayToConsole(true, "Daemon has been started\n")
 			if element.IsAutoStart() {
 				logging.Info("Queued server %s", element.Id())
-				element.GetEnvironment().DisplayToConsole("Server has been queued to start\n")
+				element.GetEnvironment().DisplayToConsole(true, "Server has been queued to start\n")
 				programs.StartViaService(element)
 			}
 		}

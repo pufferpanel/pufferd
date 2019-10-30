@@ -63,7 +63,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	pr.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
 	t.mainProcess = pr
 	logging.Debug("Starting process: %s %s", t.mainProcess.Path, strings.Join(t.mainProcess.Args[1:], " "))
-	tty, err := pty.Start(pr)
+	tty, err := pty.Start()
 	if err != nil {
 		return
 	}
@@ -71,7 +71,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	t.stdInWriter = tty
 
 	go func(proxy io.Writer) {
-		io.Copy(proxy, tty)
+		_, _ = io.Copy(proxy, tty)
 	}(wrapper)
 
 	go t.handleClose(callback)
@@ -186,7 +186,7 @@ func (t *tty) handleClose(callback func(graceful bool)) {
 	}
 
 	if t.mainProcess != nil && t.mainProcess.Process != nil {
-		t.mainProcess.Process.Release()
+		_ = t.mainProcess.Process.Release()
 	}
 	t.mainProcess = nil
 	t.Wait.Done()

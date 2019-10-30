@@ -145,7 +145,7 @@ func (p *Program) Start() (err error) {
 	}
 
 	logging.Debug("Starting server %s", p.Id())
-	p.Environment.DisplayToConsole("Starting server\n")
+	p.Environment.DisplayToConsole(true, "Starting server\n")
 	data := make(map[string]interface{})
 	for k, v := range p.Variables {
 		data[k] = v.Value
@@ -153,13 +153,17 @@ func (p *Program) Start() (err error) {
 
 	process, err := operations.GenerateProcess(p.Execution.PreExecution, p.Environment, p.DataToMap(), p.Execution.EnvironmentVariables)
 	if err != nil {
-		p.Environment.DisplayToConsole("Error running pre execute, check daemon logs\n")
+		logging.Exception("Error generating pre-execution steps", err)
+		p.Environment.DisplayToConsole(true, "Error running pre execute\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
 
 	err = process.Run(p.Environment)
 	if err != nil {
-		p.Environment.DisplayToConsole("Error running pre execute, check daemon logs\n")
+		logging.Exception("Error running pre-execution steps", err)
+		p.Environment.DisplayToConsole(true, "Error running pre execute\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
 
@@ -169,7 +173,8 @@ func (p *Program) Start() (err error) {
 	err = p.Environment.ExecuteAsync(p.Execution.ProgramName, apufferi.ReplaceTokensInArr(p.Execution.Arguments, data), apufferi.ReplaceTokensInMap(p.Execution.EnvironmentVariables, data), p.afterExit)
 	if err != nil {
 		logging.Exception("error starting server "+p.Id(), err)
-		p.Environment.DisplayToConsole("Failed to start server\n")
+		p.Environment.DisplayToConsole(true, " Failed to start server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 	}
 
 	return
@@ -189,9 +194,11 @@ func (p *Program) Stop() (err error) {
 		err = p.Environment.ExecuteInMainProcess(p.Execution.StopCommand)
 	}
 	if err != nil {
-		p.Environment.DisplayToConsole("Failed to stop server\n")
+		logging.Exception("Error stopping server", err)
+		p.Environment.DisplayToConsole(true, "Failed to stop server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 	} else {
-		p.Environment.DisplayToConsole("Server stopped\n")
+		p.Environment.DisplayToConsole(true, "Server stopped\n")
 	}
 	return
 }
@@ -202,9 +209,11 @@ func (p *Program) Kill() (err error) {
 	logging.Debug("Killing server %s", p.Id())
 	err = p.Environment.Kill()
 	if err != nil {
-		p.Environment.DisplayToConsole("Failed to kill server\n")
+		logging.Exception("Error killing server", err)
+		p.Environment.DisplayToConsole(true, "Failed to kill server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 	} else {
-		p.Environment.DisplayToConsole("Server killed\n")
+		p.Environment.DisplayToConsole(true, "Server killed\n")
 	}
 	return
 }
@@ -213,10 +222,17 @@ func (p *Program) Kill() (err error) {
 //This includes creating the environment.
 func (p *Program) Create() (err error) {
 	logging.Debug("Creating server %s", p.Id())
-	p.Environment.DisplayToConsole("Allocating server\n")
+	p.Environment.DisplayToConsole(true, "Allocating server\n")
 	err = p.Environment.Create()
-	p.Environment.DisplayToConsole("Server allocated\n")
-	p.Environment.DisplayToConsole("Ready to be installed\n")
+	if err != nil {
+		logging.Exception("Error creating server", err)
+		p.Environment.DisplayToConsole(true, "Failed to create server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
+	} else {
+		p.Environment.DisplayToConsole(true, "Server allocated\n")
+		p.Environment.DisplayToConsole(true, "Ready to be installed\n")
+	}
+
 	return
 }
 
@@ -226,16 +242,26 @@ func (p *Program) Destroy() (err error) {
 	logging.Debug("Destroying server %s", p.Id())
 	process, err := operations.GenerateProcess(p.Uninstallation, p.Environment, p.DataToMap(), p.Execution.EnvironmentVariables)
 	if err != nil {
-		p.Environment.DisplayToConsole("Error running uninstall, check daemon logs\n")
+		logging.Exception("Error uninstalling server", err)
+		p.Environment.DisplayToConsole(true, "Failed to uninstall server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
 
 	err = process.Run(p.Environment)
 	if err != nil {
-		p.Environment.DisplayToConsole("Error running uninstall, check daemon logs\n")
+		logging.Exception("Error uninstalling server", err)
+		p.Environment.DisplayToConsole(true, "Failed to uninstall server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
+
 	err = p.Environment.Delete()
+	if err != nil {
+		logging.Exception("Error uninstalling server", err)
+		p.Environment.DisplayToConsole(true, "Failed to uninstall server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
+	}
 	return
 }
 
@@ -249,7 +275,7 @@ func (p *Program) Install() (err error) {
 	running, err := p.IsRunning()
 	if err != nil {
 		logging.Exception("error checking server status", err)
-		p.Environment.DisplayToConsole("Error on checking to see if server is running\n")
+		p.Environment.DisplayToConsole(true, "Error on checking to see if server is running\n")
 		return
 	}
 
@@ -258,35 +284,41 @@ func (p *Program) Install() (err error) {
 	}
 
 	if err != nil {
-		logging.Exception("error stopping server", err)
-		p.Environment.DisplayToConsole("Error stopping server\n")
+		logging.Exception("Error stopping server", err)
+		p.Environment.DisplayToConsole(true, "Failed to stop server\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
 
-	p.Environment.DisplayToConsole("Installing server\n")
+	p.Environment.DisplayToConsole(true, "Installing server\n")
 
 	err = os.MkdirAll(p.Environment.GetRootDirectory(), 0755)
 	if err != nil && !os.IsExist(err) {
-		logging.Exception("error creating server directory", err)
-		p.Environment.DisplayToConsole("Error installing server\n")
+		logging.Exception("Error creating server directory", err)
+		p.Environment.DisplayToConsole(true, "Failed to create server directory\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
 
 	if len(p.Installation) > 0 {
 		process, err := operations.GenerateProcess(p.Installation, p.GetEnvironment(), p.DataToMap(), p.Execution.EnvironmentVariables)
 		if err != nil {
-			p.Environment.DisplayToConsole("Error running installer, check daemon logs\n")
+			logging.Exception("Error installing server", err)
+			p.Environment.DisplayToConsole(true, "Failed to install server\n")
+			p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 			return err
 		}
 
 		err = process.Run(p.Environment)
 		if err != nil {
-			p.Environment.DisplayToConsole("Error running installer, check daemon logs\n")
+			logging.Exception("Error installing server", err)
+			p.Environment.DisplayToConsole(true, "Failed to install server\n")
+			p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 			return err
 		}
 	}
 
-	p.Environment.DisplayToConsole("Server installed\n")
+	p.Environment.DisplayToConsole(true, "Server installed\n")
 	return
 }
 
@@ -413,17 +445,19 @@ func (p *Program) afterExit(graceful bool) {
 
 	processes, err := operations.GenerateProcess(p.Execution.PostExecution, p.Environment, mapping, p.Execution.EnvironmentVariables)
 	if err != nil {
-		logging.Error("Error running post processing")
-		p.Environment.DisplayToConsole("Error executing post steps\n")
+		logging.Exception("Error running post processing for server " + p.Id(), err)
+		p.Environment.DisplayToConsole(true, "Failed to run post-execution steps\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
-	p.Environment.DisplayToConsole("Running post-execution steps\n")
+	p.Environment.DisplayToConsole(true, "Running post-execution steps\n")
 	logging.Debug("Running post execution steps: %s", p.Id())
 
 	err = processes.Run(p.Environment)
 	if err != nil {
-		logging.Error("Error running post processing")
-		p.Environment.DisplayToConsole("Error executing post steps\n")
+		logging.Exception("Error running post processing for server", err)
+		p.Environment.DisplayToConsole(true, "Failed to run post-execution steps\n")
+		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 		return
 	}
 

@@ -43,7 +43,7 @@ func DownloadFile(url, fileName string, env envs.Environment) error {
 	client := &http.Client{}
 
 	logging.Debug("Downloading: %s", url)
-	env.DisplayToConsole("Downloading: " + url + "\n")
+	env.DisplayToConsole(true, "Downloading: "+url+"\n")
 
 	response, err := client.Get(url)
 	defer commons.CloseResponse(response)
@@ -132,7 +132,7 @@ func DownloadViaMaven(downloadUrl string, env envs.Environment) (string, error) 
 	if !useCache {
 		logging.Info("Downloading new version and caching to %s", localPath)
 		if env != nil {
-			env.DisplayToConsole("Downloading:" + downloadUrl)
+			env.DisplayToConsole(true, "Downloading:"+downloadUrl)
 		}
 		err = DownloadFileToCache(downloadUrl, localPath)
 	}
