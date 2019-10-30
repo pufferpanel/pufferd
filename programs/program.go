@@ -198,7 +198,7 @@ func (p *Program) Stop() (err error) {
 		p.Environment.DisplayToConsole(true, "Failed to stop server\n")
 		p.Environment.DisplayToConsole(true, "%s\n", err.Error())
 	} else {
-		p.Environment.DisplayToConsole(true, "Server stopped\n")
+		p.Environment.DisplayToConsole(true, "Server was told to stop\n")
 	}
 	return
 }
