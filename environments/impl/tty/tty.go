@@ -63,7 +63,7 @@ func (t *tty) ttyExecuteAsync(cmd string, args []string, env map[string]string, 
 	pr.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
 	t.mainProcess = pr
 	logging.Debug("Starting process: %s %s", t.mainProcess.Path, strings.Join(t.mainProcess.Args[1:], " "))
-	tty, err := pty.Start()
+	tty, err := pty.Start(pr)
 	if err != nil {
 		return
 	}
