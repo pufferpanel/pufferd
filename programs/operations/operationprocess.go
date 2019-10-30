@@ -53,7 +53,7 @@ func GenerateProcess(directions []interface{}, environment envs.Environment, dat
 	for _, mapping := range directions {
 
 		var typeMap apufferi.MetadataType
-		err := apufferi.UnmarshalTo(mapping, typeMap)
+		err := apufferi.UnmarshalTo(mapping, &typeMap)
 		if err != nil {
 			return OperationProcess{}, err
 		}
