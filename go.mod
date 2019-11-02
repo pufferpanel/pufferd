@@ -33,7 +33,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.10.1
-	github.com/pufferpanel/apufferi/v4 v4.0.2
+	github.com/pufferpanel/apufferi/v4 v4.0.3
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
@@ -52,4 +52,5 @@ require (
 	gopkg.in/macaroon-bakery.v2 v2.1.0 // indirect
 	gopkg.in/macaroon.v2 v2.1.0 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
+	gotest.tools v2.2.0+incompatible // indirect
 )
