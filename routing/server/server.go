@@ -82,31 +82,28 @@ func RegisterRoutes(e *gin.Engine) {
 		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), DeleteFile)
 		l.OPTIONS("/:id/file/*filename", response.CreateOptions("GET", "PUT", "DELETE"))
 
+		l.GET("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsole, true), GetLogs)
 		l.POST("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsoleSend, true), PostConsole)
-		l.GET("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsole, true), cors.Middleware(cors.Config{
-			Origins:     "*",
-			Credentials: true,
-		}), GetConsole)
-		l.Handle("CONNECT", "/:id/console", func(c *gin.Context) {
-			c.Header("Access-Control-Allow-Origin", "*")
-			c.Header("Access-Control-Allow-Credentials", "false")
-		})
-		l.OPTIONS("/:id/console", response.CreateOptions("GET", "POST", "CONNECT"))
-
-		l.GET("/:id/logs", httphandlers.OAuth2Handler(scope.ServersConsole, true), GetLogs)
-		l.OPTIONS("/:id/logs", response.CreateOptions("GET"))
+		l.OPTIONS("/:id/console", response.CreateOptions("GET", "POST"))
 
 		l.GET("/:id/stats", httphandlers.OAuth2Handler(scope.ServersStat, true), GetStats)
 		l.OPTIONS("/:id/stats", response.CreateOptions("GET"))
 
 		l.GET("/:id/status", httphandlers.OAuth2Handler(scope.ServersStat, true), GetStatus)
 		l.OPTIONS("/:id/status", response.CreateOptions("GET"))
+	}
 
-		l.GET("/:id/socket", httphandlers.OAuth2Handler(scope.ServersConsole, true), cors.Middleware(cors.Config{
+	p := e.Group("/socket")
+	{
+		p.GET("/:id", httphandlers.OAuth2Handler(scope.ServersConsole, true), cors.Middleware(cors.Config{
 			Origins:     "*",
 			Credentials: true,
 		}), OpenSocket)
-		l.OPTIONS("/:id/socket", response.CreateOptions("GET"))
+		p.Handle("CONNECT", "/:id", func(c *gin.Context) {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Credentials", "false")
+		})
+		p.OPTIONS("/:id", response.CreateOptions("GET"))
 	}
 
 	l.POST("", httphandlers.OAuth2Handler(scope.ServersCreate, false), CreateServer)
