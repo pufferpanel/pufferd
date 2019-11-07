@@ -103,16 +103,18 @@ func RefreshIfStale() {
 	}
 }
 
-func createRequest(encodedData string) *http.Request {
+func createRequest(encodedData string) (request *http.Request) {
 	authUrl := viper.GetString("auth.url")
 
 	if strings.HasPrefix(authUrl, "unix:") && client.Transport != unixTransport {
+		logging.Debug("Configured to use unix socket")
 		client.Transport = unixTransport
-		authUrl = strings.TrimPrefix(authUrl, "unix:")
+		request, _ = http.NewRequest("POST", "http://unix/oauth2/token", bytes.NewBufferString(encodedData))
+	} else {
+		logging.Debug("Using standard http connection")
+		request, _ = http.NewRequest("POST", authUrl+"/oauth2/token", bytes.NewBufferString(encodedData))
 	}
-
-	request, _ := http.NewRequest("POST", authUrl+"/oauth2/token", bytes.NewBufferString(encodedData))
-	return request
+	return
 }
 
 type requestResponse struct {
@@ -122,8 +124,11 @@ type requestResponse struct {
 }
 
 var unixTransport = &http.Transport{
-	DialContext: func(ctx context.Context, _, addr string) (net.Conn, error) {
+	DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		dialer := net.Dialer{}
-		return dialer.DialContext(ctx, "unix", addr)
+		authUrl := viper.GetString("auth.url")
+		socketPath := strings.TrimPrefix(authUrl, "unix:")
+		logging.Debug("Using %s as socket path", socketPath)
+		return dialer.DialContext(ctx, "unix", socketPath)
 	},
 }

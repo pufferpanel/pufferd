@@ -35,13 +35,13 @@ VOLUME /var/lib/pufferd
 ENV PUFFERD_CONSOLE_BUFFER=50 \
     PUFFERD_CONSOLE_FORWARD=false \
     PUFFERD_LISTEN_WEB=0.0.0.0:5656 \
-    PUFFERD_LISTEN_SOCKET=unix:/var/run/pufferd/pufferd.sock \
+    PUFFERD_LISTEN_SOCKET=unix:/var/lib/pufferd/pufferd.sock \
     PUFFERD_LISTEN_WEBCERT=/var/lib/pufferd/web/https.pem \
     PUFFERD_LISTEN_WEBKEY=/var/lib/pufferd/web/https.key \
     PUFFERD_LISTEN_SFTP=0.0.0.0:5657 \
     PUFFERD_LISTEN_SFTPKEY=/var/lib/pufferd/sftp.key \
     PUFFERD_AUTH_PUBLICKEY=/var/lib/pufferd/panel.pem \
-    PUFFERD_AUTH_URL=unix:/var/run/pufferpanel.sock \
+    PUFFERD_AUTH_URL=unix:/var/lib/pufferd/pufferpanel.sock \
     PUFFERD_AUTH_CLIENTID=unknown \
     PUFFERD_AUTH_CLIENTSECRET=unknown \
     PUFFERD_DATA_CACHE=/var/lib/pufferd/cache \
@@ -53,4 +53,4 @@ ENV PUFFERD_CONSOLE_BUFFER=50 \
 WORKDIR /var/lib/pufferd
 
 ENTRYPOINT ["/pufferpanel/pufferd"]
-CMD ["run"]
+CMD ["--logging=DEVEL", "run"]
