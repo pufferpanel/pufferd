@@ -2,7 +2,6 @@ package pufferd
 
 import (
 	"github.com/spf13/viper"
-	"runtime"
 	"strings"
 )
 
@@ -17,14 +16,16 @@ func init() {
 	viper.SetDefault("console.forward", false)
 
 	viper.SetDefault("listen.web", "0.0.0.0:5656")
-	viper.SetDefault("listen.socket", "unix:/var/run/pufferd.sock")
+	//viper.SetDefault("listen.socket", "unix:/var/run/pufferd.sock")
 	viper.SetDefault("listen.webCert", "https.pem")
 	viper.SetDefault("listen.webKey", "https.key")
 	viper.SetDefault("listen.sftp", "0.0.0.0:5657")
 	viper.SetDefault("listen.sftpKey", "sftp.key")
 
 	viper.SetDefault("auth.publicKey", "panel.pem")
-	if runtime.GOOS == "windows" {
+
+	viper.SetDefault("auth.url", "http://localhost:8080")
+	/*if runtime.GOOS == "windows" {
 		viper.SetDefault("auth.url", "http://localhost:8080")
 	} else {
 		pufferpanelConfig := viper.New()
@@ -41,7 +42,7 @@ func init() {
 		} else {
 			viper.SetDefault("auth.url", "unix:/var/run/pufferpanel.sock")
 		}
-	}
+	}*/
 
 	viper.SetDefault("auth.clientId", "")
 	viper.SetDefault("auth.clientSecret", "")

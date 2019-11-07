@@ -19,7 +19,6 @@ package main
 import (
 	"fmt"
 	"github.com/braintree/manners"
-	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/environments"
@@ -29,13 +28,9 @@ import (
 	"github.com/pufferpanel/pufferd/v2/shutdown"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"net"
-	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"runtime/debug"
-	"strings"
 	"syscall"
 )
 
@@ -129,7 +124,7 @@ func runServices() error {
 		err = manners.ListenAndServe(web, router)
 	}
 
-	if runtime.GOOS != "windows" {
+	/*if runtime.GOOS != "windows" {
 		go func() {
 			file := viper.GetString("listen.socket")
 
@@ -165,7 +160,7 @@ func runServices() error {
 				return
 			}
 		}()
-	}
+	}*/
 
 	return err
 }

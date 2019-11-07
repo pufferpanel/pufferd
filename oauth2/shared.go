@@ -106,14 +106,17 @@ func RefreshIfStale() {
 func createRequest(encodedData string) (request *http.Request) {
 	authUrl := viper.GetString("auth.url")
 
-	if strings.HasPrefix(authUrl, "unix:") && client.Transport != unixTransport {
+	/*if strings.HasPrefix(authUrl, "unix:") && client.Transport != unixTransport {
 		logging.Debug("Configured to use unix socket")
 		client.Transport = unixTransport
 		request, _ = http.NewRequest("POST", "http://unix/oauth2/token", bytes.NewBufferString(encodedData))
 	} else {
 		logging.Debug("Using standard http connection")
 		request, _ = http.NewRequest("POST", authUrl+"/oauth2/token", bytes.NewBufferString(encodedData))
-	}
+	}*/
+
+	logging.Debug("Using standard http connection")
+	request, _ = http.NewRequest("POST", authUrl+"/oauth2/token", bytes.NewBufferString(encodedData))
 	return
 }
 
