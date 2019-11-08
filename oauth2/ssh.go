@@ -28,7 +28,10 @@ import (
 	"strings"
 )
 
-func ValidateSSH(username string, password string) (*ssh.Permissions, error) {
+type WebSSHAuthorization struct {
+}
+
+func (ws *WebSSHAuthorization) Validate(username string, password string) (*ssh.Permissions, error) {
 	return validateSSH(username, password, true)
 }
 

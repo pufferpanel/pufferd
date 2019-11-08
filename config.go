@@ -7,10 +7,12 @@ import (
 
 func init() {
 	//env configuration
-	viper.SetEnvPrefix("PUFFERD")
+	viper.SetEnvPrefix("PUFFERPANEL")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+}
 
+func SetDefaults() {
 	//defaults we can set at this point in time
 	viper.SetDefault("console.buffer", 50)
 	viper.SetDefault("console.forward", false)
@@ -25,24 +27,6 @@ func init() {
 	viper.SetDefault("auth.publicKey", "panel.pem")
 
 	viper.SetDefault("auth.url", "http://localhost:8080")
-	/*if runtime.GOOS == "windows" {
-		viper.SetDefault("auth.url", "http://localhost:8080")
-	} else {
-		pufferpanelConfig := viper.New()
-		pufferpanelConfig.SetEnvPrefix("PUFFERPANEL")
-		pufferpanelConfig.AutomaticEnv()
-		pufferpanelConfig.SetConfigName("config")
-		pufferpanelConfig.AddConfigPath("/etc/pufferpanel/")
-		pufferpanelConfig.AddConfigPath("/pufferpanel/")
-
-		_ = pufferpanelConfig.ReadInConfig()
-		panelUrl := pufferpanelConfig.GetString("web.socket")
-		if panelUrl != "" {
-			viper.SetDefault("auth.url", "unix:"+panelUrl)
-		} else {
-			viper.SetDefault("auth.url", "unix:/var/run/pufferpanel.sock")
-		}
-	}*/
 
 	viper.SetDefault("auth.clientId", "")
 	viper.SetDefault("auth.clientSecret", "")

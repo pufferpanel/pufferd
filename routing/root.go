@@ -23,7 +23,6 @@ import (
 	"github.com/pufferpanel/apufferi/v4/response"
 	"github.com/pufferpanel/pufferd/v2"
 	_ "github.com/pufferpanel/pufferd/v2/docs"
-	"github.com/pufferpanel/pufferd/v2/oauth2"
 	"github.com/pufferpanel/pufferd/v2/routing/server"
 	"github.com/pufferpanel/pufferd/v2/routing/swagger"
 	"net/http"
@@ -52,11 +51,9 @@ func ConfigureWeb() *gin.Engine {
 			middleware.ResponseAndRecover(c)
 		})
 		RegisterRoutes(r)
-		server.RegisterRoutes(r)
+		server.RegisterRoutes(r.Group("/"))
 		swagger.Load(r)
 	}
-
-	oauth2.RefreshToken()
 
 	return r
 }

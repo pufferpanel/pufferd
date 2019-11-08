@@ -49,7 +49,7 @@ var wsupgrader = websocket.Upgrader{
 	},
 }
 
-func RegisterRoutes(e *gin.Engine) {
+func RegisterRoutes(e *gin.RouterGroup) {
 	l := e.Group("/server")
 	{
 		l.PUT("/:id", httphandlers.OAuth2Handler(scope.ServersCreate, false), CreateServer)
@@ -80,7 +80,8 @@ func RegisterRoutes(e *gin.Engine) {
 		l.GET("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesGet, true), GetFile)
 		l.PUT("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), PutFile)
 		l.DELETE("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), DeleteFile)
-		l.OPTIONS("/:id/file/*filename", response.CreateOptions("GET", "PUT", "DELETE"))
+		l.POST("/:id/file/*filename", httphandlers.OAuth2Handler(scope.ServersFilesPut, true), response.NotImplemented)
+		l.OPTIONS("/:id/file/*filename", response.CreateOptions("GET", "PUT", "DELETE", "POST"))
 
 		l.GET("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsole, true), GetLogs)
 		l.POST("/:id/console", httphandlers.OAuth2Handler(scope.ServersConsoleSend, true), PostConsole)

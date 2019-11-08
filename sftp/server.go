@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/apufferi/v4/logging"
+	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/oauth2"
 	"github.com/pufferpanel/pufferd/v2/programs"
 	"github.com/spf13/viper"
@@ -36,6 +37,8 @@ import (
 
 var sftpServer net.Listener
 
+var auth pufferd.SFTPAuthorization
+
 func Run() {
 	err := runServer()
 	if err != nil {
@@ -43,14 +46,22 @@ func Run() {
 	}
 }
 
+func SetAuthorization(service pufferd.SFTPAuthorization) {
+	auth = service
+}
+
 func Stop() {
 	_ = sftpServer.Close()
 }
 
 func runServer() error {
+	if auth == nil {
+		auth = &oauth2.WebSSHAuthorization{}
+	}
+
 	config := &ssh.ServerConfig{
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
-			return oauth2.ValidateSSH(c.User(), string(pass))
+			return auth.Validate(c.User(), string(pass))
 		},
 	}
 

@@ -17,20 +17,13 @@
 package httphandlers
 
 import (
-	"bytes"
-	"crypto/ecdsa"
-	"crypto/x509"
-	"encoding/pem"
 	"github.com/gin-gonic/gin"
 	"github.com/pufferpanel/apufferi/v4"
 	"github.com/pufferpanel/apufferi/v4/response"
 	"github.com/pufferpanel/apufferi/v4/scope"
 	"github.com/pufferpanel/pufferd/v2"
 	"github.com/pufferpanel/pufferd/v2/programs"
-	"github.com/spf13/viper"
-	"io"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -42,6 +35,7 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 				c.Abort()
 			}
 		}()
+
 		authHeader := c.Request.Header.Get("Authorization")
 		var authToken string
 		if authHeader == "" {
@@ -59,33 +53,16 @@ func OAuth2Handler(requiredScope scope.Scope, requireServer bool) gin.HandlerFun
 			authToken = authArr[1]
 		}
 
-		f, err := os.OpenFile(viper.GetString("auth.publicKey"), os.O_RDONLY, 660)
-		defer apufferi.Close(f)
-		if response.HandleError(c, err, http.StatusInternalServerError) {
-			return
+		var err error
+		key := pufferd.GetPublicKey()
+		if key == nil {
+			key, err = pufferd.LoadPublicKey()
+			if response.HandleError(c, err, http.StatusInternalServerError) {
+				return
+			}
 		}
 
-		var buf bytes.Buffer
-
-		_, _ = io.Copy(&buf, f)
-
-		block, _ := pem.Decode(buf.Bytes())
-		if block == nil {
-			response.HandleError(c, pufferd.ErrKeyNotPEM, http.StatusInternalServerError)
-			return
-		}
-		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-		if response.HandleError(c, err, http.StatusInternalServerError) {
-			return
-		}
-
-		pubKey, ok := pub.(*ecdsa.PublicKey)
-		if !ok {
-			response.HandleError(c, pufferd.ErrKeyNotECDSA, http.StatusInternalServerError)
-			return
-		}
-
-		token, err := apufferi.ParseToken(pubKey, authToken)
+		token, err := apufferi.ParseToken(key, authToken)
 		if response.HandleError(c, err, http.StatusForbidden) {
 			return
 		}

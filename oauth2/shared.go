@@ -18,17 +18,14 @@ package oauth2
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"github.com/pufferpanel/apufferi/v4/logging"
 	"github.com/pufferpanel/pufferd/v2/commons"
 	"github.com/spf13/viper"
-	"net"
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -106,15 +103,6 @@ func RefreshIfStale() {
 func createRequest(encodedData string) (request *http.Request) {
 	authUrl := viper.GetString("auth.url")
 
-	/*if strings.HasPrefix(authUrl, "unix:") && client.Transport != unixTransport {
-		logging.Debug("Configured to use unix socket")
-		client.Transport = unixTransport
-		request, _ = http.NewRequest("POST", "http://unix/oauth2/token", bytes.NewBufferString(encodedData))
-	} else {
-		logging.Debug("Using standard http connection")
-		request, _ = http.NewRequest("POST", authUrl+"/oauth2/token", bytes.NewBufferString(encodedData))
-	}*/
-
 	logging.Debug("Using standard http connection")
 	request, _ = http.NewRequest("POST", authUrl+"/oauth2/token", bytes.NewBufferString(encodedData))
 	return
@@ -124,14 +112,4 @@ type requestResponse struct {
 	AccessToken string        `json:"access_token"`
 	ExpiresIn   time.Duration `json:"expires_in"`
 	Error       string        `json:"error"`
-}
-
-var unixTransport = &http.Transport{
-	DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
-		dialer := net.Dialer{}
-		authUrl := viper.GetString("auth.url")
-		socketPath := strings.TrimPrefix(authUrl, "unix:")
-		logging.Debug("Using %s as socket path", socketPath)
-		return dialer.DialContext(ctx, "unix", socketPath)
-	},
 }
