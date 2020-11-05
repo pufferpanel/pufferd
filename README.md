@@ -7,7 +7,7 @@ Linux Build Status - [![Linux Build Status](https://ci.pufferpanel.com/app/rest/
 
 Windows Build Status - [![Windows Build Status](https://ci.pufferpanel.com/app/rest/builds/buildType:core-windows/statusIcon.svg)](https://ci.pufferpanel.com/viewType.html?buildTypeId=pufferd_core_windows)
 
-[Documentation](https://pufferd.pufferpanel.com)
+[Documentation](https://pufferpanel.com)
 
 [API Documentation](https://speca.io/PufferPanel/pufferd)
 
